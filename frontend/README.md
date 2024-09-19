@@ -6,13 +6,17 @@ The frontend is a **React + TypeScript** project using **Vite**. Note that `yarn
 
 ### Quick start
 
-This application requires the [installation of Node.js](https://nodejs.org/en) and the `yarn` package manager, which can be done here:
+This application requires Node.js and the `yarn` package manager to be installed.
+
+The Node.js installation can be done [here](https://nodejs.org/en).
+
+The `yarn` package manager can be installed using the following terminal command once Node.js is installed:
 
 ```
 npm install --global yarn
 ```
 
-Run these two commands from the frontend folder to get the frontend up and running quickly:
+With `yarn` installed, you can run these two commands from the `./frontend` folder to get the frontend up and running quickly:
 
 - `yarn` (installs all required dependencies used by this frontend)
 - `yarn dev` (to run the application)
