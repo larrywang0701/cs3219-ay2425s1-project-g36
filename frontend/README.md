@@ -30,3 +30,5 @@ When running the application in the development environment, you can also edit t
 ### Adding dependencies: `yarn add PACKAGE_NAME`
 
 To add an NPM dependency to this application, use the `yarn add` command to add the specific desired `npm` package.
+
+For more Yarn commands and their equivalents in terms of the `npm` command, you may refer to this cheatsheet [here](https://shift.infinite.red/npm-vs-yarn-cheat-sheet-8755b092e5cc).
