@@ -18,8 +18,8 @@ npm install --global yarn
 
 With `yarn` installed, you can run these two commands from the `./frontend` folder to get the frontend up and running quickly:
 
-- `yarn` (installs all required dependencies used by this frontend)
-- `yarn dev` (to run the application)
+1. `yarn` (installs all required dependencies used by this frontend)
+2. `yarn dev` (to run the application)
 
 ### Running the application: `yarn dev`
 
