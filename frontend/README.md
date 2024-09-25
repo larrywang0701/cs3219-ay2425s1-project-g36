@@ -94,7 +94,7 @@ You may add a route by adding a &lt;Route /&gt; tag within the &lt;Routes&gt;&lt
 <Route path="/link/to/path/:something" component={ PageA } />
 ```
 
-You can use React Router's `useParams()` hook to . If `PageA` component is implemented in a `PageA.tsx` file, you may implement it as follows:
+You can use React Router's `useParams()` hook to get the URL parameters. For example, `/link/to/path/1` causes the `something` parameter above to have the value `1`. If `PageA` component is implemented in a `PageA.tsx` file, you may implement it as follows:
 
 ```tsx
 import { useParams } from 'react-router-dom';
