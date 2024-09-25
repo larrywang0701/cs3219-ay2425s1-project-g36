@@ -27,8 +27,106 @@ This command runs the application on port 5173. Run this command and visit http:
 
 When running the application in the development environment, you can also edit the source React TSX files and view the changes instantaneously on your web browser.
 
+#### Application paths you can try
+
+- `http://localhost:5173/` - main page if logged in, redirect to login page if not
+- `http://localhost:5173/login` - login page if not logged in
+- `http://localhost:5173/signup` - signup page if not logged in
+- `http://localhost:5173/forgot-password` - forgot password page if not logged in
+- `http://localhost:5173/settings` - user account settings if logged in
+- `http://localhost:5173/questions` - question list if logged in
+- `http://localhost:5173/questions/1` - view question 1 if not admin, edit question 1 if admin, login page if not logged in
+- `http://localhost:5173/nonsense-link` - error page
+
 ### Adding dependencies: `yarn add PACKAGE_NAME`
 
 To add an NPM dependency to this application, use the `yarn add` command to add the specific desired `npm` package.
 
 For more Yarn commands and their equivalents in terms of the `npm` command, you may refer to this cheatsheet [here](https://shift.infinite.red/npm-vs-yarn-cheat-sheet-8755b092e5cc).
+
+## Editing the frontend
+
+This application uses **React Router v6**. All the individual pages within this application are located within the `/pages` folder and routed based on path in `App.tsx`. You may refer to the [Figma UI outline](https://www.figma.com/design/RnzGRTLoieWlvUJoHLH6eE) to take a look at what the pages are supposed to look like.
+
+### Adding a route to a page
+You may add a route by adding a &lt;Route /&gt; tag within the &lt;Routes&gt;&lt;/Routes&gt; section within `App.tsx`. Here are some example routes (depending on context), where **PageA** and **PageB** refer to page components already implemented in `/pages`:
+
+- Public and private route: 
+  ```tsx
+  <Route path="/link/to/path/:param" element={
+    <PageA />
+  } />
+  ```
+
+  or
+
+  ```tsx
+  <Route path="/link/to/path/:param" component={ PageA } />
+  ```
+- Private route (for logged-in users only):
+  ```tsx
+  <Route path="/link/to/path/:param" element={
+    <PrivateRoute>
+      <PageA />
+    </PrivateRoute>
+  } />
+  ```
+- Public route (for non-logged-in users only):
+  ```tsx
+  <Route path="/link/to/path/:param" element={
+    <PublicRoute>
+      <PageB />
+    </PublicRoute>
+  } />
+  ```
+- Admin-only route:
+  ```tsx
+  <Route path="/questions/:id" element={
+    <AdminRoute
+      adminRoute={ <EditQuestionPage /> }
+      nonAdminRoute={ <ViewQuestionPage /> }
+    />
+  } />
+  ```
+
+### Accessing parameters in a route URL
+```tsx
+<Route path="/link/to/path/:something" component={ PageA } />
+```
+
+You can use React Router's `useParams()` hook to . If `PageA` component is implemented in a `PageA.tsx` file, you may implement it as follows:
+
+```tsx
+import { useParams } from 'react-router-dom';
+
+export default function PageA() {
+  const params = useParams();
+
+  const something = params.something;
+
+  return (
+    <>Page A with something param value {something}</>
+  )
+}
+```
+
+### Using the Authentication Context to access User Information
+In order to detect whether a user is logged in, an admin, as well as the currently logged-in user's details, we use the Authentication Context (`./contexts/AuthContext.tsx`). In order to ensure authentication context stays between page refreshes, it is loaded and saved into `localStorage` as and when it is updated.
+
+In your page, you can access the following: `auth`, `login`, `logout`:
+- `auth`: The current login information, consisting of a JavaScript object with two boolean values: `isLoggedIn` and `isAdmin` (for now).
+- `login(isAdmin : boolean)`: The login function. Takes in the parameter `isAdmin` to detect whether the user wants to log in as an admin or not.
+- `logout()`: The logout function.
+
+**Example usage:**
+```tsx
+const { auth, login, logout } = useAuth();
+
+const loginAsAdminBtnClick = () => {
+  login(true); // Log in as admin
+  const adminStatus = auth.isAdmin ? "Yes" : "No";
+  alert("Logged in as admin? " + adminStatus);
+}
+
+const logoutBtnClick = () => { logout(); }
+```
