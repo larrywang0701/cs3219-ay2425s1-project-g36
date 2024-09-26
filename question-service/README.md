@@ -7,15 +7,16 @@
 
 ### How to run backend server
 
-1. Add the `QUESTION_SERVICE_MONGODB_URL` (which zac sent in tele chat) into the `.env` file
-2. Run `npm run dev` (make sure you are in the `backend` directory)
+1. run `npm i` in the `backend` directory to install dependencies
+2. Add the `QUESTION_SERVICE_MONGODB_URL` (which zac sent in tele chat) into the `.env` file
+3. Run `npm run dev` (make sure you are in the `backend` directory)
     - If it works, you should see the following console logs in your terminal
   ```
     MongoDB URL:  <the URL>
     App connected to database
     App is listening to port: 3000
   ```
-3. FYI: I used the nodemon dependency so that you can save your code changes and the backend server will automatically restart (observe your terminal for more information)
+4. FYI: I used the nodemon dependency so that you can save your code changes and the backend server will automatically restart (observe your terminal for more information)
 
 ### Things to take note if you face some issues running the application
 
