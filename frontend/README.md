@@ -35,6 +35,7 @@ When running the application in the development environment, you can also edit t
 - `http://localhost:5173/forgot-password` - forgot password page if not logged in
 - `http://localhost:5173/settings` - user account settings if logged in
 - `http://localhost:5173/questions` - question list if logged in
+- `http://localhost:5173/questions/new` - form to add questions if admin, else redirects to list questions page
 - `http://localhost:5173/questions/1` - view question 1 if not admin, edit question 1 if admin, login page if not logged in
 - `http://localhost:5173/nonsense-link` - error page
 
@@ -61,7 +62,7 @@ You may add a route by adding a &lt;Route /&gt; tag within the &lt;Routes&gt;&lt
   or
 
   ```tsx
-  <Route path="/link/to/path/:param" component={ PageA } />
+  <Route path="/link/to/path/:param" Component={ PageA } />
   ```
 - Private route (for logged-in users only):
   ```tsx
@@ -81,6 +82,7 @@ You may add a route by adding a &lt;Route /&gt; tag within the &lt;Routes&gt;&lt
   ```
 - Admin-only route:
   ```tsx
+  // render two separate pages
   <Route path="/questions/:id" element={
     <AdminRoute
       adminRoute={ <EditQuestionPage /> }
@@ -88,10 +90,20 @@ You may add a route by adding a &lt;Route /&gt; tag within the &lt;Routes&gt;&lt
     />
   } />
   ```
+  or
+  ```tsx
+  // redirects users to ./questions if not admin
+  <Route path="/questions/new" element={
+    <AdminRoute
+      adminRoute={ <AddQuestionPage /> }
+      nonAdminRoute={ <Navigate to="/questions" /> }
+    />
+  } />
+  ```
 
 ### Accessing parameters in a route URL
 ```tsx
-<Route path="/link/to/path/:something" component={ PageA } />
+<Route path="/link/to/path/:something" Component={ PageA } />
 ```
 
 You can use React Router's `useParams()` hook to get the URL parameters. For example, `/link/to/path/1` causes the `something` parameter above to have the value `1`. If `PageA` component is implemented in a `PageA.tsx` file, you may implement it as follows:

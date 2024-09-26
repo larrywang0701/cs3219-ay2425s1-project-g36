@@ -9,6 +9,7 @@ import SignupPage from "./pages/user-service/SignupPage";
 import ForgotPasswordPage from "./pages/user-service/ForgotPasswordPage";
 import AccountSettingsPage from "./pages/user-service/AccountSettingsPage";
 import ErrorPage from "./pages/ErrorPage";
+import AddQuestionPage from "./pages/question-service/AddQuestionPage";
 
 /**
  * A wrapper around routes that should only be accessed by logged-in users.
@@ -131,6 +132,12 @@ function App() {
             <AdminRoute
               adminRoute={ <EditQuestionPage /> }
               nonAdminRoute={ <ViewQuestionPage /> }
+            />
+          } />
+          <Route path="/questions/new" element={
+            <AdminRoute
+              adminRoute={ <AddQuestionPage /> }
+              nonAdminRoute={ <Navigate to="/questions" /> }
             />
           } />
           <Route path="*" Component={ ErrorPage } />
