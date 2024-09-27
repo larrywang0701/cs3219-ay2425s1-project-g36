@@ -9,6 +9,6 @@ export default function Difficulty({ type } : { type: "easy" | "medium" | "hard"
   };
 
   return (
-    <span className={ colors[type] }>{ type.toUpperCase() }</span>
+    <span className={ colors[type] }>{ type[0].toUpperCase() + type.slice(1) }</span>
   )
 }
