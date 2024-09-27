@@ -1,5 +1,6 @@
 import { Question } from "@/api/question-service/Question";
 import { deleteQuestion, fetchQuestions } from "@/api/question-service/QuestionService";
+import PageHeader from "@/components/common/PageHeader";
 import ListQuestionTable from "@/components/question-service/list-question-page/ListQuestionTable";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/SearchInput";
@@ -53,30 +54,33 @@ export default function ListQuestionPage() {
   });
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex flex-row">
-        <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight mb-4">
-          Questions
-        </h2>
-        <div className="flex-1"></div>
-        <SearchInput 
-          className="rounded-lg mb-4 ml-10 mr-5"
-          value={search}
-          onClearInput={ handleClearInput }
-          onInputChange={ handleInputChange } />
-        <Button variant="ghost" className="p-0 flex items-center">
-          <FilterIcon />
-        </Button>
-        { auth.isAdmin &&
-          // this should only be shown if the user is an admin
-          <Button className="rounded-lg bg-black hover:bg-gray-800 text-white hover:text-gray-100 ml-4 flex items-center">
-            <Link to="/questions/new">
-              Add Question
-            </Link>
+    <>
+      <PageHeader />
+      <div className="container mx-auto py-10">
+        <div className="flex flex-row">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight mb-4">
+            Questions
+          </h2>
+          <div className="flex-1"></div>
+          <SearchInput 
+            className="rounded-lg mb-4 ml-10 mr-5"
+            value={search}
+            onClearInput={ handleClearInput }
+            onInputChange={ handleInputChange } />
+          <Button variant="ghost" className="p-0 flex items-center">
+            <FilterIcon />
           </Button>
-        }
+          { auth.isAdmin &&
+            // this should only be shown if the user is an admin
+            <Button className="rounded-lg bg-black hover:bg-gray-800 text-white hover:text-gray-100 ml-4 flex items-center">
+              <Link to="/questions/new">
+                Add Question
+              </Link>
+            </Button>
+          }
+        </div>
+        <ListQuestionTable onDelete={ handleDelete } questions={ filteredQuestions } />
       </div>
-      <ListQuestionTable onDelete={ handleDelete } questions={ filteredQuestions } />
-    </div>
+    </>
   );
 }
