@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Converts the list of topics into a more readable and aesthetic format.
+ * Converts the list of topics into a more readable and aesthetic badge format.
  * Requires the following props:
  * 
  * - `topics`: The topics to display in the List Question Table.

@@ -1,5 +1,5 @@
 /**
- * Component for setting difficulty colour.
+ * Component for formatting the difficulty colour.
  */
 export default function Difficulty({ type } : { type: "easy" | "medium" | "hard" }) {
   const colors = {

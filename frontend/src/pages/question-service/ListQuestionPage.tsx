@@ -1,5 +1,5 @@
 import { Question } from "@/api/question-service/Question";
-import { fetchQuestions } from "@/api/question-service/QuestionService";
+import { deleteQuestion, fetchQuestions } from "@/api/question-service/QuestionService";
 import ListQuestionTable from "@/components/question-service/list-question-page/ListQuestionTable";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/SearchInput";
@@ -16,12 +16,16 @@ export default function ListQuestionPage() {
   const [ search, setSearch ] = useState("");
   const { auth } = useAuth();
 
-  useEffect(() => {
+  const updateQuestionTable = () => {
     fetchQuestions().then(questionList => {
       setQuestions(questionList);
     });
-  }, [])
+  }
 
+  // update question table on first page load
+  useEffect(() => {
+    updateQuestionTable();
+  }, [])
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)
@@ -32,7 +36,10 @@ export default function ListQuestionPage() {
   }
 
   const handleDelete = (id : string) => {
-    console.log(id);
+    deleteQuestion(id).then(() => {
+      // update question table on deletion
+      updateQuestionTable();
+    })
   }
 
   const filteredQuestions = questions.filter((question) => {

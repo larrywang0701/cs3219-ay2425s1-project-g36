@@ -174,6 +174,14 @@ function DataTable<TData, TValue>({ columns, data } : DataTableProps<TData, TVal
   )
 }
 
+/**
+ * Generates the table in the ListQuestionPage. Requires the following props:
+ * - `onDelete`: What happens when a single question is deleted.
+ * - `isAdmin`: Whether to show the `Actions` column or not (which is dependent on whether the user
+ * is an admin).
+ * 
+ * @returns The generated table for the ListQuestionPage.
+ */
 export default function ListQuestionTable({ onDelete, questions } : { onDelete : (id : string) => void, questions : Question[] }) {
   const { auth } = useAuth();
   
