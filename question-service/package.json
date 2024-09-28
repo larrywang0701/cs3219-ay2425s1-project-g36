@@ -6,6 +6,9 @@
     "start": "ts-node src/index.ts",
     "dev": "nodemon --exec ts-node src/index.ts"
   },
+  "prettier": {
+    "tabWidth": 4
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

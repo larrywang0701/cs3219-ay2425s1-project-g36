@@ -1,11 +1,11 @@
-import mongoose, { Document } from "mongoose"
-const AutoIncrement = require('mongoose-sequence')(mongoose);
+import mongoose, { Document } from "mongoose";
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 interface IQuestion extends Document {
-    title: string
-    difficulty: 'easy' | 'medium' | 'hard'
-    topics?: string[]
-    description: string
+    title: string;
+    difficulty: "easy" | "medium" | "hard";
+    topics?: string[];
+    description: string;
 }
 
 const questionSchema = new mongoose.Schema(
@@ -16,11 +16,17 @@ const questionSchema = new mongoose.Schema(
         title: {
             type: String,
             required: true,
+            index: {
+                // makes title a primary key, which ignores caps when checking for uniqueness
+                // i.e. 'Word Search' and 'word search' are considered duplicates
+                unique: true,
+                collation: { locale: "en", strength: 2 },
+            },
         },
         difficulty: {
             type: String,
             required: true,
-            enum: ['easy', 'medium', 'hard']
+            enum: ["easy", "medium", "hard"],
         },
         topics: {
             type: [String],
@@ -35,7 +41,7 @@ const questionSchema = new mongoose.Schema(
         timestamps: true,
         id_: false,
     }
-)
+);
 
 questionSchema.plugin(AutoIncrement);
-export const Question = mongoose.model<IQuestion>('Question', questionSchema)
+export const Question = mongoose.model<IQuestion>("Question", questionSchema);
