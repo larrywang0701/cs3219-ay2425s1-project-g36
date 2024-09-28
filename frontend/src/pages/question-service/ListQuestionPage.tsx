@@ -1,11 +1,12 @@
 import { Question } from "@/api/question-service/Question";
 import { deleteQuestion, fetchQuestions } from "@/api/question-service/QuestionService";
 import PageHeader from "@/components/common/PageHeader";
+import { TDifficulty } from "@/components/question-service/Difficulty";
+import FilterPopover from "@/components/question-service/list-question-page/FilterPopover";
 import ListQuestionTable from "@/components/question-service/list-question-page/ListQuestionTable";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/SearchInput";
 import { useAuth } from "@/contexts/AuthContext";
-import { FilterIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -14,6 +15,8 @@ import { Link } from "react-router-dom";
  */
 export default function ListQuestionPage() {
   const [ questions, setQuestions ] = useState<Question[]>([]);
+  const [ difficultyFilter, setDifficultyFilter ] = useState<TDifficulty[]>(["easy", "medium", "hard"]);
+  const [ topicFilter, setTopicFilter ] = useState<string[]>([]);
   const [ search, setSearch ] = useState("");
   const { auth } = useAuth();
 
@@ -26,6 +29,24 @@ export default function ListQuestionPage() {
   // update question table on first page load
   useEffect(() => {
     updateQuestionTable();
+  }, [])
+
+  // perhaps a new backend API endpoint that lists all topics would be nice here?
+  const [ topics, setTopics ] = useState<string[]>([]);
+
+  // set here to remove duplicate topics
+  const fetchTopics = () => fetchQuestions().then(
+    questions => [ ...new Set(
+      questions.flatMap(question => question.topics ?? [])
+    )]
+  )
+
+  // initialise topics and topic filters
+  useEffect(() => {
+    fetchTopics().then(topics => {
+      setTopics(topics);
+      setTopicFilter(topics);
+    })
   }, [])
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +71,12 @@ export default function ListQuestionPage() {
     const titleContains = question.title.toLowerCase().includes(searchString);
     const topicContains = question.topics?.reduce((acc, x) => acc || (x.toLowerCase() == searchString), false) ?? false;
     const difficultyMatch = (searchString == question.difficulty);
-    return titleContains || difficultyMatch || topicContains;
+    const difficultyInFilter = difficultyFilter.includes(question.difficulty);
+    const topicInFilter = topicFilter.filter(
+      topic => (question.topics && question.topics.includes(topic))
+    ).length > 0;
+
+    return (titleContains || difficultyMatch || topicContains) && difficultyInFilter && topicInFilter;
   });
 
   return (
@@ -67,9 +93,13 @@ export default function ListQuestionPage() {
             value={search}
             onClearInput={ handleClearInput }
             onInputChange={ handleInputChange } />
-          <Button variant="ghost" className="p-0 flex items-center">
-            <FilterIcon />
-          </Button>
+          <FilterPopover 
+            dChecked={ difficultyFilter }
+            onDChecked={ setDifficultyFilter }
+            topics={ topics }
+            tChecked={ topicFilter }
+            onTChecked={ setTopicFilter }
+          />
           { auth.isAdmin &&
             // this should only be shown if the user is an admin
             <Button className="rounded-lg bg-black hover:bg-gray-800 text-white hover:text-gray-100 ml-4 flex items-center">

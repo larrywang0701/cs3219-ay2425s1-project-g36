@@ -1,7 +1,12 @@
 /**
+ * The enum type that represents the difficulty.
+ */
+export type TDifficulty = "easy" | "medium" | "hard";
+
+/**
  * Component for formatting the difficulty colour.
  */
-export default function Difficulty({ type } : { type: "easy" | "medium" | "hard" }) {
+export default function Difficulty({ type } : { type: TDifficulty }) {
   const colors = {
     "easy": "text-emerald-600",
     "medium": "text-amber-500",
