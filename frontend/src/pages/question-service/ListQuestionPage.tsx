@@ -64,6 +64,11 @@ export default function ListQuestionPage() {
     })
   }
 
+  const handleResetFilters = () => {
+    setTopicFilter(topics);
+    setDifficultyFilter(["easy", "medium", "hard"]);
+  }
+
   const filteredQuestions = questions.filter((question) => {
     // case-insensitive search
     const searchString = search.toLowerCase();
@@ -99,10 +104,11 @@ export default function ListQuestionPage() {
             topics={ topics }
             tChecked={ topicFilter }
             onTChecked={ setTopicFilter }
+            onResetFilters={ handleResetFilters }
           />
           { auth.isAdmin &&
             // this should only be shown if the user is an admin
-            <Button className="rounded-lg bg-black hover:bg-gray-800 text-white hover:text-gray-100 ml-4 flex items-center">
+            <Button className="rounded-lg btnblack ml-4 flex items-center">
               <Link to="/questions/new">
                 Add Question
               </Link>

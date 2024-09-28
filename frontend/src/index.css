@@ -6,3 +6,8 @@
 a:not(button a):not(nav a):not(div[role="menuitem"] a):not(#peerprep-header) {
   @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600
 }
+
+/* custom styling for black background, white foreground buttons in UI */
+.btnblack {
+  @apply bg-black hover:bg-gray-800 text-white hover:text-gray-100 !important;
+}
