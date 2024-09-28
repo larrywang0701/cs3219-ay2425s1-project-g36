@@ -122,6 +122,50 @@ export default function PageA() {
 }
 ```
 
+### Page Header (for Question Service and Matching Service Pages)
+When you start designing a question service and matching service page, add the header using the following format:
+
+```tsx
+export default function PageA() {
+  return (
+    <>
+      <PageHeader />
+      <div className="container mx-auto py-10">
+        { /* your other stuff... */ }
+      </div>
+    </>
+  );
+}
+```
+
+This is not required for pages related to the User Service.
+
+### Difficulty view/topic view (for Question Service pages)
+You may add a formatted difficulty view that has the relevant colour using the `Difficulty` component:
+
+```tsx
+// difficulty type can be "easy", "medium", or "hard"
+return (
+  <p>
+    <Difficulty type="easy" />
+  </p>
+);
+```
+
+You may also add a view containing all topics using the `TopicView` component:
+```tsx
+const topics = ['DP', 'binary search', 'graph theory'];
+
+return (
+  <section>
+    <h3>Topics</h3>
+    <p>
+      <TopicView topics={ topics } />
+    </p>
+  </section>
+);
+```
+
 ### Using the Authentication Context to access User Information
 In order to detect whether a user is logged in, an admin, as well as the currently logged-in user's details, we use the Authentication Context (`./contexts/AuthContext.tsx`). In order to ensure authentication context stays between page refreshes, it is loaded and saved into `localStorage` as and when it is updated.
 
