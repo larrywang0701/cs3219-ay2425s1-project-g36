@@ -43,6 +43,20 @@
             "description": "brute force is the way",
             "topics": ["brute force"]
         }
+        
+        {
+            "title": "N queens",
+            "difficulty": "hard",
+            "description": "I like searching through arrays",
+            "topics": ["DP", "array"]
+        }
+            
+        {
+            "title": "Longest Common Subsequence",
+            "difficulty": "medium",
+            "description": "DP is too easy",
+            "topics": ["stack", "DP"]
+        }
     ```
 
 4. `PUT http://localhost:3000/questions/:id`
