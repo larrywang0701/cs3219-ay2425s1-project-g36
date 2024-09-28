@@ -1,4 +1,5 @@
 import mongoose, { Document } from "mongoose"
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 interface IQuestion extends Document {
     title: string
@@ -9,6 +10,9 @@ interface IQuestion extends Document {
 
 const questionSchema = new mongoose.Schema(
     {
+        _id: {
+            type: Number,
+        },
         title: {
             type: String,
             required: true,
@@ -29,7 +33,9 @@ const questionSchema = new mongoose.Schema(
     },
     {
         timestamps: true,
+        id_: false,
     }
 )
 
+questionSchema.plugin(AutoIncrement);
 export const Question = mongoose.model<IQuestion>('Question', questionSchema)
