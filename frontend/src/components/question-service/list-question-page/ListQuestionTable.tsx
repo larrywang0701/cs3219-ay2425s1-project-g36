@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import Difficulty from "../Difficulty";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Eye, Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Pencil, Trash2 } from "lucide-react";
 import TopicView from "./TopicView";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -23,7 +23,13 @@ const makeColumnSortable = (title : string) => ({ column } : { column : Column<Q
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
     >
       { title }
-      <ArrowUpDown className="ml-2 h-4 w-4" />
+      { 
+        (column.getIsSorted() === "asc") ?
+          <ArrowUp className="ml-2 h-4 w-4" /> : 
+        (column.getIsSorted() === "desc") ? 
+          <ArrowDown className="ml-2 h-4 w-4" /> :
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+      }
     </Button>
   )
 }
