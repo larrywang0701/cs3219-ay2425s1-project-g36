@@ -42,23 +42,6 @@ router.post('/login', async (req: Request, res: Response) => {
     res.json({ token, message: 'Login successful' });
 });
 
-// Middleware for verifying token and checking blacklist
-const CheckTokenAgainstBlacklist = async (req: Request, res: Response, next: Function) => {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const isBlacklisted = await Blacklist.findOne({ token });
-    if (isBlacklisted) {
-        return res.status(403).json({ message: 'Token is blacklisted, please log in again' });
-    }
-
-    next(); // Continue to the next middleware or route handler
-};
-
-
 // Logout route
 router.post('/logout', async (req: Request, res: Response) => {
     const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is passed in the Authorization header
