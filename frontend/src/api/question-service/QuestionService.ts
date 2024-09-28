@@ -45,6 +45,6 @@ export async function deleteQuestion(id : string) {
     console.log(response);
     return response.data.data;
   }).catch(error => {
-    console.error("An error occurred when deleting question " + id + " in fetchQuestions():", error)
+    console.error("An error occurred when deleting question " + id + " in deleteQuestion():", error)
   });
 }
