@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
 import { User } from '../models/userModel'
 import { Blacklist } from '../models/blacklistModel'
+import bcrypt from 'bcrypt'
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
 const router: Router = Router()
 const secretKey = "undecided" // to be replaced with a more secure key in .env file
 const MAX_FAILED_ATTEMPTS = 5; 
@@ -71,7 +71,13 @@ router.post('/logout', async (req: Request, res: Response) => {
     var expiresAt = null
     try {
         const decodedToken = jwt.verify(token, secretKey)
-        expiresAt = new Date(decodedToken.exp * 1000)
+        // Type guard to check if decodedToken is JwtPayload
+        if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+            const expiresAt = new Date((decodedToken as JwtPayload).exp! * 1000);
+            console.log('Token expires at:', expiresAt);
+        } else {
+            return res.status(400).json({ message: 'Invalid token format' });
+        }
     } catch (error) {
         return res.status(400).json({ message: 'Invalid token' })
     }
