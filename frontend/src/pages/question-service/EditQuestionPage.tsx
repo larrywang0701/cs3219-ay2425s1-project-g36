@@ -1,3 +1,6 @@
+import MainContainer from "@/components/common/MainContainer";
+import PageHeader from "@/components/common/PageHeader";
+import EditQuestionForm from "@/components/question-service/edit-question-page/EditQuestionForm";
 import { useParams } from "react-router-dom"
 
 export default function EditQuestionPage() {
@@ -6,6 +9,11 @@ export default function EditQuestionPage() {
   const id = params.id;
 
   return (
-    <>Edit question page with ID {id}</>
+    <>
+      <PageHeader />
+      <MainContainer>
+        <EditQuestionForm id={ id } />
+      </MainContainer>
+    </>
   )
 }

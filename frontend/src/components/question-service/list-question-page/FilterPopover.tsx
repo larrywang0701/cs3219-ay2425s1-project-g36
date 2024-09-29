@@ -25,6 +25,7 @@ export default function FilterPopover({ dChecked, onDChecked, topics, tChecked, 
 }) {
 
   const difficulties = ["easy", "medium", "hard"] as TDifficulty[];
+  const inclNoTopics = [...topics, "No topic"];
 
   return (
     <div>
@@ -67,7 +68,7 @@ export default function FilterPopover({ dChecked, onDChecked, topics, tChecked, 
           <h4 className="font-semibold size-4 mb-3 mt-4">Topics</h4>
           <div className="flex items-center gap-2.5">
             {
-              topics.map((topic : string) => (
+              inclNoTopics.map((topic : string) => (
                 <div className="flex items-center gap-1">
                   <Checkbox
                     checked={tChecked.includes(topic)}
