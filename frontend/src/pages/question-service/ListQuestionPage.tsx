@@ -20,6 +20,8 @@ export default function ListQuestionPage() {
   const [ search, setSearch ] = useState("");
   const { auth } = useAuth();
 
+  document.title = `Question List | PeerPrep`;
+
   const updateQuestionTable = () => {
     fetchQuestions().then(questionList => {
       setQuestions(questionList);
