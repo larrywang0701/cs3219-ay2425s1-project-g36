@@ -45,7 +45,7 @@ export default function ListQuestionPage() {
   useEffect(() => {
     fetchTopics().then(topics => {
       setTopics(topics);
-      setTopicFilter(topics);
+      setTopicFilter([...topics, "No topic"]);
     })
   }, [])
   
@@ -65,7 +65,7 @@ export default function ListQuestionPage() {
   }
 
   const handleResetFilters = () => {
-    setTopicFilter(topics);
+    setTopicFilter([...topics, "No topic"]);
     setDifficultyFilter(["easy", "medium", "hard"]);
   }
 
@@ -80,8 +80,9 @@ export default function ListQuestionPage() {
     const topicInFilter = topicFilter.filter(
       topic => (question.topics && question.topics.includes(topic))
     ).length > 0;
+    const noTopicInFilter = ((!question.topics || question.topics.length === 0) && topicFilter.includes("No topic"));
 
-    return (titleContains || difficultyMatch || topicContains) && difficultyInFilter && topicInFilter;
+    return (titleContains || difficultyMatch || topicContains) && difficultyInFilter && (topicInFilter || noTopicInFilter);
   });
 
   return (

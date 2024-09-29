@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FilterIcon } from "lucide-react";
-import Difficulty, { TDifficulty } from "../Difficulty";
+import { TDifficulty } from "../Difficulty";
+import DifficultyEdit from "../DifficultyEdit";
 
 /**
  * Popover component that contains the filter button and 
@@ -25,6 +26,7 @@ export default function FilterPopover({ dChecked, onDChecked, topics, tChecked, 
 }) {
 
   const difficulties = ["easy", "medium", "hard"] as TDifficulty[];
+  const inclNoTopics = [...topics, "No topic"];
 
   return (
     <div>
@@ -37,7 +39,7 @@ export default function FilterPopover({ dChecked, onDChecked, topics, tChecked, 
         <PopoverContent className="bg-white">
           <h3 className="font-bold size-7">Filters</h3>
           <h4 className="font-semibold size-4 mb-3">Difficulty</h4>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             {
               difficulties.map((difficulty : TDifficulty) => (
                 <div className="flex items-center gap-1">
@@ -58,16 +60,16 @@ export default function FilterPopover({ dChecked, onDChecked, topics, tChecked, 
                     htmlFor={"difficulty-" + difficulty}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    <Difficulty type={ difficulty } />
+                    <DifficultyEdit type={ difficulty } />
                   </label>
                 </div>
               ))
             }
           </div>
           <h4 className="font-semibold size-4 mb-3 mt-4">Topics</h4>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             {
-              topics.map((topic : string) => (
+              inclNoTopics.map((topic : string) => (
                 <div className="flex items-center gap-1">
                   <Checkbox
                     checked={tChecked.includes(topic)}

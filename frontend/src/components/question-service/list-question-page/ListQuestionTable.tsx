@@ -35,6 +35,11 @@ const makeColumnSortable = (title : string) => ({ column } : { column : Column<Q
 }
 
 /**
+ * The difficulty order for sorting.
+ */
+const difficultyOrder = ["easy", "medium", "hard"];
+
+/**
  * Gets the correct column customisation, depending on whether the user is an admin
  * or not. Non-admins shouldn't be able to see the `Actions` section.
  * 
@@ -73,7 +78,12 @@ const getColumns = ( onDelete : (id : string) => void, isAdmin: boolean ) : Colu
       return (
         <Difficulty type={ difficulty } />
       )
-    }
+    },
+    sortingFn: (rowA, rowB, columnId) => {
+      const diffA = rowA.getValue(columnId) as string
+      const diffB = rowB.getValue(columnId) as string
+      return difficultyOrder.indexOf(diffA) - difficultyOrder.indexOf(diffB)
+    },
   },
   {
     accessorKey: "topics",
