@@ -97,8 +97,6 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
     const id = parseInt(req.params.id);
     const question = req.body;
 
-    // error handling for duplicate question
-
     if (isNaN(id)) {
         return res.status(400).send({
             message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
@@ -137,9 +135,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
 });
 
 // deletes a specific question by id
-router.delete(
-    "/:id",
-    async (req: Request, res: Response): Promise<Response> => {
+router.delete("/:id", async (req: Request, res: Response): Promise<Response> => {
         const id = parseInt(req.params.id);
 
         if (isNaN(id)) {
