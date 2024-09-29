@@ -71,7 +71,10 @@ export default function EditQuestionForm({ id } : { id? : string }) {
   return (
     <section>
       <PageTitle>
-        Edit Question
+        { isAddQuestion ?
+          "Add New Question" :
+          <>Edit Question #{id}</>
+        }
       </PageTitle>
       <div className="flex flex-col gap-3">
         <QuestionInputField
