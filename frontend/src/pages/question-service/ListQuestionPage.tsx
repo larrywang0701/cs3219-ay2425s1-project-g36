@@ -25,6 +25,8 @@ export default function ListQuestionPage() {
   const { auth } = useAuth();
   const [ errorMessage, setErrorMessage ] = useState("");
 
+  document.title = `Question List | PeerPrep`;
+
   const updateQuestionTable = () => {
     fetchQuestions().then(questionList => {
       setLoading(false);

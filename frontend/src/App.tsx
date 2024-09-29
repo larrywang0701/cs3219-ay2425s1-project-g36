@@ -1,5 +1,4 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
-import MainPage from "./pages/MainPage"
 import LoginPage from "./pages/user-service/LoginPage"
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import EditQuestionPage from "./pages/question-service/EditQuestionPage";
