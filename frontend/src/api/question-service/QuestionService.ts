@@ -23,11 +23,30 @@ const api = axios.create({
  */
 export async function fetchQuestions() : Promise<Question[]> {
   const data = await api.get('/questions/').then(response => {
+    console.log(`questions fetched: ${response.data.data}`)
     return response.data.data;
   }).catch(error => {
     console.error("An error occurred when fetching questions in fetchQuestions():", error)
   });
   return fromQuestionList(data);
+}
+
+/**
+ * An async function that fetches a question by id from the backend question
+ * service.
+ * 
+ * @param id The question ID to fetch.
+ * 
+ * @returns The question.
+ */
+export async function fetchQuestion(id: string) : Promise<Question | null> {
+  try {
+    const question = await api.get('/questions/' + id)
+    return question.data
+  } catch (error) {
+    console.error(`An error occurred when fetching question of id ${id} in fetchQuestion():`, error)
+    return null
+  }
 }
 
 // TODO: add question service
