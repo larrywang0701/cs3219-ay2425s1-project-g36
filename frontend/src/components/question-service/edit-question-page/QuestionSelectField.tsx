@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Difficulty, { TDifficulty } from "../Difficulty"
+import { TDifficulty } from "../Difficulty"
+import DifficultyEdit from "../DifficultyEdit";
 
 export default function QuestionSelectField({ value, setValue } : {
   value : TDifficulty,
@@ -22,7 +23,7 @@ export default function QuestionSelectField({ value, setValue } : {
         <SelectContent className="bg-white">
           <SelectGroup>
             {
-              values.map(v => <SelectItem value={v} key={v} className="hover:cursor-pointer"><Difficulty type={v} /></SelectItem>)
+              values.map(v => <SelectItem value={v} key={v} className="hover:cursor-pointer"><DifficultyEdit type={v} /></SelectItem>)
             }
           </SelectGroup>
         </SelectContent>
