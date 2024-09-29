@@ -35,6 +35,9 @@ export async function fetchQuestions() : Promise<Question[]> {
 /**
  * An async function that fetches a specific question from the backend question
  * service based on the given ID. Returns an empty question if the ID is invalid.
+ * 
+ * `fetchQuestion()` has the same result but returns `null` for invalid IDs.
+ * 
  * @param id The ID of the question to fetch, if any.
  * @returns The question within the backend question service if it exists; the
  * `EMPTY_QUESTION` otherwise.
@@ -49,6 +52,27 @@ export async function fetchQuestionById(id? : string) : Promise<Question> {
     return EMPTY_QUESTION;
   })
   return toQuestionObject(data);
+}
+
+/**
+ * An async function that fetches a specific question from the backend question
+ * service based on the given ID. Returns `null` if the ID is invalid.
+ * 
+ * `fetchQuestionById()` has the same result but returns `EMPTY_QUESTION` for invalid IDs.
+ * 
+ * @param id The ID of the question to fetch, if any.
+ * 
+ * @returns The question within the backend question service if it exists;
+ * `null` otherwise.
+ */
+export async function fetchQuestion(id: string) : Promise<Question | null> {
+  try {
+    const question = await api.get('/questions/' + id)
+    return question.data
+  } catch (error) {
+    console.error(`An error occurred when fetching question of id ${id} in fetchQuestion():`, error)
+    return null
+  }
 }
 
 /**
@@ -79,24 +103,6 @@ export async function insertQuestion(question : Question) {
     };
   });
 }
- * An async function that fetches a question by id from the backend question
- * service.
- * 
- * @param id The question ID to fetch.
- * 
- * @returns The question.
- */
-export async function fetchQuestion(id: string) : Promise<Question | null> {
-  try {
-    const question = await api.get('/questions/' + id)
-    return question.data
-  } catch (error) {
-    console.error(`An error occurred when fetching question of id ${id} in fetchQuestion():`, error)
-    return null
-  }
-}
-
-// TODO: add question service
 
 /**
  * An async function that updates a question given the question. If there are any
