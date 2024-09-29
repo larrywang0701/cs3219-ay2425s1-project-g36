@@ -8,12 +8,12 @@ export type TDifficulty = "easy" | "medium" | "hard";
  */
 export default function Difficulty({ type } : { type: TDifficulty }) {
   const colors = {
-    "easy": "text-emerald-600",
-    "medium": "text-amber-500",
-    "hard": "text-red-600"
+    "easy": "bg-green-500",
+    "medium": "bg-yellow-500",
+    "hard": "bg-red-500"
   };
 
   return (
-    <span className={ colors[type] }>{ type[0].toUpperCase() + type.slice(1) }</span>
+    <span className={ colors[type] + " px-2 py-1 rounded text-white" }>{ type[0].toUpperCase() + type.slice(1) }</span>
   )
 }
