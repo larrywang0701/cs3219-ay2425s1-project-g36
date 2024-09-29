@@ -3,6 +3,8 @@ import { Question } from "../models/questionModel";
 
 const router: Router = Router();
 
+const DUPLICATE_KEY_ERROR_CODE = 11000;
+
 // retrieves entire list of questions
 router.get("/", async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -81,7 +83,7 @@ router.post("/", async (req: Request, res: Response): Promise<Response> => {
         });
     } catch (error: any) {
         console.log(error);
-        if (error.code === 11000) {
+        if (error.code === DUPLICATE_KEY_ERROR_CODE) {
             return res.status(400).send({
                 message: `A question with the title '${question.title}' already exists.`,
             });
@@ -123,7 +125,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
         });
     } catch (error: any) {
         console.log(error);
-        if (error.code === 11000) {
+        if (error.code === DUPLICATE_KEY_ERROR_CODE) {
             return res.status(400).send({
                 message: `A question with the title '${question.title}' already exists.`,
             });
