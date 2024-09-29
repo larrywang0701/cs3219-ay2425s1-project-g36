@@ -34,12 +34,20 @@ export async function fetchQuestions() : Promise<Question[]> {
 
 // TODO: update question service
 
-export async function fetchTopics() : Promise<String[]> {
-  await api.get('/questions/topics').then(response => {
-    return response.data
-  }).catch(error => {
-    console.error("An error occurred when fetching topics in fetchQuestions():", error)
-  })
+
+/**
+ * An async function that fetches the list of topics from the backend question service.
+ * 
+ * @returns The list of topics from the question-service as a promise.
+ */
+export async function fetchTopics(): Promise<String[]> {
+  try {
+    const response = await api.get('/questions/topics');
+    return response.data;
+  } catch (error) {
+    console.error("An error occurred when fetching topics in fetchTopics():", error);
+    return []; 
+  }
 }
 
 /**
