@@ -1,11 +1,22 @@
 import express, { Application, Request, Response } from "express";
 import { PORT, QUESTION_SERVICE_MONGODB_URL } from "../config";
-// import cors from 'cors'
+import cors from 'cors'
 import questionsRoute from "./routes/questionsRoute";
 import mongoose from "mongoose";
 
 const app: Application = express();
+
 app.use(express.json());
+
+// enable CORS to allow frontend to access backend, as well as for
+// communication between microservices
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions))
+
 const port: number = PORT;
 
 app.get("/", (req: Request, res: Response) => {

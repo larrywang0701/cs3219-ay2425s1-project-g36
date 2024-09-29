@@ -100,7 +100,7 @@ function App() {
         <Routes>
           <Route path="/" element={
             <PrivateRoute>
-              <MainPage />
+              <Navigate to="/questions" />
             </PrivateRoute>
           } />
           <Route path="/login" element={
