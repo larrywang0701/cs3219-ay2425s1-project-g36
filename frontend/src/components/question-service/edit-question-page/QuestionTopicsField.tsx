@@ -7,18 +7,18 @@ export default function QuestionTopicsField({ value, setValue } : {
   setValue : ( newValue : string[] ) => void
 }) {
 
-  const removeTag = (removed : string) => {
+  const removeTopic = (removed : string) => {
     setValue(value.filter(
       topic => topic !== removed
     ));
   }
 
-  const addTag = () => {
-    const newTag = prompt("Enter a tag here...");
-    if (newTag !== null && !value.includes(newTag)) {
-      setValue([ ...value, newTag ]);
+  const addTopic = () => {
+    const newTopic = prompt("Enter a topic here...");
+    if (newTopic !== null && !value.includes(newTopic)) {
+      setValue([ ...value, newTopic ]);
     }
-    // if new tag is null or tag is already present, don't add a new tag
+    // if new topic is null or topic is already present, don't add a new topic
   }
 
   return (
@@ -30,7 +30,7 @@ export default function QuestionTopicsField({ value, setValue } : {
           value.map( topic => (
             <Badge className="mr-2 mb-0.5 mt-0.5 flex flex-row gap-1" key={ topic }>
               <span>{ topic }</span>
-              <Button variant="ghost" className="p-0 m-0 h-0" onClick={ () => removeTag(topic) }>
+              <Button variant="ghost" className="p-0 m-0 h-0" onClick={ () => removeTopic(topic) }>
                 <X className="size-3.5" />
               </Button>
             </Badge>
@@ -38,7 +38,7 @@ export default function QuestionTopicsField({ value, setValue } : {
             <span className="flex mb-0.5 mt-0.5">No topics yet...</span>
           )}
         </div>
-        <Button onClick={ addTag }>
+        <Button onClick={ addTopic }>
           <Plus className="size-3.5" />
         </Button>
       </div>
