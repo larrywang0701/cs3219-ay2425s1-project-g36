@@ -53,6 +53,22 @@ export async function fetchQuestion(id: string) : Promise<Question | null> {
 
 // TODO: update question service
 
+
+/**
+ * An async function that fetches the list of topics from the backend question service.
+ * 
+ * @returns The list of topics from the question-service as a promise.
+ */
+export async function fetchTopics(): Promise<String[]> {
+  try {
+    const response = await api.get('/questions/topics');
+    return response.data;
+  } catch (error) {
+    console.error("An error occurred when fetching topics in fetchTopics():", error);
+    return []; 
+  }
+}
+
 /**
  * An async function that deletes the question in the backend question service based on the given
  * question ID.

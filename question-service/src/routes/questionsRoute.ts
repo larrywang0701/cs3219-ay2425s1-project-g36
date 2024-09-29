@@ -3,6 +3,8 @@ import { Question } from "../models/questionModel";
 
 const router: Router = Router();
 
+const DUPLICATE_KEY_ERROR_CODE = 11000;
+
 // retrieves entire list of questions
 router.get("/", async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -19,6 +21,24 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
         });
     }
 });
+
+// retrieves all unique topics from all questions
+router.get(
+    "/topics",
+    async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const uniqueTopics = await Question.aggregate([
+                { $unwind: "$topics" }, // Deconstructs the topics array
+                { $group: { _id: null, topics: { $addToSet: "$topics" } } }, // Groups and gets unique topics
+                { $project: { _id: 0, topics: 1 } }, // Removes _id from the result
+            ]);
+
+            return res.status(200).send(uniqueTopics[0].topics || []);
+        } catch (error) {
+            return res.status(500).send({ error: "Error retrieving topics" });
+        }
+    }
+);
 
 // retrieves a specific question by id
 router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
@@ -61,8 +81,13 @@ router.post("/", async (req: Request, res: Response): Promise<Response> => {
         return res.status(200).send({
             message: "Question successfully created",
         });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
+        if (error.code === DUPLICATE_KEY_ERROR_CODE) {
+            return res.status(400).send({
+                message: `A question with the title '${question.title}' already exists.`,
+            });
+        }
         return res.status(500).send({
             message: "Error creating question",
         });
@@ -71,8 +96,15 @@ router.post("/", async (req: Request, res: Response): Promise<Response> => {
 
 // updates a question, identifed by id
 router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
-    const id = req.params.id;
+    const id = parseInt(req.params.id);
     const question = req.body;
+
+    if (isNaN(id)) {
+        return res.status(400).send({
+            message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
+        });
+    }
+
     if (!question.title || !question.difficulty || !question.description) {
         return res.status(400).send({
             message: "Title, difficulty, and description must not be empty",
@@ -91,8 +123,13 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
         return res.status(200).send({
             message: "Question successfully updated",
         });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
+        if (error.code === DUPLICATE_KEY_ERROR_CODE) {
+            return res.status(400).send({
+                message: `A question with the title '${question.title}' already exists.`,
+            });
+        }
         return res.status(500).send({
             message: "Error editting question",
         });
@@ -100,10 +137,14 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
 });
 
 // deletes a specific question by id
-router.delete(
-    "/:id",
-    async (req: Request, res: Response): Promise<Response> => {
-        const id = req.params.id;
+router.delete("/:id", async (req: Request, res: Response): Promise<Response> => {
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).send({
+                message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
+            });
+        }
 
         try {
             const question = await Question.findByIdAndDelete(id);
