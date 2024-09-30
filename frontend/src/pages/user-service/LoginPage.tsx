@@ -7,10 +7,10 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = ( isAdmin: boolean ) => {
+  /*const handleLogin = ( isAdmin: boolean ) => {
     login(isAdmin);
     navigate('/');
-  }
+  }*/
 
   document.title="Login | PeerPrep";
 
