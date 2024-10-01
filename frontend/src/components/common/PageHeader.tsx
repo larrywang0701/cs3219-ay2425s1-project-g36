@@ -6,7 +6,7 @@ import PageAccountNav from "./PageAccountNav"
 /**
  * Represents the header shared across all pages in PeerPrep.
  */
-export default function PageHeader({isLoggedIn = true}) {
+export default function PageHeader({isLoggedIn = true} : {isLoggedIn : boolean}) {
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-background border-b">
       <Button variant="ghost" id="peerprep-header" className="flex no-underline text-primary items-center gap-2 text-lg font-semibold hover:text-gray-700" asChild>

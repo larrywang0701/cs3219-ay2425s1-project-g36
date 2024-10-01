@@ -1,38 +1,48 @@
 import { useState } from "react";
-import MainContainer from "../../common/MainContainer";
 import LoginButton from "./LoginButton";
 import PasswordInputField from "./PasswordInputField";
 import UsernameInputField from "./UsernameInputField";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
+import { sendLoginRequest } from "@/api/user-service/UserService";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm(){
+    const { login } = useAuth();
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [displayedLoginMessage, setDisplayedLoginMessage] = useState<DisplayedMessage | null>(null);
     const showDisplayedLoginMessage = (message : string, type : DisplayedMessageTypes) => {
         setDisplayedLoginMessage({message : message, type : type});
     }
-    const startLoggingIn = (username : string, password : string) => {
+    const loginWithCredentials = (username : string, password : string, captcha : string) => {
         if(username === "" || password === "") {
             showDisplayedLoginMessage("Username or password cannot be empty.", DisplayedMessageTypes.Warning);
             return;
         }
         showDisplayedLoginMessage("Logging in...", DisplayedMessageTypes.Info);
-        // todo
+        sendLoginRequest(username, password, captcha).then(response => {
+          const message = response.message;
+          const isSuccess = response.status === 200;
+          const isAdmin = response.userInfo?.isAdmin;
+          const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
+          showDisplayedLoginMessage(message, type);
+          if(isSuccess) {
+            login(isAdmin);
+            navigate("/");
+          }
+        });
     }
+    const startLoggingIn = () => loginWithCredentials(username, password, ""); // captcha todo
     return(
         <>
-          <MainContainer>
-            <div className="rounded-lg min-h-screen flex justify-center items-center bg-gray-200">
-              <div className="bg-white p-5 rounded-lg w-full max-w-md">
-                <p className="text-center font-bold mb-8 text-xl">Welcome to PeerPrep</p>
-                <UsernameInputField onChangedCallback={setUsername}/>
-                <PasswordInputField onChangedCallback={setPassword}/>
-                <DisplayedMessageContainer displayedMessage={displayedLoginMessage} />
-                <LoginButton onClickFunction={() => startLoggingIn(username, password)}/>
-              </div>
-            </div>
-          </MainContainer>
+          <form onSubmit={evt => {evt.preventDefault(); startLoggingIn();}}>
+            <UsernameInputField onChange={setUsername}/>
+            <PasswordInputField onChange={setPassword}/>
+            <DisplayedMessageContainer displayedMessage={displayedLoginMessage} />
+            <LoginButton onClick={startLoggingIn}/>
+          </form>
         </>
     )
 }
