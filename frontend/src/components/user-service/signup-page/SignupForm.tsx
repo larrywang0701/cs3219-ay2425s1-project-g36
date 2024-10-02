@@ -2,6 +2,7 @@ import { useState } from "react";
 import InputFieldWithTip from "./InputFieldWithTip";
 import SignupButton from "./SignupButton";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
+import { sendSignupRequest } from "@/api/user-service/UserService";
 
 export default function LoginForm(){
 
@@ -81,7 +82,16 @@ export default function LoginForm(){
             return;
         }
         showDisplayedSignupMessage("Signing up...", DisplayedMessageTypes.Info);
-        // TODO: send a signup request to the backend - after the signup feature is implemented in the backend
+        sendSignupRequest(username, emailAddress, password, "") // TODO: captcha logic (after captcha logic is implemented in the backend)
+        .then(response => {
+            const message = response.message;
+            const isSuccess = response.status === 200;
+            const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
+            showDisplayedSignupMessage(message, type);
+            if(isSuccess) {
+              // TODO: Show email verification page, or go back to login page, or...? Will implement here after signup login is implemented in the backend.
+            }
+          });
     }
 
     return(
