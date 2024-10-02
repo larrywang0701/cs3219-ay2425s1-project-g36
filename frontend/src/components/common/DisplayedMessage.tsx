@@ -16,7 +16,7 @@ type DisplayedMessage = {
 function DisplayedMessageComponent({message, color, icon : Icon}:{message : string, color : string, icon : ComponentType}) {
     return (
       <>
-        <div className={"text-" + color + "-500 flex items-center ml-10"}>
+        <div className={"text-" + color + "-500 flex items-center justify-center"}>
           <Icon />
           <p className="p-1">{message}</p>
         </div>
