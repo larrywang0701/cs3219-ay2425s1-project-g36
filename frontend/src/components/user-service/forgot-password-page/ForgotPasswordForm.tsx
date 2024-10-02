@@ -33,7 +33,7 @@ export default function ForgotPasswordForm(){
 
     return(
       <>
-        <form onSubmit={evt => {evt.preventDefault(); /*todo */}} className="w-3/4">
+        <form onSubmit={evt => {evt.preventDefault(); if(!requestSent){sendRequest();}}} className="w-3/4">
           <p className="font-bold m-3">Email Address:</p>
           <EmailAddressInputField onChange={setEmailAddress}/>
           <DisplayedMessageContainer displayedMessage={displayedResetPasswordMessage} />
