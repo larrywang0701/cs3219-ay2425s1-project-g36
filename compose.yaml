@@ -9,7 +9,7 @@ services:
   question:
     build:
       context:
-        question-service
+        ./question-service
     ports:
       - "3000:3000"
     container_name: question-service-container
