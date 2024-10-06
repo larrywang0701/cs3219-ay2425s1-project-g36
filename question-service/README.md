@@ -21,10 +21,10 @@
 ### How to run the containerized backend server with docker:
  - 1. Install docker on your device: [Docker](https://www.docker.com)
  - 2. Setup the `.env` file as the above paragraph mentioned
- - 3. Run `yarn run docker-build-image` to build the image (named `question-service-image`)
- - 4. Run `yarn run docker-create-container` to create a default container (named `question-service`). This will create and run the default container. Now the server should be accessible via the port `3000`.
- - 5. Run `yarn run docker-start` to (re)start the already-created default container. 
- - 6. Run `yarn run docker-stop` to stop the default container.
+ - 3. Run `npm run docker-build-image` to build the image (named `question-service-image`)
+ - 4. Run `npm run docker-create-container` to create a default container (named `question-service`). This will create and run the default container. Now the server should be accessible via the port `3000`.
+ - 5. Run `npm run docker-start` to (re)start the already-created default container. 
+ - 6. Run `npm run docker-stop` to stop the default container.
  - Note: On some Linux OS, executing docker commands may require root permission. If you see permission errors such as `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: ...` when running any of the commands, please try adding `sudo` before the commands or run `sudo su` before running the commands.
 
 ### Things to take note if you face some issues running the application
