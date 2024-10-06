@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 dotenv.config({ path:'./.env' });
 
 if (!process.env.USER_SERVICE_MONGODB_URI) {
-    throw new Error('USER_SERVICE_MONGODB_URL is not defined in the environment variables');
+    throw new Error('USER_SERVICE_MONGODB_URI is not defined in the environment variables');
 }
 
 if (!process.env.BLIST_MONGODB_URI) {
-    throw new Error('BLIST_MONGO_URL is not defined in the environment variables');
+    throw new Error('BLIST_MONGODB_URI is not defined in the environment variables');
 }
 
 if (!process.env.EMAIL) {

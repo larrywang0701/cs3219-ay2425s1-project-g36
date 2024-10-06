@@ -1,0 +1,15 @@
+services:
+  user:
+    build:
+      context:
+        ./user-service
+    ports:
+      - "4000:4000"
+    container_name: user-service-container
+  question:
+    build:
+      context:
+        ./question-service
+    ports:
+      - "3000:3000"
+    container_name: question-service-container
