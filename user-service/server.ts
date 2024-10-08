@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express'
 import connectMongoDB from './db/connectDB';
 import { PORT } from './utils/config'
 import authenticationRoute from './src/routes/authenticationRoute'
+import userRoute from './src/routes/userRoute';
 import cors from 'cors'
 
 const app: Application = express();
@@ -21,6 +22,7 @@ app.use(express.json())
 app.use(cors(corsOptions))
 
 app.use('/authentication', authenticationRoute)
+app.use('/users', userRoute);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${PORT}`);

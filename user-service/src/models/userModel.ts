@@ -11,6 +11,11 @@ interface IUser extends Document {
 
 const userSchema = new mongoose.Schema(
     {
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+        },
         email: {
             type: String,
             required: true,
@@ -18,6 +23,10 @@ const userSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now, // Setting default to the current date/time
         },
         numberOfFailedLoginAttempts: {
             type: Number,
@@ -38,4 +47,5 @@ const userSchema = new mongoose.Schema(
     }
 )
 
-export const User = mongoose.model<IUser>('User', userSchema)
+const User = mongoose.model<IUser>('User', userSchema)
+export default User;
