@@ -8,7 +8,7 @@ const connectMongoDB = async () => {
       const user_conn = await mongoose.createConnection(USER_SERVICE_MONGO_URI);
       const blist_conn = await mongoose.createConnection(BLIST_MONGO_URI);
       console.log(`User DB connected: ${user_conn.readyState ? 'Connected' : 'Not connected'}`);
-      console.log(`"Blacklist DB connected: ${blist_conn.readyState ? 'Connected' : 'Not connected'}`);
+      console.log(`Blacklist DB connected: ${blist_conn.readyState ? 'Connected' : 'Not connected'}`);
   } catch (error) {
       if (error instanceof Error) {
           console.error(`Error connecting to MongoDB: ${error.message}`);

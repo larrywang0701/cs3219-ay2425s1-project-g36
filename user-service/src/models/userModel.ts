@@ -1,8 +1,10 @@
 import mongoose, { Document } from "mongoose"
 
 interface IUser extends Document {
+    username: string
     email: string
     password: string
+    createdAt: Date
     numberOfFailedLoginAttempts: number
     passwordResetToken?: string
     passwordResetTokenExpiration?: Date
@@ -46,6 +48,5 @@ const userSchema = new mongoose.Schema(
         timestamps: true,
     }
 )
-
 const User = mongoose.model<IUser>('User', userSchema)
 export default User;

@@ -1,32 +1,53 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import UserModel from '../models/userModel';
+import User from '../models/userModel';
+import generateTokenAndSetCookie from '../lib/generateToken';
+import mongoose from "mongoose";
 
 export async function createUser(req: Request, res: Response) {
   try {
     const { username, email, password } = req.body;
-    if (username && email && password) {
-      const existingUser = await UserModel.findOne({
-        $or: [
-          { username },
-          { email },
-        ],
-      });
 
-      if (existingUser) {
-        return res.status(409).json({ message: "username or email already exists" });
-      }
+    // sanity check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({ error: "Invalid email format" });
+		}
 
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-      const createdUser = await new UserModel({ username, email, password }).save();
+    const existingUser = await User.findOne({ username });
+		if (existingUser) {
+			return res.status(400).json({ error: "Username is already taken" });
+		}
 
-      return res.status(201).json({
-        message: `Created new user ${username} successfully`,
-        // data: formatUserResponse(createdUser),
+		const existingEmail = await User.findOne({ email });
+		if (existingEmail) {
+			return res.status(400).json({ error: "Email is already taken" });
+		}
+
+		if (password.length < 10) {
+			return res.status(400).json({ error: "Password must be at least 10 characters long" });
+		}
+
+    // create new user
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
+  
+    if (newUser) {
+      generateTokenAndSetCookie(newUser._id as mongoose.Types.ObjectId, res);
+      await newUser.save();
+
+      res.status(201).json({
+        _id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
       });
     } else {
-      return res.status(400).json({ message: "username and/or email and/or password are missing" });
+      res.status(400).json({ error: "Invalid user data" });
     }
   } catch (err) {
     console.error(err);
