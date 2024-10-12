@@ -27,7 +27,7 @@ export default function PageHeader() {
         </Link>
         <div className="h-4 w-px bg-black/20" aria-hidden="true" />
         <Link
-          to="/matching" // let's decide on the path to use for this next time
+          to="/matching/start"
           className="text-sm no-underline font-medium text-muted-foreground transition-colors hover:text-gray-700"
         >
           Practise an Interview

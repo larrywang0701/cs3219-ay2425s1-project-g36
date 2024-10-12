@@ -10,6 +10,7 @@ import AccountSettingsPage from "./pages/user-service/AccountSettingsPage";
 import ErrorPage from "./pages/ErrorPage";
 import AddQuestionPage from "./pages/question-service/AddQuestionPage";
 import { Toaster } from "./components/ui/toaster";
+import StartMatchingPage from "./pages/matching-service/StartMatchingPage";
 
 /**
  * A wrapper around routes that should only be accessed by logged-in users.
@@ -139,6 +140,11 @@ function App() {
               adminRoute={ <AddQuestionPage /> }
               nonAdminRoute={ <Navigate to="/questions" /> }
             />
+          } />
+          <Route path="/matching/start" element={
+            <PrivateRoute>
+              <StartMatchingPage />
+            </PrivateRoute>
           } />
           <Route path="*" Component={ ErrorPage } />
         </Routes>
