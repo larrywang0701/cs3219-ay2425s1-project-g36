@@ -9,39 +9,62 @@ TODO: matching based on user's requirements.
 export type TDifficulty = "easy" | "medium" | "hard";
 export type SelectedDifficultyData = {[difficulty in TDifficulty] : boolean};
 
-type UserInQueue = {
+type User = {
     userID : number,
     difficulties : SelectedDifficultyData,
     topics : string[]
+    isReady : boolean,
+    matchedUser : User | null
 }
 
 
 class MatchingQueue {
-    private readonly queue : UserInQueue[];
+    private readonly queue : User[];
 
     constructor() {
         this.queue = [];
     }
 
-    push(user : UserInQueue) : void {
-        if(this.queue.filter(u => u.userID === user.userID).length > 0) {
-            throw new Error("This user is already in queue.");
+    private removeAt(index : number) : User {
+        return this.queue.splice(index, 1)[0]
+    }
+
+    push(user : User) : void {
+        if(this.isUserInQueue(user.userID)) {
+            throw new Error("This user is already matching.");
         }
         this.queue.push(user);
     }
 
-    pop() : UserInQueue {
-        if(this.count() === 0) {
+    peek() : User {
+        if(this.isEmpty()) {
+            throw new Error("Trying to peek from an empty matching queue");
+        }
+        return this.queue[0];
+    }
+
+    pop() : User {
+        if(this.isEmpty()) {
             throw new Error("Trying to pop from an empty matching queue");
         }
-        return this.queue.splice(0, 1)[0];
+        return this.removeAt(0);
     }
 
     count() : number {
         return this.queue.length;
     }
+
+    isEmpty() : boolean {
+        return this.count() === 0;
+    }
+
+    isUserInQueue(userID : number) : boolean {
+        return this.queue.filter(u => u.userID === userID).length > 0;
+    }
+
+    removeUser(user : User) : void {
+        this.removeAt(this.queue.indexOf(user));
+    }
 }
 
-const matchingQueueInstance = new MatchingQueue();
-
-export default matchingQueueInstance;
+export { MatchingQueue, User };
