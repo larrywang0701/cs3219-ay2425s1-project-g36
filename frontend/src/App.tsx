@@ -11,6 +11,7 @@ import ErrorPage from "./pages/ErrorPage";
 import AddQuestionPage from "./pages/question-service/AddQuestionPage";
 import { Toaster } from "./components/ui/toaster";
 import StartMatchingPage from "./pages/matching-service/StartMatchingPage";
+import WaitForMatchingPage from "./pages/matching-service/WaitForMatchingPage";
 
 /**
  * A wrapper around routes that should only be accessed by logged-in users.
@@ -146,6 +147,12 @@ function App() {
               <StartMatchingPage />
             </PrivateRoute>
           } />
+          <Route path="/matching/wait" element={
+            <PrivateRoute>
+              <WaitForMatchingPage />
+            </PrivateRoute>
+          }
+          />
           <Route path="*" Component={ ErrorPage } />
         </Routes>
       </BrowserRouter>
