@@ -4,24 +4,21 @@ import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const CHECK_MATCHING_STATE_INTERVAL = 1000; // in milliseconds
-
-enum MatchingState {
-  Waiting,  // Waiting for matching
-  Matched,  // Matched, waiting for getting ready
-  ConfirmedReady,  // Confirmed ready, waiting for the other to get ready
-  Failed_NoMatch,  // Failed due to not matching anyone after a timeout
-  Failed_NotGettingReady  // Failed due to not getting ready in time after matched someone
-}
+const MAXIMUM_MATCHING_DURATION = 60; // in seconds
+const MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT = 5;
 
 export default function WaitForMatchingPage() {
   const [parameters] = useSearchParams();
   const navigate = useNavigate();
   const { auth } = useAuth();
-  const intervalID = useRef<number | null>(null);
+  const checkMatchingStateIntervalID = useRef<number | null>(null);
+  const endMatchingTimerIntervalID = useRef<number | null>(null);
+  const checkMatchingStateNetworkErrorCount = useRef(0);
+  const [endMatchingTimer, setEndMatchingTimer] = useState(MAXIMUM_MATCHING_DURATION);
   const pathname = location.pathname;
 
   const difficultiesStr = parameters.get("difficulties");
@@ -34,23 +31,65 @@ export default function WaitForMatchingPage() {
       console.log("matching cancelled due to leaving page");
       return;
     }
-    sendCheckMatchingStateRequest(auth.userID);
+    sendCheckMatchingStateRequest(auth.userID).then(
+      response => {
+        const isSuccess = response.status === 200;
+        if(isSuccess) {
+          return;
+        }
+        if(response.message === "ERR_NETWORK") {
+          checkMatchingStateNetworkErrorCount.current++;
+          if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
+            cancelMatching(false);
+            console.log("matching cancelled due to network error");
+            navigate(`../matching/failed?message=Network error, please check your network and try again.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+          }
+        }
+        else {
+          cancelMatching();
+          console.log("matching cancelled due to backend error");
+          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+        }
+      }
+    );
   }
 
-  const cancelMatching = () => {
+  const cancelMatching = (sendCancellationRequest : boolean = true) => {
     console.log("cancel matching");
-    if(intervalID.current !== null) {
-      window.clearInterval(intervalID.current);
+    if(checkMatchingStateIntervalID.current !== null) {
+      window.clearInterval(checkMatchingStateIntervalID.current);
     }
-    sendCancelMatchingRequest(auth.userID);
+    if(endMatchingTimerIntervalID.current !== null) {
+      window.clearInterval(endMatchingTimerIntervalID.current);
+    }
+    if(sendCancellationRequest) {
+      sendCancelMatchingRequest(auth.userID);
+    }
     navigate("../matching/start");
   }
 
+  const updateEndMatchingTimer = () => {
+    setEndMatchingTimer(val => {
+      if(val - 1 <= 0) {
+        cancelMatching();
+        console.log("matching cancelled due to timed out");
+        navigate(`../matching/failed?message=A match couldn't be found after ${MAXIMUM_MATCHING_DURATION} seconds. You may try again or refine your question selections to increase your chances to match.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+      }
+      return val - 1;
+    });
+    
+  }
+
   useEffect(() => {
-    if(intervalID.current === null) {
-      intervalID.current = window.setInterval(checkMatchingState, CHECK_MATCHING_STATE_INTERVAL);
+    if(checkMatchingStateIntervalID.current === null) {
+      checkMatchingStateIntervalID.current = window.setInterval(checkMatchingState, CHECK_MATCHING_STATE_INTERVAL);
+    }
+    if(endMatchingTimerIntervalID.current === null) {
+      endMatchingTimerIntervalID.current = window.setInterval(updateEndMatchingTimer, 1000);
     }
   }, []);
+
+  document.title = "Matching | PeerPrep";
 
   return (
   <>
@@ -61,11 +100,14 @@ export default function WaitForMatchingPage() {
         <div>Searching for students who also want to do <b>{difficultiesStr}</b> questions with topics <b>{topicsStr}</b>.</div>
         <div>
           <div className="h-10" />
-          <div className="animate-spin w-20 h-20 rounded-full border-4 border-t-transparent border-black" />
+          <div className="flex justify-center items-center relative w-20 h-20">
+            <div className="absolute inset-0 animate-spin rounded-full border-4 border-t-transparent border-black" />
+            <div className="text-2xl">{endMatchingTimer}</div>
+          </div>
           <div className="h-10" />
         </div>
         <div className="flex justify-center mt-20">
-          <Button className="bg-red-500 text-white hover:bg-gray-500" onClick={cancelMatching}>Cancel matching</Button>
+          <Button className="bg-red-500 text-white hover:bg-gray-500" onClick={()=>cancelMatching(true)}>Cancel matching</Button>
         </div>
       </div>
     </MainContainer>

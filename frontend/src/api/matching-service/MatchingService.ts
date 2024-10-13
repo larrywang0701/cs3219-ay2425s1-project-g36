@@ -10,6 +10,7 @@ const CONFIRM_READY_URL = "/confirm_ready"
 
 const api = axios.create({baseURL : MATCHING_SERVICE_URL})
 
+let previousStartMatchingData : any = null;
 
 async function sendStartMatchingRequest(userID : number, difficulties : SelectedDifficultyData, topics : string[]) {
   const requestBody = {
@@ -18,7 +19,21 @@ async function sendStartMatchingRequest(userID : number, difficulties : Selected
     topics : topics
   }
 
+  previousStartMatchingData = requestBody;
+
   return await api.post(MATCHING_BASE_URL + START_MATCHING_URL, requestBody).then(response => {
+    return {status : response.status, message : response.data.message}
+  }).catch(error => {
+    return {status : error.status, message : error.response.data.message}
+  })
+}
+
+async function retryPreviousMatching(userID : number) {
+  if(previousStartMatchingData === null) {
+    throw new Error("[retryMatching] previousStartMatchingData is null");
+  }
+
+  return await api.post(MATCHING_BASE_URL + START_MATCHING_URL, {...previousStartMatchingData, userID : userID}).then(response => {
     return {status : response.status, message : response.data.message}
   }).catch(error => {
     return {status : error.status, message : error.response.data.message}
@@ -32,8 +47,11 @@ async function sendCheckMatchingStateRequest(userID : number) {
   return await api.post(MATCHING_BASE_URL + CHECK_MATCHING_STATE_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}
   }).catch(error => {
+    if(error.code === "ERR_NETWORK") {
+      return {status : error.status, message : "ERR_NETWORK"}
+    }
     return {status : error.status, message : error.response.data.message}
-  })
+  });
 }
 
 async function sendCancelMatchingRequest(userID : number) {
@@ -58,4 +76,4 @@ async function sendConformReadyRequest(userID : number) {
   })
 }
 
-export { sendStartMatchingRequest, sendCheckMatchingStateRequest, sendCancelMatchingRequest, sendConformReadyRequest };
+export { sendStartMatchingRequest, sendCheckMatchingStateRequest, sendCancelMatchingRequest, sendConformReadyRequest, retryPreviousMatching };

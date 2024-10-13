@@ -12,6 +12,7 @@ import AddQuestionPage from "./pages/question-service/AddQuestionPage";
 import { Toaster } from "./components/ui/toaster";
 import StartMatchingPage from "./pages/matching-service/StartMatchingPage";
 import WaitForMatchingPage from "./pages/matching-service/WaitForMatchingPage";
+import MatchingFailedPage from "./pages/matching-service/MatchingFailedPage";
 
 /**
  * A wrapper around routes that should only be accessed by logged-in users.
@@ -150,6 +151,12 @@ function App() {
           <Route path="/matching/wait" element={
             <PrivateRoute>
               <WaitForMatchingPage />
+            </PrivateRoute>
+          }
+          />
+          <Route path="/matching/failed" element={
+            <PrivateRoute>
+              <MatchingFailedPage />
             </PrivateRoute>
           }
           />
