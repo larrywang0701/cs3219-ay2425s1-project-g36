@@ -35,6 +35,11 @@ export default function WaitForMatchingPage() {
       response => {
         const isSuccess = response.status === 200;
         if(isSuccess) {
+          if(response.message === "match found") {
+            console.log("match found!");
+            cancelMatching(false);
+            navigate("../matching/get_ready");
+          }
           return;
         }
         if(response.message === "ERR_NETWORK") {

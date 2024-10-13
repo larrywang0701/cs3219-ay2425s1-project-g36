@@ -47,8 +47,8 @@ export default function MatchingFailedPage() {
       <div className="flex flex-col space-y-5 justify-center items-center">
         <PageTitle>Matching Failed</PageTitle>
         <div>{message}</div>
-          <Button className="btngreen" onClick={retryButtonOnClick}>Try again</Button>
-          <Button className="btnblack" onClick={refineSelectionButtonOnClick}>Refine selection</Button>
+        <Button className="btngreen" onClick={retryButtonOnClick}>Try again</Button>
+        <Button className="btnblack" onClick={refineSelectionButtonOnClick}>Refine selection</Button>
       </div>
     </MainContainer>
   </>
