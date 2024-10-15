@@ -23,13 +23,13 @@ router.post("/start", async (req : Request, rsp : Response) => {
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
-        const { userID } = req.body;
-        if(!matchingManagerInstance.isUserInMatchingService(userID)) {
-            return rsp.status(400).send("This user does not exist in the matching service.");
+        const { userToken } = req.body;
+        if(!matchingManagerInstance.isUserInMatchingService(userToken)) {
+            return rsp.status(400).send({message: "This user does not exist in the matching service."});
         }
-        let isUserMatched = matchingManagerInstance.isUserMatched(userID);
+        let isUserMatched = matchingManagerInstance.isUserMatched(userToken);
         if(!isUserMatched) {
-            isUserMatched = matchingManagerInstance.tryMatchWith(userID);
+            isUserMatched = matchingManagerInstance.tryMatchWith(userToken);
         }
         if(isUserMatched) {
             return rsp.status(200).send({message: "match found"});
@@ -43,8 +43,8 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
 
 router.post("/cancel", async (req : Request, rsp : Response) => {
     try {
-        const { userID } = req.body;
-        matchingManagerInstance.removeUser(userID);
+        const { userToken } = req.body;
+        matchingManagerInstance.removeUser(userToken);
         return rsp.status(200).send({message: "success"});
     }
     catch(error : any) {

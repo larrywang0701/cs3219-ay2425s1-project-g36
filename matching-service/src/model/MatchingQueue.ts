@@ -10,7 +10,7 @@ export type TDifficulty = "easy" | "medium" | "hard";
 export type SelectedDifficultyData = {[difficulty in TDifficulty] : boolean};
 
 type User = {
-    userID : number,
+    userToken : string,
     difficulties : SelectedDifficultyData,
     topics : string[]
     isReady : boolean,
@@ -30,7 +30,7 @@ class MatchingQueue {
     }
 
     push(user : User) : void {
-        if(this.isUserInQueue(user.userID)) {
+        if(this.isUserInQueue(user.userToken)) {
             throw new Error("This user is already matching.");
         }
         this.queue.push(user);
@@ -58,8 +58,8 @@ class MatchingQueue {
         return this.count() === 0;
     }
 
-    isUserInQueue(userID : number) : boolean {
-        return this.queue.filter(u => u.userID === userID).length > 0;
+    isUserInQueue(userToken : string) : boolean {
+        return this.queue.filter(u => u.userToken === userToken).length > 0;
     }
 
     removeUser(user : User) : void {
