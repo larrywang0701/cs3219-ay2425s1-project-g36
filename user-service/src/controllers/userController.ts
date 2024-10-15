@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from '../models/userModel';
 import generateTokenAndSetCookie from '../lib/generateToken';
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
+import UserModel from "../models/userModel";
 
 export async function createUser(req: Request, res: Response) {
   try {
@@ -52,5 +53,24 @@ export async function createUser(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Unknown error when creating new user!" });
+  }
+}
+
+export async function getUser(req: Request, res: Response) {
+  try {
+    const userId = req.params.id;
+    if (!isValidObjectId(userId)) {
+      return res.status(404).json({ message: `User ${userId} not found` });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: `User ${userId} not found` });
+    } else {
+      return res.status(200).json({ message: `Found user`, data: user });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Unknown error when getting user!" });
   }
 }

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createUser } from '../controllers/userController';
+import { createUser, getUser } from '../controllers/userController';
 import { protectRoute } from '../middlewares/protectRoute';
 
 const router: Router = Router();
@@ -11,6 +11,8 @@ router.get('/', (req: Request, res: Response) => {
     })
 })
 
-router.post("/", protectRoute, createUser);
+router.post("/", createUser);
+
+router.get("/:id", protectRoute, getUser);
 
 export default router;
