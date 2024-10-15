@@ -25,6 +25,7 @@ async function sendLoginRequest(username : string, password : string, captcha : 
   return await api.post(AUTH_BASE_URL + LOGIN_API, loginData).then(response =>
   {
     const userInfo = {
+      token : response.data.token,
       isAdmin: username === "Admin" ? true : false // TODO: This information should be told by the response from the backend.
       // TODO: add more user's information retrieved from the backend
     }
