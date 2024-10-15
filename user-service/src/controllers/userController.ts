@@ -74,3 +74,14 @@ export async function getUser(req: Request, res: Response) {
     return res.status(500).json({ message: "Unknown error when getting user!" });
   }
 }
+
+export async function getAllUsers(req: Request, res: Response) {
+  try {
+    const users = await UserModel.find();
+
+    return res.status(200).json({ message: `Found users`, data: users.map(user => user) });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Unknown error when getting all users!" });
+  }
+}
