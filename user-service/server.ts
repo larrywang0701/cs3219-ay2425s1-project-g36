@@ -12,7 +12,7 @@ const port: string | number  = PORT;
 // test
 app.get('/', (req: Request, res: Response) => {
     res.send({
-        message: "hello world"
+        message: "Test root"
     })
 })
 
