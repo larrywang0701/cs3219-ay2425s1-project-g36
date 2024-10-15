@@ -13,11 +13,11 @@ import { MatchingQueue, User } from "./MatchingQueue";
 
 class MatchingManager {
     private readonly queue : MatchingQueue;
-    private readonly allUsers : User[];
+    private readonly allUsers : {[userToken : string] : User};
 
     constructor() {
         this.queue = new MatchingQueue();
-        this.allUsers = [];
+        this.allUsers = {};
     }
 
     /**
@@ -26,7 +26,7 @@ class MatchingManager {
      * @param user2 The second user
      */
     private matchTwoUsersTogether(user1 : User, user2 : User) : void {
-        console.log(`Matching userID = ${user1.userID} and userID = ${user2.userID} together`);
+        console.log(`Matching user with token = ${user1.userToken} and user with token = ${user2.userToken} together`);
         assert(user1.matchedUser === null, `[matchTwoUsersTogether] user1.matchedUser should be null, but got ${user1.matchedUser}`);
         assert(user2.matchedUser === null, `[matchTwoUsersTogether] user2.matchedUser should be null, but got ${user2.matchedUser}`);
         user1.matchedUser = user2;
@@ -47,41 +47,42 @@ class MatchingManager {
 
     /**
      * Check whether a user is already matched with another user or not
-     * @param userID The user ID
-     * @returns `true` if the user with the given user ID is already matched to another user, `false` otherwise
+     * @param userToken The user's token
+     * @returns `true` if the user with the given token is already matched to another user, `false` otherwise
      */
-    isUserMatched(userID : number) : boolean {
-        return this.getUser(userID).matchedUser !== null;
+    isUserMatched(userToken : string) : boolean {
+        return this.getUser(userToken).matchedUser !== null;
     }
 
     /**
      * Try matching another user for a given user.
-     * @param userID The user ID of the given user for matching another user. The user ID must correspond to a user **currently in the matching service**.
+     * @param userToken The token of the given user for matching another user. The token must correspond to a user **currently in the matching service**.
+     * @param userToken The token of the user
      * @returns `true` if successfully matched another user, `false` otherwise.
      */
-    tryMatchWith(userID : number) : boolean {
+    tryMatchWith(userToken : string) : boolean {
         if(this.queue.isEmpty()) {
             return false;
         }
-        const user = this.getUser(userID);
+        const user = this.getUser(userToken);
         // TODO: implement "matching based on user requirements" here
         const theOtherUser = this.queue.peek();
-        if(theOtherUser.userID === userID) {
+        if(theOtherUser.userToken === userToken) {
             return false
         }
         this.queue.pop();
-        this.queue.removeUser(this.getUser(userID));
+        this.queue.removeUser(this.getUser(userToken));
         this.matchTwoUsersTogether(user, theOtherUser);
         return true;
     }
 
     /**
-     * Check whether a user is in matching service based on userID.
-     * @param userID The user ID
-     * @returns `true` if a user with this userID is in matching service, `false` otherwise.
+     * Check whether a user is in matching service based on user's token.
+     * @param userToken The token of the user
+     * @returns `true` if a user with this token is in matching service, `false` otherwise.
      */
-    isUserInMatchingService(userID : number) : boolean {
-        return this.allUsers.filter(u => u.userID === userID).length > 0;
+    isUserInMatchingService(userToken : string) : boolean {
+        return this.allUsers[userToken] !== undefined;
     }
 
     /**
@@ -89,44 +90,44 @@ class MatchingManager {
      * @param user The user
      */
     push(user : User) {
-        if(this.isUserInMatchingService(user.userID)) {
-            this.removeUser(user.userID);
+        if(this.isUserInMatchingService(user.userToken)) {
+            this.removeUser(user.userToken);
         }
-        this.allUsers[user.userID] = user;
+        this.allUsers[user.userToken] = user;
         this.queue.push(user);
     }
 
     /**
      * Cancel matching for a user
-     * @param userID The user
+     * @param userToken The token of the user
      **/
-    cancelMatching(userID : number) : void {
-        if(!this.isUserInMatchingService(userID)) {
+    cancelMatching(userToken : string) : void {
+        if(!this.isUserInMatchingService(userToken)) {
             return;
         }
-        this.queue.removeUser(this.getUser(userID));
-        delete this.allUsers[userID];
+        this.queue.removeUser(this.getUser(userToken));
+        delete this.allUsers[userToken];
     }
 
     /**
      * Remove a user from the matching service
-     * @param userID The userID of the user
+     * @param userToken The token of the user
      */
-    removeUser(userID : number) : void {
-        if(!this.isUserInMatchingService(userID)){
+    removeUser(userToken : string) : void {
+        if(!this.isUserInMatchingService(userToken)){
             throw new Error("User does not exist in matching service");
         }
-        if(this.queue.isUserInQueue(userID)){
-            this.queue.removeUser(this.getUser(userID));
+        if(this.queue.isUserInQueue(userToken)){
+            this.queue.removeUser(this.getUser(userToken));
         }
-        delete this.allUsers[userID];
+        delete this.allUsers[userToken];
     }
 
-    private getUser(userID : number) : User {
-        if(this.allUsers[userID] === undefined) {
+    private getUser(userToken : string) : User {
+        if(this.allUsers[userToken] === undefined) {
             throw new Error("User does not exist");
         }
-        return this.allUsers[userID];
+        return this.allUsers[userToken];
     }
 }
 
