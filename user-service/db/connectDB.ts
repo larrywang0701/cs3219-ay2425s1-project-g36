@@ -1,4 +1,5 @@
 import mongoose, { Mongoose } from "mongoose";
+
 import { USER_SERVICE_MONGO_URI, BLIST_MONGO_URI } from '../utils/config';
 
 const connectMongoDB = async () => {

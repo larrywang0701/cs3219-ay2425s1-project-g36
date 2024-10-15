@@ -1,10 +1,12 @@
-import express, { Application, Request, Response } from 'express'
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+
 import connectMongoDB from './db/connectDB';
-import { PORT } from './utils/config'
-import authenticationRoute from './src/routes/authenticationRoute'
+import { PORT } from './utils/config';
+import authenticationRoute from './src/routes/authenticationRoute';
 import userRoute from './src/routes/userRoute';
-import cors from 'cors'
-import cookieParser from "cookie-parser";
+
 
 const app: Application = express();
 const port: string | number  = PORT;

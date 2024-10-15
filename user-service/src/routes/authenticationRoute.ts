@@ -1,11 +1,14 @@
-import { Router, Request, Response } from 'express'
-import User from '../models/userModel'
-import { Blacklist } from '../models/blacklistModel'
-import bcrypt from 'bcrypt'
-import jwt, { JwtPayload } from 'jsonwebtoken'
-import crypto from 'crypto'
-import nodemailer from 'nodemailer'
-import { EMAIL, PASSWORD } from '../../utils/config'
+import crypto from 'crypto';
+
+import bcrypt from 'bcrypt';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import { Router, Request, Response } from 'express';
+
+import User from '../models/userModel';
+import { Blacklist } from '../models/blacklistModel';
+import { EMAIL, PASSWORD } from '../../utils/config';
+
 
 const router: Router = Router()
 const secretKey = "undecided" // to be replaced with a more secure key in .env file

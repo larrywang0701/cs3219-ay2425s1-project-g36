@@ -1,8 +1,10 @@
-import User from "../models/userModel";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { Response, Request, NextFunction } from 'express';
+import { Response, Request, NextFunction } from "express";
+import mongoose from "mongoose";
+
+import User from "../models/userModel";
 import { JWT_SECRET } from "../../utils/config";
-import mongoose  from "mongoose";
+
 
 // Define custom JwtPayload type
 interface CustomJwtPayload extends JwtPayload {

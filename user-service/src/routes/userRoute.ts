@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { createUser, getAllUsers, getUser, updateUser, deleteUser } from '../controllers/userController';
 import { protectRoute } from '../middlewares/protectRoute';
 
