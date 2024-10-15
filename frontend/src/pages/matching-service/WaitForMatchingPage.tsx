@@ -31,7 +31,7 @@ export default function WaitForMatchingPage() {
       console.log("matching cancelled due to leaving page");
       return;
     }
-    sendCheckMatchingStateRequest(auth.userID).then(
+    sendCheckMatchingStateRequest(auth.token).then(
       response => {
         const isSuccess = response.status === 200;
         if(isSuccess) {
@@ -68,7 +68,7 @@ export default function WaitForMatchingPage() {
       window.clearInterval(endMatchingTimerIntervalID.current);
     }
     if(sendCancellationRequest) {
-      sendCancelMatchingRequest(auth.userID);
+      sendCancelMatchingRequest(auth.token);
     }
     navigate("../matching/start");
   }

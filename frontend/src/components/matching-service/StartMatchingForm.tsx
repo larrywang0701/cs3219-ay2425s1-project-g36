@@ -24,7 +24,7 @@ export default function StartMatchingForm() {
       displayNotification("You must select at least one topic.");
       return;
     }
-    sendStartMatchingRequest(auth.userID, selectedDifficultyData, questionTopics).then(
+    sendStartMatchingRequest(auth.token, selectedDifficultyData, questionTopics).then(
       response => {
         const isSuccess = response.status === 200;
         if(isSuccess) {

@@ -17,7 +17,7 @@ export default function MatchingFailedPage() {
 
 
   const retryButtonOnClick = () => {
-    retryPreviousMatching(auth.userID).then(
+    retryPreviousMatching(auth.token).then(
       response => {
         const isSuccess = response.status === 200;
         if(isSuccess) {

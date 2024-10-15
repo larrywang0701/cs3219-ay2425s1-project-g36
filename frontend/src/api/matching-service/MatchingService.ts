@@ -12,9 +12,9 @@ const api = axios.create({baseURL : MATCHING_SERVICE_URL})
 
 let previousStartMatchingData : any = null;
 
-async function sendStartMatchingRequest(userID : number, difficulties : SelectedDifficultyData, topics : string[]) {
+async function sendStartMatchingRequest(token : string, difficulties : SelectedDifficultyData, topics : string[]) {
   const requestBody = {
-    userID : userID,
+    userToken : token,
     difficulties : difficulties,
     topics : topics
   }
@@ -28,21 +28,21 @@ async function sendStartMatchingRequest(userID : number, difficulties : Selected
   })
 }
 
-async function retryPreviousMatching(userID : number) {
+async function retryPreviousMatching(token : string) {
   if(previousStartMatchingData === null) {
     throw new Error("[retryMatching] previousStartMatchingData is null");
   }
 
-  return await api.post(MATCHING_BASE_URL + START_MATCHING_URL, {...previousStartMatchingData, userID : userID}).then(response => {
+  return await api.post(MATCHING_BASE_URL + START_MATCHING_URL, {...previousStartMatchingData, userToken : token}).then(response => {
     return {status : response.status, message : response.data.message}
   }).catch(error => {
     return {status : error.status, message : error.response.data.message}
   })
 }
 
-async function sendCheckMatchingStateRequest(userID : number) {
+async function sendCheckMatchingStateRequest(token : string) {
   const requestBody = {
-    userID : userID
+    userToken : token
   }
   return await api.post(MATCHING_BASE_URL + CHECK_MATCHING_STATE_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}
@@ -54,9 +54,9 @@ async function sendCheckMatchingStateRequest(userID : number) {
   });
 }
 
-async function sendCancelMatchingRequest(userID : number) {
+async function sendCancelMatchingRequest(token : string) {
   const requestBody = {
-    userID : userID
+    userToken : token
   }
   return await api.post(MATCHING_BASE_URL + CANCEL_MATCHING_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}
@@ -65,9 +65,9 @@ async function sendCancelMatchingRequest(userID : number) {
   })
 }
 
-async function sendConformReadyRequest(userID : number) {
+async function sendConformReadyRequest(token : string) {
   const requestBody = {
-    userID : userID
+    userToken : token
   }
   return await api.post(MATCHING_BASE_URL + CONFIRM_READY_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}

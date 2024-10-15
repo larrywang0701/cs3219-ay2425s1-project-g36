@@ -5,19 +5,19 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 interface AuthState {
   isLoggedIn: boolean; // whether a user is logged in.
   isAdmin: boolean; // whether a user is an admin.
-  userID: number; // the user ID of the current user (if logged in)
+  token: string; // the token of the current user (if logged in)
 }
 
 // the default authentication state.
 const DEFAULT_AUTH_STATE = {
   isLoggedIn: false,
   isAdmin: false,
-  userID: -1,
+  token: "",
 }
 
 interface AuthContextType {
   auth: AuthState; // current authentication state (logged in? admin?)
-  login: (userID : number, isAdmin?: boolean) => void; // function for login
+  login: (token : string, isAdmin?: boolean) => void; // function for login
   logout: () => void; // function for logout
 }
 
@@ -38,8 +38,8 @@ const saveAuthState = (auth: AuthState) => {
 export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
   const [auth, setAuth] = useState<AuthState>(loadAuthState);
 
-  const login = (userID : number, isAdmin: boolean = false) => {
-    const newAuthState = { isLoggedIn: true, isAdmin, userID: userID };
+  const login = (token : string, isAdmin: boolean = false) => {
+    const newAuthState = { isLoggedIn: true, isAdmin, token: token };
 
     setAuth(newAuthState);
     saveAuthState(newAuthState);
