@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
+import mongoose, { isValidObjectId } from "mongoose";
+
 import bcrypt from "bcrypt";
+import { Request, Response } from "express";
+
 import User from '../models/userModel';
 import generateTokenAndSetCookie from '../lib/generateToken';
-import mongoose, { isValidObjectId } from "mongoose";
-import UserModel from "../models/userModel";
 
 export async function createUser(req: Request, res: Response) {
   try {
@@ -63,7 +64,7 @@ export async function getUser(req: Request, res: Response) {
       return res.status(404).json({ message: `User ${userId} not found` });
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: `User ${userId} not found` });
     } else {
@@ -77,7 +78,7 @@ export async function getUser(req: Request, res: Response) {
 
 export async function getAllUsers(req: Request, res: Response) {
   try {
-    const users = await UserModel.find();
+    const users = await User.find();
 
     return res.status(200).json({ message: `Found users`, data: users.map(user => user) });
   } catch (error) {
@@ -102,7 +103,9 @@ export const updateUser = async (req: Request, res: Response) => {
 
 		if (currentPassword && newPassword) {
 			const isMatch = await bcrypt.compare(currentPassword, user.password);
-			if (!isMatch) return res.status(400).json({ error: "Current password is incorrect" });
+			if (!isMatch) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
 			if (newPassword.length < 10) {
 				return res.status(400).json({ error: "Password must be at least 10 characters long" });
 			}
@@ -125,3 +128,23 @@ export const updateUser = async (req: Request, res: Response) => {
 		res.status(500).json({ error });
 	}
 };
+
+export async function deleteUser(req: Request, res: Response) {
+  try {
+    const userId = req.params.id;
+    if (!isValidObjectId(userId)) {
+      return res.status(404).json({ message: `User ${userId} not found` });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: `User ${userId} not found` });
+    }
+
+    await User.findByIdAndDelete(userId);
+    return res.status(200).json({ message: `Deleted user ${userId} successfully` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Unknown error when deleting user!" });
+  }
+}
