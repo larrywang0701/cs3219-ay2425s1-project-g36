@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 
 import { JWT_SECRET } from "../../utils/config";
 
-
 const generateTokenAndSetCookie = (userId: mongoose.Types.ObjectId, res: Response) => {
 	const token = jwt.sign({ userId }, JWT_SECRET, {
 		expiresIn: "15d",

@@ -9,7 +9,6 @@ import User from '../models/userModel';
 import { Blacklist } from '../models/blacklistModel';
 import { EMAIL, PASSWORD } from '../../utils/config';
 
-
 const router: Router = Router()
 const secretKey = "undecided" // to be replaced with a more secure key in .env file
 const MAX_FAILED_ATTEMPTS = 5; 

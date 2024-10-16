@@ -7,7 +7,6 @@ import { PORT } from './utils/config';
 import authenticationRoute from './src/routes/authenticationRoute';
 import userRoute from './src/routes/userRoute';
 
-
 const app: Application = express();
 const port: string | number  = PORT;
 
