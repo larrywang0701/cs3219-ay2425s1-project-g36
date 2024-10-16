@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Question } from "../models/questionModel";
+import { parseQuestionId } from "../utils/parseQuestionId";
 
 const router: Router = Router();
 
@@ -42,11 +43,11 @@ router.get(
 
 // retrieves a specific question by id
 router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
-    const id = parseInt(req.params.id);
+    const id = parseQuestionId(req.params.id);
 
     if (isNaN(id)) {
         return res.status(400).send({
-            message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
+            message: `Invalid ID: ${req.params.id}. Please provide a valid number.`,
         });
     }
 
@@ -55,14 +56,14 @@ router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
 
         if (question === null) {
             return res.status(404).send({
-                message: `Question of id: ${id} does not exist in the database`,
+                message: `Question of ID: ${id} does not exist in the database`,
             });
         }
         return res.status(200).send(question);
     } catch (error) {
         console.log(error);
         return res.status(500).send({
-            message: `Error retrieving question of id: ${id}`,
+            message: `Error retrieving question of ID: ${id}`,
         });
     }
 });
@@ -96,12 +97,12 @@ router.post("/", async (req: Request, res: Response): Promise<Response> => {
 
 // updates a question, identifed by id
 router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
-    const id = parseInt(req.params.id);
+    const id = parseQuestionId(req.params.id);
     const question = req.body;
 
     if (isNaN(id)) {
         return res.status(400).send({
-            message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
+            message: `Invalid ID: ${req.params.id}. Please provide a valid number.`,
         });
     }
 
@@ -116,7 +117,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
 
         if (questionResponse === null) {
             return res.status(404).send({
-                message: `Question of id: ${id} does not exist in the database`,
+                message: `Question of ID: ${id} does not exist in the database`,
             });
         }
 
@@ -131,40 +132,39 @@ router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
             });
         }
         return res.status(500).send({
-            message: "Error editting question",
+            message: "Error editing question",
         });
     }
 });
 
 // deletes a specific question by id
 router.delete("/:id", async (req: Request, res: Response): Promise<Response> => {
-        const id = parseInt(req.params.id);
+    const id = parseQuestionId(req.params.id);
 
-        if (isNaN(id)) {
-            return res.status(400).send({
-                message: `Invalid id: ${req.params.id}. Please provide a valid number.`,
-            });
-        }
-
-        try {
-            const question = await Question.findByIdAndDelete(id);
-
-            if (question === null) {
-                return res.status(404).send({
-                    message: `Question of id: ${id} does not exist in the database`,
-                });
-            }
-
-            return res.status(200).send({
-                message: `Successfully delete question with id: ${id}`,
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).send({
-                message: `Error deleting question of id: ${id}`,
-            });
-        }
+    if (isNaN(id)) {
+        return res.status(400).send({
+            message: `Invalid ID: ${req.params.id}. Please provide a valid number.`,
+        });
     }
-);
+
+    try {
+        const question = await Question.findByIdAndDelete(id);
+
+        if (question === null) {
+            return res.status(404).send({
+                message: `Question of ID: ${id} does not exist in the database`,
+            });
+        }
+
+        return res.status(200).send({
+            message: `Successfully deleted question with ID: ${id}`,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({
+            message: `Error deleting question of id: ${id}`,
+        });
+    }
+});
 
 export default router;
