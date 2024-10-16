@@ -27,17 +27,6 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
 router.get(
     "/topics",
     async (req: Request, res: Response): Promise<Response> => {
-        // try {
-        //     const uniqueTopics = await Question.aggregate([
-        //         { $unwind: "$topics" }, // Deconstructs the topics array
-        //         { $group: { _id: null, topics: { $addToSet: "$topics" } } }, // Groups and gets unique topics
-        //         { $project: { _id: 0, topics: 1 } }, // Removes _id from the result
-        //     ]);
-
-        //     return res.status(200).send(uniqueTopics[0].topics || []);
-        // } catch (error) {
-        //     return res.status(500).send({ error: "Error retrieving topics" });
-        // }
         return res.status(200).send(QUESTION_TOPICS)
     }
 );
