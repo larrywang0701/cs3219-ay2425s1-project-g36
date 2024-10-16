@@ -1,25 +1,12 @@
 import { Router, Request, Response } from "express";
 import { User } from "../model/User";
 import matchingManagerInstance from "../model/MatchingManager";
+import { startMatching } from "../controllers/matchingController";
 
 
 const router = Router();
 
-router.post("/start", async (req : Request, rsp : Response) => {
-    const data = req.body;
-    const user : User = {
-        ...data,
-        isReady: false,
-        matchedUser: null
-    }
-    try {
-        matchingManagerInstance.push(user);
-    }
-    catch(error : any) {
-        return rsp.status(500).send({message: error.message});
-    }
-    return rsp.status(200).send({message: "matching started"});
-});
+router.post("/start", startMatching);
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
