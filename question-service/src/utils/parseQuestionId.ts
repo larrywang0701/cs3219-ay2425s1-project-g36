@@ -13,12 +13,12 @@
  * @return The question ID, as an integer.
  */
 export function parseQuestionId(id : string) : number {
-  // regex ensures that number is 0 or a positive integer ([1-9] followed by digits).
-  const regex = /^(0|[1-9]\d*)$/;
+    // regex ensures that number is 0 or a positive integer ([1-9] followed by digits).
+    const regex = /^(0|[1-9]\d*)$/;
 
-  if (regex.test(id)) {
-    return parseInt(id);
-  } else {
-    return NaN;
-  }
+    if (regex.test(id)) {
+        return parseInt(id);
+    } else {
+        return NaN;
+    }
 }
