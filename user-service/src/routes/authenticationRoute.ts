@@ -7,10 +7,10 @@ import { Router, Request, Response } from 'express';
 
 import User from '../models/userModel';
 import { Blacklist } from '../models/blacklistModel';
-import { EMAIL, PASSWORD } from '../../utils/config';
+import { EMAIL, PASSWORD, JWT_SECRET } from '../../utils/config';
+import generateTokenAndSetCookie from '../lib/generateToken';
 
-const router: Router = Router()
-const secretKey = "undecided" // to be replaced with a more secure key in .env file
+const router: Router = Router();
 const MAX_FAILED_ATTEMPTS = 5; 
 const CAPTCHA_REQUIRED_ATTEMPTS = 3; 
 
@@ -42,9 +42,8 @@ router.post('/login', async (req: Request, res: Response) => {
     user.numberOfFailedLoginAttempts = 0;
     await user.save();
 
-    // Timeout set to 1 hour for now
-    const token = jwt.sign({ id: user._id, email: user.email }, secretKey, { expiresIn: '1h' })
-    res.json({ token, message: 'Login successful' });
+    generateTokenAndSetCookie(user.id, res);
+    res.json({ message: 'Login successful' });
 });
 
 
@@ -123,25 +122,32 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
 
 // Logout route
 router.post('/logout', async (req: Request, res: Response) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is passed in the Authorization header
-
+    // const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is passed in the Authorization header
+    const token = req.cookies.jwt; // Get token from the cookie
     if (!token) {
         return res.status(400).json({ message: 'No token provided' });
     }
 
     // Decode the token to get the expiration
-    var expiresAt = null
+    let expiresAt = null
     try {
-        const decodedToken = jwt.verify(token, secretKey)
+        const decodedToken = jwt.verify(token, JWT_SECRET)
         // Type guard to check if decodedToken is JwtPayload
         if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-            const expiresAt = new Date((decodedToken as JwtPayload).exp! * 1000);
+            expiresAt = new Date((decodedToken as JwtPayload).exp! * 1000);
             console.log('Token expires at:', expiresAt);
         } else {
             return res.status(400).json({ message: 'Invalid token format' });
         }
     } catch (error) {
+        console.log(error)
         return res.status(400).json({ message: 'Invalid token' })
+    }
+
+    // Check if the token already exists in the blacklist
+    const existingToken = await Blacklist.findOne({ token });
+    if (existingToken) {
+        return res.status(400).json({ message: 'Token already blacklisted' });
     }
 
     // Add the token to the blacklist
@@ -151,6 +157,5 @@ router.post('/logout', async (req: Request, res: Response) => {
 
     res.json({ message: 'Logout successful' });
 });
-
 
 export default router

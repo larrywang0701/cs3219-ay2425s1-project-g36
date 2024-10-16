@@ -11,6 +11,7 @@ export async function createUser(req: Request, res: Response) {
     const { username, email, password } = req.body;
 
     // sanity check
+    // Valid: user@example.com, invalid: user@ example.com
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
 			return res.status(400).json({ error: "Invalid email format" });
