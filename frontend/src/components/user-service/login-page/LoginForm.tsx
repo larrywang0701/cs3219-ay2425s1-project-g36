@@ -28,10 +28,11 @@ export default function LoginForm(){
         const message = response.message;
         const isSuccess = response.status === 200;
         const isAdmin = response.userInfo?.isAdmin;
+        const token = response.userInfo?.token;
         const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
         showDisplayedLoginMessage(message, type);
         if(isSuccess) {
-          login(isAdmin);
+          login(token, isAdmin);
           navigate("/");
         }
       });
