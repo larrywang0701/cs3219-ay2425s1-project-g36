@@ -1,12 +1,33 @@
 import { Router, Request, Response } from "express";
-import { User } from "../model/User";
 import matchingManagerInstance from "../model/MatchingManager";
-import { startMatching } from "../controllers/matchingController";
+import { startMatching, startQueueing } from "../controllers/matchingController";
 
 
 const router = Router();
 
-router.post("/start", startMatching);
+// When user starts matching, add user to the queue and search for a match
+router.post("/start_matching", async (req : Request, res : Response) => {
+    const data = req.body;
+    const user = {
+        ...data,
+        isReady: false,
+        matchedUser: null
+    }
+    
+    try {
+        // Send the new user to the Kafka topic
+        await startQueueing(user);
+
+        // Start the consumer to listen to the Kafka topic
+        await startMatching();
+        return res.status(200).send({message: "User added to queue for matching"});
+    }
+    catch(error) {
+        console.error("Error when trying to match:" + error);
+        return res.status(500).send({message: "Failed to add user to queue for matching"});
+    }
+});
+
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
