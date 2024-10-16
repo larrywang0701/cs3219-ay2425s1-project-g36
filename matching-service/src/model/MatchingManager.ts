@@ -7,7 +7,8 @@ TODO: matching based on user's requirements.
 */
 
 import { assert } from "console";
-import { MatchingQueue, User } from "./MatchingQueue";
+import { MatchingQueue} from "./MatchingQueue";
+import { User } from "./User";
 
 
 

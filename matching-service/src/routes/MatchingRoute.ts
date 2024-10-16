@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { User } from "../model/MatchingQueue";
+import { User } from "../model/User";
 import matchingManagerInstance from "../model/MatchingManager";
 
 

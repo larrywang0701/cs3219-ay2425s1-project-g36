@@ -1,3 +1,5 @@
+import { User } from "./User";
+
 /*
 TODO:
 Here I only implemented a simple matching logic based on a single queue.
@@ -5,17 +7,6 @@ For now any two users could be matched together (ignoring their requirements on 
 
 TODO: matching based on user's requirements.
 */
-
-export type TDifficulty = "easy" | "medium" | "hard";
-export type SelectedDifficultyData = {[difficulty in TDifficulty] : boolean};
-
-type User = {
-    userToken : string,
-    difficulties : SelectedDifficultyData,
-    topics : string[]
-    isReady : boolean,
-    matchedUser : User | null
-}
 
 
 class MatchingQueue {
@@ -67,4 +58,4 @@ class MatchingQueue {
     }
 }
 
-export { MatchingQueue, User };
+export { MatchingQueue };
