@@ -7,8 +7,8 @@ TODO: matching based on user's requirements.
 */
 
 import { assert } from "console";
-import { MatchingQueue} from "./MatchingQueue";
-import { User } from "./User";
+import { MatchingQueue } from "./queue";
+import { User } from "./users";
 
 
 
@@ -67,7 +67,7 @@ class MatchingManager {
         }
         const user = this.getUser(userToken);
         // TODO: implement "matching based on user requirements" here
-        const theOtherUser = this.queue.peek();
+        const theOtherUser = this.queue.peek(0);
         if(theOtherUser.userToken === userToken) {
             return false
         }

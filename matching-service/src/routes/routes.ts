@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
-import matchingManagerInstance from "../model/MatchingManager";
-import { startMatching, startQueueing } from "../controllers/matchingController";
+import matchingManagerInstance from "../model/manager";
+import { startMatching, startQueueing } from "../controllers/controller";
 
 
 const router = Router();

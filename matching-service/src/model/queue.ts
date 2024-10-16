@@ -1,4 +1,4 @@
-import { User } from "./User";
+import { User } from "./users";
 
 /*
 TODO:
@@ -27,11 +27,11 @@ class MatchingQueue {
         this.queue.push(user);
     }
 
-    peek() : User {
+    peek(index : number) : User {
         if(this.isEmpty()) {
             throw new Error("Trying to peek from an empty matching queue");
         }
-        return this.queue[0];
+        return this.queue[index];
     }
 
     pop() : User {
@@ -56,6 +56,11 @@ class MatchingQueue {
     removeUser(user : User) : void {
         this.removeAt(this.queue.indexOf(user));
     }
+
+    getQueue() : User[] {
+        return this.queue;
+    }
+
 }
 
 export { MatchingQueue };

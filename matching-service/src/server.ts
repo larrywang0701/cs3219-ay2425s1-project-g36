@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { FRONTEND_ADDRESS, PORT } from "./config";
-import MatchingRoute from "./routes/MatchingRoute";
+import MatchingRoute from "./routes/routes";
 
 const app = express();
 

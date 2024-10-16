@@ -5,6 +5,7 @@ interface User {
     userToken : string;
     difficulties : SelectedDifficultyData;
     topics : string[];
+    timestamp : number;
     isReady : boolean;
     matchedUser : User | null;
 }
