@@ -7,17 +7,17 @@ TODO: matching based on user's requirements.
 */
 
 import { assert } from "console";
-import { MatchingQueue } from "./queue";
+import { Queue } from "./queue";
 import { User } from "./user";
 
 
 
-class MatchingManager {
-    private readonly queue : MatchingQueue;
+class QueueManager {
+    private readonly queue : Queue;
     private readonly allUsers : {[userToken : string] : User};
 
     constructor() {
-        this.queue = new MatchingQueue();
+        this.queue = new Queue();
         this.allUsers = {};
     }
 
@@ -130,9 +130,26 @@ class MatchingManager {
         }
         return this.allUsers[userToken];
     }
+
+    /**
+     * Counts the number of users in the queue
+     * @returns The number of users in the queue
+     */
+    length() : number {
+        return this.queue.count();
+    }
+
+    /**
+     * Get the user at the given index in the queue
+     * @param index The index of the user
+     * @returns The user at the given index
+     */
+    getIndex(index : number) : User {
+        return this.queue.peek(index);
+    }
 }
 
-const matchingManagerInstance = new MatchingManager();
+const queueManagerInstance = new QueueManager();
 
-export default matchingManagerInstance;
+export default queueManagerInstance;
 

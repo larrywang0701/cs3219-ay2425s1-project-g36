@@ -9,7 +9,7 @@ TODO: matching based on user's requirements.
 */
 
 
-class MatchingQueue {
+class Queue {
     private readonly queue : User[];
 
     constructor() {
@@ -58,4 +58,4 @@ class MatchingQueue {
     }
 }
 
-export { MatchingQueue };
+export { Queue };
