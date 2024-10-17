@@ -1,5 +1,9 @@
 import { EMPTY_QUESTION, Question } from "@/api/question-service/Question";
-import { fetchQuestionById, insertQuestion, updateQuestion } from "@/api/question-service/QuestionService";
+import {
+  fetchQuestionById,
+  insertQuestion,
+  updateQuestion,
+} from "@/api/question-service/QuestionService";
 import { useEffect, useState } from "react";
 import PageTitle from "../../common/PageTitle";
 import QuestionInputField from "./QuestionInputField";
@@ -16,40 +20,40 @@ import { Skeleton } from "@/components/ui/skeleton";
 /**
  * A form for the editing of questions. Requires the following
  * prop:
- * 
+ *
  * - `id`: The ID of the question to edit. Set `id` to `undefined` to create
  * a new question instead of updating an existing question.
  */
-export default function EditQuestionForm({ id } : { id? : string }) {
-  const [ question, setQuestion ] = useState<Question>(EMPTY_QUESTION);
+export default function EditQuestionForm({ id }: { id?: string }) {
+  const [question, setQuestion] = useState<Question>(EMPTY_QUESTION);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [ loading, setLoading ] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // whether to perform insert or update. True if adding question, False if
   // updating an existing question.
-  const isAddQuestion = (id === undefined);
+  const isAddQuestion = id === undefined;
 
   // load question from backend
   const loadQuestion = () => {
-    fetchQuestionById( id ).then(question => {
+    fetchQuestionById(id).then((question) => {
       setLoading(false);
       if (question === null) {
         toast({
-          description: `Redirected to add new question as question with ID ${id} doesn't exist!`
+          description: `Redirected to add new question as question with ID ${id} doesn't exist!`,
         });
-        navigate('/questions/new');
+        navigate("/questions/new");
       } else {
         setQuestion(question);
       }
     });
-  }
+  };
 
   useEffect(() => {
     loadQuestion();
-  }, [])
+  }, []);
 
-  const [ warning, setWarning ] = useState("");
+  const [warning, setWarning] = useState("");
 
   /**
    * Handles the create/update of the question.
@@ -60,7 +64,7 @@ export default function EditQuestionForm({ id } : { id? : string }) {
       setWarning("Title and description are required!");
     } else if (isAddQuestion) {
       // adds a question to the database
-      insertQuestion(question).then(response => {
+      insertQuestion(question).then((response) => {
         if (response.status === 200) {
           navigate("/questions");
         } else {
@@ -69,7 +73,7 @@ export default function EditQuestionForm({ id } : { id? : string }) {
       });
     } else {
       // updates the question in the database
-      updateQuestion(question).then(response => {
+      updateQuestion(question).then((response) => {
         if (response.status === 200) {
           navigate("/questions");
         } else {
@@ -77,68 +81,71 @@ export default function EditQuestionForm({ id } : { id? : string }) {
         }
       });
     }
-  }
+  };
 
   return !loading ? (
     <section>
       <PageTitle>
-        { isAddQuestion ?
-          "Add New Question" :
-          <>Edit Question #{id}</>
-        }
+        {isAddQuestion ? "Add New Question" : <>Edit Question #{id}</>}
       </PageTitle>
       <div className="flex flex-col gap-3">
         <QuestionInputField
           name="Title"
           placeholder="Enter title..."
-          value={ question.title }
-          setValue={ (newTitle : string) => {
-            setQuestion({...question, title: newTitle});
-          } } />
+          value={question.title}
+          setValue={(newTitle: string) => {
+            setQuestion({ ...question, title: newTitle });
+          }}
+        />
         <div className="flex gap-3">
           <QuestionSelectField
-            value={ question.difficulty }
-            setValue={ (newDiff : TDifficulty) => {
-              setQuestion({...question, difficulty: newDiff});
-            } } />
-          <QuestionTopicsField 
-            value={ question.topics ?? [] }
-            setValue={ (newTopics : string[]) => {
-              setQuestion({...question, topics: newTopics});
-            } } />
+            value={question.difficulty}
+            setValue={(newDiff: TDifficulty) => {
+              setQuestion({ ...question, difficulty: newDiff });
+            }}
+          />
+          <QuestionTopicsField
+            value={question.topics ?? []}
+            setValue={(newTopics: string[]) => {
+              setQuestion({ ...question, topics: newTopics });
+            }}
+          />
         </div>
         <QuestionTextareaField
           name="Description"
           placeholder="Enter description..."
-          value={ question.description }
-          setValue={ (newDesc : string) => {
-            setQuestion({...question, description: newDesc});
-          } } />
+          value={question.description}
+          setValue={(newDesc: string) => {
+            setQuestion({ ...question, description: newDesc });
+          }}
+        />
         <div className="flex justify-center gap-3">
-          <Button className="btngreen" onClick={ handleSaveQuestionClick }>
-            { (isAddQuestion) ? "Add Question" : "Save Question" }
+          <Button className="btngreen" onClick={handleSaveQuestionClick}>
+            {isAddQuestion ? "Add Question" : "Save Question"}
           </Button>
           <Button className="btnblack">
-            <Link to="/questions">
-              Back to Questions
-            </Link>
+            <Link to="/questions">Back to Questions</Link>
           </Button>
         </div>
-        { 
-          (warning !== "") ?
+        {warning !== "" ? (
           <div className="bg-red-200 rounded-lg p-4 flex items-center gap-2">
             <TriangleAlert className="size-8" />
             <p>
-              <strong>Warning: </strong>{ warning }
+              <strong>Warning: </strong>
+              {warning}
             </p>
-          </div> : <></>
-        }
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
-    </section> 
+    </section>
   ) : (
-  <div className="flex flex-col items-center justify-center bg-background">
-    <Loader2 className="h-16 w-16 animate-spin text-primary" />
-    <h2 className="text-2xl font-semibold mt-4 text-foreground">Loading...</h2>
-  </div>
-)
+    <div className="flex flex-col items-center justify-center bg-background">
+      <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      <h2 className="text-2xl font-semibold mt-4 text-foreground">
+        Loading...
+      </h2>
+    </div>
+  );
 }
