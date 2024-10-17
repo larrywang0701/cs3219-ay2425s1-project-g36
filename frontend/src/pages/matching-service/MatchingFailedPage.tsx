@@ -1,15 +1,18 @@
 import { retryPreviousMatching } from "@/api/matching-service/MatchingService";
+import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function MatchingFailedPage() {
   const [parameters] = useSearchParams();
   const navigate = useNavigate();
   const { auth } = useAuth();
+  const [displayedMessage, setDisplayedMessage] = useState<DisplayedMessage | null>(null);
 
   const message = parameters.get("message");
   const difficultiesStr = parameters.get("difficulties");
@@ -24,14 +27,14 @@ export default function MatchingFailedPage() {
           navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
         else {
-          displayNotification("An error has occured: \n" + response.message);
+          displayError("An error has occured: \n" + response.message);
         }
       }
     )
   }
 
-  const displayNotification = (message : string) : void => {
-    alert(message + "\n\n( This message box will be replaced to a `DisplayedMessage` component after my pull request about user service frontend is merged into the main repo. )");
+  const displayError = (message : string) => {
+    setDisplayedMessage({message : message, type : DisplayedMessageTypes.Error});
   }
 
   const refineSelectionButtonOnClick = () => {
@@ -49,6 +52,7 @@ export default function MatchingFailedPage() {
         <div>{message}</div>
         <Button className="btngreen" onClick={retryButtonOnClick}>Try again</Button>
         <Button className="btnblack" onClick={refineSelectionButtonOnClick}>Refine selection</Button>
+        <DisplayedMessageContainer displayedMessage={displayedMessage}/>
       </div>
     </MainContainer>
   </>

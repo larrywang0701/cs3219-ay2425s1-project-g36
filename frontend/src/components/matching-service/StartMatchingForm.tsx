@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendStartMatchingRequest } from "@/api/matching-service/MatchingService";
 import { useNavigate } from "react-router-dom";
+import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "../common/DisplayedMessage";
 
 export default function StartMatchingForm() {
 
@@ -14,14 +15,15 @@ export default function StartMatchingForm() {
 
   const [questionTopics, setQuestionTopics] = useState<string[]>([]);
   const [selectedDifficultyData, setSelectedDifficultyData] = useState<SelectedDifficultyData>(DEFAULT_SELECTED_DIFFICULTY_DATA);
+  const [displayedMessage, setDisplayedMessage] = useState<DisplayedMessage | null>(null);
 
   const startMatching = () : void => {
     if(!selectedDifficultyData.easy && !selectedDifficultyData.medium && !selectedDifficultyData.hard) {
-      displayNotification("You must select at least one difficulty.");
+      displayError("You must select at least one difficulty.");
       return;
     }
     if(questionTopics.length === 0) {
-      displayNotification("You must select at least one topic.");
+      displayError("You must select at least one topic.");
       return;
     }
     sendStartMatchingRequest(auth.token, selectedDifficultyData, questionTopics).then(
@@ -33,16 +35,16 @@ export default function StartMatchingForm() {
           navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
         else {
-          displayNotification("An error has occured: \n" + response.message);
+          displayError("An error has occured: \n" + response.message);
         }
       }
     )
   }
 
-  const displayNotification = (message : string) : void => {
-    alert(message + "\n\n( This message box will be replaced to a `DisplayedMessage` component after my pull request about user service frontend is merged into the main repo. )");
+  const displayError = (message : string) => {
+    setDisplayedMessage({message : message, type : DisplayedMessageTypes.Error});
   }
-
+  
   return(
   <>
     <form onSubmit={evt => {evt.preventDefault();} } className="h-full">
@@ -56,6 +58,7 @@ export default function StartMatchingForm() {
       <div className="flex justify-center mt-20">
         <Button className="btnblack" onClick={startMatching}>Find a match</Button>
       </div>
+      <DisplayedMessageContainer displayedMessage={displayedMessage}/>
     </form>
   </>
   )

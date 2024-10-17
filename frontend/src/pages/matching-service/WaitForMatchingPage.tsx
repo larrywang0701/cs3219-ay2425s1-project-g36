@@ -2,6 +2,7 @@ import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
+import SpinningCircle from "@/components/matching-service/SpinningCircle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +24,7 @@ export default function WaitForMatchingPage() {
 
   const difficultiesStr = parameters.get("difficulties");
   const topicsStr = parameters.get("topics");
+  const peerNotReady = parameters.get("peerNotReady");
 
   const checkMatchingState = () => {
     console.log("checking matching state");
@@ -38,7 +40,7 @@ export default function WaitForMatchingPage() {
           if(response.message === "match found") {
             console.log("match found!");
             cancelMatching(false);
-            navigate("../matching/get_ready");
+            navigate(`../matching/get_ready?difficulties=${difficultiesStr}&topics=${topicsStr}`);
           }
           return;
         }
@@ -102,13 +104,15 @@ export default function WaitForMatchingPage() {
     <MainContainer>
       <div className="flex flex-col space-y-5 justify-center items-center">
         <PageTitle>Please wait for a moment...</PageTitle>
+        {peerNotReady === "true" && (
+          <div className="text-red-500">Because the other user you've just matched with didn't get ready in time, now we are retry matching for you.</div>
+        )}
         <div>Searching for students who also want to do <b>{difficultiesStr}</b> questions with topics <b>{topicsStr}</b>.</div>
         <div>
           <div className="h-10" />
-          <div className="flex justify-center items-center relative w-20 h-20">
-            <div className="absolute inset-0 animate-spin rounded-full border-4 border-t-transparent border-black" />
+          <SpinningCircle>
             <div className="text-2xl">{endMatchingTimer}</div>
-          </div>
+          </SpinningCircle>
           <div className="h-10" />
         </div>
         <div className="flex justify-center mt-20">
