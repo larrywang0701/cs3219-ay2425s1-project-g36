@@ -143,7 +143,7 @@ export async function updateQuestion(question : Question) {
  * 
  * @returns The list of topics from the question-service as a promise.
  */
-export async function fetchTopics(): Promise<String[]> {
+export async function fetchTopics(): Promise<string[]> {
   try {
     const response = await api.get('/questions/topics');
     return response.data;
