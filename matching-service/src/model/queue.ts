@@ -1,4 +1,4 @@
-import { User } from "./users";
+import { User } from "./user";
 
 /*
 TODO:
@@ -56,11 +56,6 @@ class MatchingQueue {
     removeUser(user : User) : void {
         this.removeAt(this.queue.indexOf(user));
     }
-
-    getQueue() : User[] {
-        return this.queue;
-    }
-
 }
 
 export { MatchingQueue };

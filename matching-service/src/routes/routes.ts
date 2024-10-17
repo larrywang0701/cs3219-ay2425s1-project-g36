@@ -1,11 +1,13 @@
 import { Router, Request, Response } from "express";
-import matchingManagerInstance from "../model/manager";
-import { startMatching, startQueueing } from "../controllers/controller";
+import matchingManagerInstance from "../model/queueManager";
+import { startMatching, startQueueing } from "../controllers/matchingController";
 
 
 const router = Router();
 
-// When user starts matching, add user to the queue and search for a match
+/**
+ * When user starts matching, add user to the queue and search for a match
+ */
 router.post("/start_matching", async (req : Request, res : Response) => {
     const data = req.body;
     const user = {
@@ -18,8 +20,6 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         // Send the new user to the Kafka topic
         await startQueueing(user);
 
-        // Start the consumer to listen to the Kafka topic
-        await startMatching();
         return res.status(200).send({message: "User added to queue for matching"});
     }
     catch(error) {
@@ -28,7 +28,15 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     }
 });
 
+/**
+ * Confirm the match between both users
+ */
+router.post("/confirm_match", async (req : Request, res : Response) => {
+});
 
+/**
+ * Check the state of the user
+ */
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
         const { userToken } = req.body;
@@ -49,6 +57,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
     }
 });
 
+// TODO: follow the current implementation using kafka
 router.post("/cancel", async (req : Request, rsp : Response) => {
     try {
         const { userToken } = req.body;

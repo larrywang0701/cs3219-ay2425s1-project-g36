@@ -1,5 +1,5 @@
 import { MatchingQueue } from "../model/queue";
-import { User, hasCommonDifficulties } from "../model/users";
+import { User, hasCommonDifficulties } from "../model/user";
 import { Kafka } from "kafkajs";
 
 const kafka = new Kafka({
@@ -10,9 +10,9 @@ const kafka = new Kafka({
 // Consumer related functions
 const consumer = kafka.consumer({ groupId: "matching-service-group" });
 
-let waitingUsers: User[] = []; //TODO: use queue model
 const waitingQueue = new MatchingQueue();
 const TIMEOUT_DURATION = 60000; // Timeout set for 1 minute
+const CONFIRMATION_DURATION = 10000; // Confirmation timeout set for 10 seconds
 
 /**
  * Searches queue for a matching user
@@ -31,7 +31,7 @@ const findMatchingUser = (newUser: User): User | null => {
             continue; 
         }
 
-        if (newUser.topics.some(topic => waitingUsers[i].topics.includes(topic))) {
+        if (newUser.topics.some(topic => user.topics.includes(topic))) {
             return user; 
         }
     }
@@ -61,7 +61,8 @@ const checkTimeout = () => {
 }
 
 /**
- * Listens to the queue for matching users
+ * Listens to the queue for matching users. When a match is found, users are asked to 
+ * confirm the match before removing them from the queue.
  */
 export const startMatching = async () => {
     await consumer.connect();
@@ -75,33 +76,34 @@ export const startMatching = async () => {
 
             checkTimeout();
 
-            if (isUserMatched) {
-                console.log(`User ${newUser.userToken} is already matched`);
-                await consumer.disconnect();
-                return;
-            }
+            // if (isUserMatched) {
+            //     console.log(`User is already matched`);
+            //     await consumer.disconnect();
+            //     return;
+            // }
 
-            if (waitingQueue.isEmpty()) {
+            // if (waitingQueue.isEmpty()) {
+            //     newUser.timestamp = Date.now();
+            //     waitingQueue.push(newUser);
+            //     console.log(`User ${newUser.userToken} added to waiting list`);
+            // } else {
+            const matchedUser = findMatchingUser(newUser);
+
+            if (matchedUser) {
+                console.log(`Matched user ${newUser.userToken} with ${matchedUser.userToken}`);
+                isUserMatched = true;
+
+                //TODO: notify both matched users
+
+                // Remove matched user from waiting list
+                waitingQueue.removeUser(matchedUser);
+                // await consumer.disconnect();
+            } else { 
+                newUser.timestamp = Date.now();
                 waitingQueue.push(newUser);
                 console.log(`User ${newUser.userToken} added to waiting list`);
-            } else {
-                const matchedUser = findMatchingUser(newUser);
-
-                if (matchedUser) {
-                    console.log(`Matched user ${newUser.userToken} with ${matchedUser.userToken}`);
-                    isUserMatched = true;
-
-                    //TODO: notify both matched users
-
-                    // Remove matched user from waiting list
-                    waitingQueue.removeUser(matchedUser);
-                    await consumer.disconnect();
-                } else {
-                    newUser.timestamp = Date.now();
-                    waitingUsers.push(newUser);
-                    console.log(`User ${newUser.userToken} added to waiting list`);
-                }
             }
+            // }
         }
     });
 }
