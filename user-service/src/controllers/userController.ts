@@ -134,7 +134,7 @@ export async function deleteUser(req: Request, res: Response) {
   try {
     const userId = req.params.id;
     if (!isValidObjectId(userId)) {
-      return res.status(404).json({ message: `User ${userId} not found` });
+      return res.status(404).json({ message: `User ID ${userId} invalid` });
     }
 
     const user = await User.findById(userId);
@@ -147,5 +147,45 @@ export async function deleteUser(req: Request, res: Response) {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Unknown error when deleting user!" });
+  }
+}
+
+/**
+ * Updates a specific user's privilege.
+ */ 
+export async function updateUserPrivilege(req : Request, res : Response) {
+  try {
+    const { isAdmin } = req.body;
+
+    if (isAdmin !== undefined) {  // isAdmin can have boolean value true or false
+      const userId = req.params.id;
+      if (!isValidObjectId(userId)) {
+        return res.status(404).json({ message: `User ${userId} not found` });
+      }
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: `User ${userId} not found` });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId, 
+        {
+          $set: {
+            isAdmin: isAdmin
+          }
+        },
+        { new: true }, // return the updated user
+      );
+
+      // @ts-ignore
+      const resultString = updatedUser.isAdmin ? "now an admin" : "no longer an admin";
+
+      return res.status(200).json({ message: `Updated privilege for user ${userId}. ${userId} is ${resultString}.` } );
+    } else {
+      return res.status(400).json({ message: "isAdmin is missing!" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Unknown error when updating user privilege!" });
   }
 }
