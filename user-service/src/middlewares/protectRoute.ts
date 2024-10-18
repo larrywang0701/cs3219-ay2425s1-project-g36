@@ -10,6 +10,9 @@ interface CustomJwtPayload extends JwtPayload {
     userId: mongoose.Types.ObjectId;
 }
 
+/**
+ * Middleware that verifies that a user is logged in before proceeding.
+ */
 export const protectRoute = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const token = req.cookies.jwt;
@@ -33,4 +36,17 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
 		console.log("Error in protectRoute middleware", error);
 		return res.status(500).json({ message: "Internal server error!" });
 	}
+};
+
+/**
+ * Middleware that verifies that a user is logged in as an admin before proceeding.
+ * 
+ * Needs to be performed with `protectRoute` that checks if a user is logged in.
+ */
+export const adminProtectRoute = async (req: Request, res: Response, next: NextFunction) => {
+    if (req.user.isAdmin) {
+        next();
+    } else {
+        return res.status(403).json({ message: "Not authorized to access this resource" });
+    }
 };
