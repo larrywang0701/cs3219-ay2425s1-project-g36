@@ -177,19 +177,19 @@ class QueueManager {
      * Sets the user as ready.
      * @param userToken The token of the user
      */
-    setReady(userToken : string) : void {
-        const user = this.getUser(userToken);
-        user.isReady = true;
-    }
+    // setReady(userToken : string) : void {
+    //     const user = this.getUser(userToken);
+    //     user.isReady = true;
+    // }
 
     /**
      * Check if a user is ready
      * @param userToken The token of the user
      * @returns `true` if the user is ready, `false` otherwise
      */
-    isReady(userToken : string) : boolean {
-        return this.getUser(userToken).isReady;
-    }
+    // isReady(userToken : string) : boolean {
+    //     return this.getUser(userToken).isReady;
+    // }
 
     /**
      * Return the matched user of a user
