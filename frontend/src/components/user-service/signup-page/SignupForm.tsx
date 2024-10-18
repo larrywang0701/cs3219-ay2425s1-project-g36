@@ -95,7 +95,7 @@ export default function LoginForm(){
                 showDisplayedSignupMessage(message, type);
                 if (isSuccess) {
                     // log user in
-                    sendLoginRequest(username, password, "").then(response => {
+                    sendLoginRequest(emailAddress, password, "").then(response => {
                         const isLoginSuccess = response.status === 200;
                         const isAdmin = response.userInfo?.isAdmin;
                         const email = response.userInfo?.email;

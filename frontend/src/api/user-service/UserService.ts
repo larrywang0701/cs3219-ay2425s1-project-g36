@@ -12,14 +12,14 @@ const api = axios.create({baseURL: USER_SERVICE_URL});
 
 /**
  * An async function for sending a login request to the backend.
- * @param username The username/email address.
+ * @param email The email address.
  * @param password The password.
  * @param captcha The captcha value (when required).
  * @returns An object containing the HTTP status code of the request, the responded message from the backend and the user's information.
  */
-async function sendLoginRequest(username : string, password : string, captcha : string) {
+async function sendLoginRequest(email : string, password : string, captcha : string) {
   const loginData = {
-    email : username,
+    email : email,
     password : password,
     captcha : captcha
   }
