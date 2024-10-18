@@ -20,11 +20,15 @@ router.get("/", protectRoute, getAllUsers);
 
 router.patch("/update", protectRoute, updateUser);
 
-router.delete("/:id", protectRoute, deleteUser);
-
 /**
  * Admin-protected routes
  */
+
+// POST {URL}/:id/privilege
+// Allows admins to update the privilege of a user by its ID.
+//
+// Body:
+// isAdmin: true/false.
 router.patch("/:id/privilege", protectRoute, adminProtectRoute, updateUserPrivilege);
 
 export default router;
