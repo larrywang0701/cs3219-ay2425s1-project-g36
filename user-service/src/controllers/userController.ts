@@ -134,7 +134,7 @@ export async function deleteUser(req: Request, res: Response) {
   try {
     const userId = req.params.id;
     if (!isValidObjectId(userId)) {
-      return res.status(404).json({ message: `User ${userId} not found` });
+      return res.status(404).json({ message: `User ID ${userId} invalid` });
     }
 
     const user = await User.findById(userId);
