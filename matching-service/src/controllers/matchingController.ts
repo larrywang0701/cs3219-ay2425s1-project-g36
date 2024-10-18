@@ -1,7 +1,7 @@
 import { User, hasCommonDifficulties } from "../model/user";
 import { Kafka } from "kafkajs";
 import queueManagerInstance from "../model/queueManager";
-import { on } from "events";
+import { Queue } from "../model/queue";
 
 const kafka = new Kafka({
     clientId: 'matching-service',
@@ -21,10 +21,10 @@ const CONFIRMATION_DURATION = 5000; // Confirmation timeout set for 10 seconds
  * @param user The user in the queue
  * @returns The user if they have common difficulties and topics, else null
  */
-const findMatchingUser = (newUser: User): User | null => {
+const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
     // Start from the back
-    for (let i = queueManagerInstance.length() - 1; i >= 0; i--) {
-        const user = queueManagerInstance.getIndex(i);
+    for (let i = 0; i < waitingQueue.count(); i++) {
+        const user = waitingQueue.peek(i);
 
         // Avoid matching with itself
         if (newUser.userToken === user.userToken) {
@@ -48,68 +48,81 @@ const findMatchingUser = (newUser: User): User | null => {
  * @param newUser Topics, difficulties, and user token
  * @param onResult Callback function to handle the result of the matching process
  */
-export const startMatching = async (
-    user: User, 
-    onResult: (result: 'match_found' | 'timeout') => void
-) => {
+export const startMatching = async () => {
 
     await consumer.connect();
     await consumer.subscribe({ topic: "user-selection", fromBeginning: true });
-
-    // Set a timeout to handle cases where no match is found within the time limit
-    const timeout = setTimeout(() => {
-        if (queueManagerInstance.isUserMatched(user.userToken)) {
-            console.log(`No match found for user ${user.userToken} due to timeout.`);
-            queueManagerInstance.removeUserFromMatching(user.userToken);
-            onResult('timeout');
-        }
-    }, TIMEOUT_DURATION);
-
-    // Check if user is already matched
-    if (queueManagerInstance.isUserMatched(user.userToken)) {
-        onResult('match_found');
-    }
+    const waitingQueue = new Queue();
 
     await consumer.run({
         eachMessage: async ({ message }) => {
             const newUser: User = JSON.parse(message.value!.toString());
 
-            // Everytime a new message is received, add the user to the queue
-            newUser.timestamp = Date.now();
-            queueManagerInstance.push(newUser);
+            const timeout = setTimeout(() => {
+                if (newUser.matchedUser === null) {
+                    console.log(`User ${newUser.userToken} has timed out and will be removed from the queue.`);
+                    waitingQueue.removeUser(newUser); // Remove user from the queue
 
-            // Avoid matching the user with themselves
-            if (user.userToken === newUser.userToken) {
-                return;
-            }
+                    // Send message to notify user that no match was found
+                    sendMatchResult(newUser.userToken, 'timeout');
+                }
+            }, TIMEOUT_DURATION);
 
-            // Check if user is already matched
-            // CHECK: is this necessary? my thoughts: user sends message before listening: 
-            // there may be a case where the user is matched before listening, but then this would mean that there would be a bug
-            // where there are 2 users in the matching queue but confirmation is only sent to one user as
-            // this if statement is only triggered when the next user sends a matching message
-            // So do i place this before running the consumer ?
-            if (queueManagerInstance.isUserMatched(user.userToken)) {
-                onResult('match_found');
-            }
+            newUser.timeout = timeout;
 
-            // Search for a matching user in the queue
-            const matchedUser = findMatchingUser(user);
+            // Search for a matching user in the queue, starting from the oldest user
+            const matchedUser = findMatchingUser(newUser, waitingQueue); 
+
 
             if (matchedUser) {
-                console.log(`Matched user ${matchedUser.userToken} with ${user.userToken}`);
+                console.log(`Matched user ${matchedUser.userToken} with ${newUser.userToken}`);
 
-                // Move users from confirmation queue to matched queue to prevent further matching
-                queueManagerInstance.matchTwoUsersTogether(newUser, user);
+                // Clear timeout for both users
+                clearTimeout(newUser.timeout);
+                if (matchedUser.timeout) {
+                    clearTimeout(matchedUser.timeout);
+                }
 
-                clearTimeout(timeout);
-                // Notify that a match has been found
-                onResult('match_found');
+                // Notify both users that a match has been found
+                sendMatchResult(newUser.userToken, 'matched');
+                sendMatchResult(matchedUser.userToken, 'matched');
             } else { 
-                // User is already added when the message is first received
+                waitingQueue.push(newUser);
                 console.log(`User ${newUser.userToken} added to waiting list`);
             }
-            // }
+        }
+    });
+    
+}
+
+
+/**
+ * Listens to the match-result topic for match outcomes and handles matched and timeout results
+ * @param userToken The token of the user
+ * @param onResult Callback function to handle the result of the matching process
+ */
+export const listenForMatchOutcome = async (
+    userToken: string, 
+    onResult: (result: 'matched' | 'timeout') 
+=> void) => {
+    
+    await consumer.connect();
+    await consumer.subscribe({ topic: 'match-result', fromBeginning: false });
+
+    await consumer.run({
+        eachMessage: async ({ message }) => {
+            const receivedKey = message.key?.toString();
+            const receivedValue = message.value?.toString();
+
+            if (receivedKey === userToken) {
+                const result = receivedValue;
+
+                if (result === 'matched') {
+                    onResult('matched');
+                } else {
+                    onResult('timeout');
+                }
+            }
         }
     });
 }
@@ -124,7 +137,7 @@ export const startMatching = async (
 export const startListeningForConfirmation = async (
     userToken1: string, 
     userToken2: string,
-    onResult: (result: 'confirmed' | 'declined' | 'timeout') => void
+    onResult: (result: 'confirmed' | 'declined') => void
 ) => {
     await consumer.connect();
     await consumer.subscribe({ topic: 'user-confirmation', fromBeginning: false });
@@ -133,7 +146,7 @@ export const startListeningForConfirmation = async (
         if (!queueManagerInstance.isReady(userToken1) || !queueManagerInstance.isReady(userToken2)) {
             console.log("Match declined due to timeout.");
             // Notify that the confirmation has timed out
-            onResult('timeout');
+            onResult('declined');
         }
     }, CONFIRMATION_DURATION);
 
@@ -141,10 +154,14 @@ export const startListeningForConfirmation = async (
         eachMessage: async ({ message }) => {
             const { userToken, action } = JSON.parse(message.value!.toString());
 
+            // need to check is the user token is from the matched user
+
             if (action === 'confirm') {
                 // Set the user as ready
                 queueManagerInstance.setReady(userToken);
                 console.log(`User ${userToken} has confirmed the match.`);
+
+                // how to wait for the other user to confirm
 
                 if (queueManagerInstance.isReady(userToken1) && queueManagerInstance.isReady(userToken2)) {
                     clearTimeout(timeout);
@@ -189,6 +206,23 @@ export const sendQueueingMessage = async (user: User) => {
 }
 
 /**
+ * Send a match outcome to the match-result topic
+ * @param userToken The token of the user
+ * @param result The result of the match
+ */
+const sendMatchResult = async (userToken: string, result: string) => {
+    await producer.connect();
+    await producer.send({
+        topic: 'match-result',
+        messages: [
+            { key: userToken, value: result },
+        ],
+    });
+    await producer.disconnect();
+}
+
+
+/**
  * Send a user confirmation message to the user-confirmation topic
  * @param userToken1 The token of the first user
  * @param userToken2 The token of the second user
@@ -210,7 +244,7 @@ export const sendConfirmationMessage = async (userToken: string) => {
  * @param userToken2 
  * @param result 
  */
-export const sendMatchResult = async (userToken1: string, userToken2: string, result: string) => {
+export const sendConfirmationResult = async (userToken1: string, userToken2: string, result: string) => {
     await producer.connect();
     await producer.send({
         topic: 'match-result',

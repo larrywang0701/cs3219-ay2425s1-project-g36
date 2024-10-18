@@ -5,7 +5,7 @@ interface User {
     userToken : string;
     difficulties : SelectedDifficultyData;
     topics : string[];
-    timestamp : number;
+    timeout : NodeJS.Timeout | null;
     isReady : boolean;
     matchedUser : User | null;
 }
