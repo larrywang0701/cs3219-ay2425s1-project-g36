@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { FRONTEND_ADDRESS, PORT } from "./config";
 import MatchingRoute from "./routes/routes";
-import { startMatching } from "./controllers/matchingController";
+import { startConfirmation, startMatching } from "./controllers/matchingController";
 
 const app = express();
 
@@ -16,6 +16,7 @@ app.use(cors(corsOptions));
 app.use("/matching", MatchingRoute);
 
 startMatching();
+startConfirmation();
 
 app.listen(PORT, () => {
     console.log(`Server started. Port = ${PORT}`);
