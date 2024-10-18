@@ -1,8 +1,7 @@
 import { Router } from 'express';
 
 import { createUser, getAllUsers, getUser, updateUser, deleteUser, updateUserPrivilege } from '../controllers/userController';
-import { protectRoute } from '../middlewares/protectRoute';
-import { adminProtectRoute } from '../middlewares/adminProtectRoute';
+import { protectRoute, adminProtectRoute } from '../middlewares/protectRoute';
 
 const router: Router = Router();
 
@@ -19,6 +18,8 @@ router.get("/:id", protectRoute, getUser);
 router.get("/", protectRoute, getAllUsers);
 
 router.patch("/update", protectRoute, updateUser);
+
+router.delete("/:id", protectRoute, deleteUser);
 
 /**
  * Admin-protected routes
