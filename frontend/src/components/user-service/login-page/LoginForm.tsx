@@ -36,6 +36,8 @@ export default function LoginForm(){
           login(token, username, email, isAdmin);
           navigate("/");
         }
+      }).catch(error => {
+        showDisplayedLoginMessage("An error occurred when logging in: " + error, DisplayedMessageTypes.Error);
       });
     }
 

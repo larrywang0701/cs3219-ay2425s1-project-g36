@@ -8,7 +8,10 @@ const LOGIN_API = "/login";
 const SIGNUP_API = "/";
 const RESET_PASSWORD_API = "/forgot-password";
 
-const api = axios.create({baseURL: USER_SERVICE_URL});
+const api = axios.create({
+  baseURL: USER_SERVICE_URL,
+  withCredentials: true
+});
 
 /**
  * An async function for sending a login request to the backend.
