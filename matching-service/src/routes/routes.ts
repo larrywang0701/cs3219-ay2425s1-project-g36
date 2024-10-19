@@ -40,7 +40,7 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     
     try {
         // Send the new user to the Kafka topic
-        await sendQueueingMessage(user);
+        await sendQueueingMessage(user.userToken);
         userStore.addUser(user.userToken, user);
 
         // Listen to matching outcome
@@ -90,7 +90,7 @@ router.post("/confirm_match", async (req : Request, res : Response) => {
         const matchedUser = user.matchedUser;
         if (matchedUser) {
             // Send the confirmation to the Kafka topic
-            await sendConfirmationMessage(user, matchedUser);
+            await sendConfirmationMessage(user.userToken, matchedUser.userToken);
 
             // Listen to the confirmation outcome
             await listenForConfirmationResult(userToken, (result) => {
@@ -160,7 +160,7 @@ router.post("/cancel", async (req : Request, res : Response) => {
         
         if (user) {
             // Send tombstone message to the Kafka topic to remove user from the queue
-            await sendQueueingMessage(user, true);
+            await sendQueueingMessage(user.userToken, true);
             userStore.removeUser(userToken);
         } else {
             return res.status(400).send({ message: "User not found" });

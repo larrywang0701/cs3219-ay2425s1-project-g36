@@ -1,6 +1,7 @@
 import { User, hasCommonDifficulties } from "../model/user";
 import { Kafka } from "kafkajs";
 import { Queue } from "../model/queue";
+import userStore from "../utils/userStore";
 
 const kafka = new Kafka({
     clientId: 'matching-service',
@@ -55,10 +56,18 @@ export const startMatching = async () => {
 
     await consumer.run({
         eachMessage: async ({ message }) => {
-            const newUser: User = JSON.parse(message.value!.toString());
+            const value = message.value!.toString();
 
             // Check if it is a tombstone message
+            if (!value) {
+                return;
+            }
+
+            // Get user object from the store
+            const newUser = userStore.getUser(value);
             if (!newUser) {
+                console.log(`User ${value} not found in the user store.`);
+                sendMatchResult(value, 'declined');
                 return;
             }
 
@@ -173,8 +182,16 @@ export const startConfirmation = async () => {
     await consumer.run({
         eachMessage: async ({ message }) => {
 
-            const user: User = JSON.parse(message.key!.toString());
-            const matchedUser = JSON.parse(message.value!.toString());
+            const key = message.key!.toString();
+            const value = message.value!.toString();
+
+            const user = userStore.getUser(key);
+            const matchedUser = userStore.getUser(value);
+            if (!user || !matchedUser) {
+                console.log(`User ${key} or matched user ${value} not found in the user store.`);
+                sendConfirmationResult(key, 'declined');
+                return;
+            }
 
             // Check if they are each other's matched user
             if (user.matchedUser === matchedUser && matchedUser.matchedUser === user) {
@@ -255,12 +272,12 @@ const producer = kafka.producer();
  * @param user Topics, difficulties, and user token
  * @param isCancel Whether the user wants to stop matching, set to false by default
  */
-export const sendQueueingMessage = async (user: User, isCancel: boolean = false) => {
+export const sendQueueingMessage = async (userToken: string, isCancel: boolean = false) => {
     await producer.connect();
     await producer.send({
         topic: 'user-matching',
         messages: [
-            { key: user.userToken, value: isCancel ? null : JSON.stringify(user) },
+            { key: userToken, value: isCancel ? null : userToken },
         ],
     });
     await producer.disconnect();
@@ -290,12 +307,12 @@ const sendMatchResult = async (userToken: string, result: string) => {
  * @param user The user
  * @param matchedUser The matched user
  */
-export const sendConfirmationMessage = async (user: User, matchedUser: User) => {
+export const sendConfirmationMessage = async (userToken: string, matchedUserToken: string) => {
     await producer.connect();
     await producer.send({
         topic: 'user-confirmation',
         messages: [
-            { key: JSON.stringify(user), value: JSON.stringify(matchedUser) },
+            { key: userToken, value: matchedUserToken },
         ],
     });
     await producer.disconnect();
