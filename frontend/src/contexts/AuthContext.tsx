@@ -1,3 +1,4 @@
+import { getUsers, sendLogoutRequest } from '@/api/user-service/UserService';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 // authentication state
@@ -41,6 +42,28 @@ const saveAuthState = (auth: AuthState) => {
 export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
   const [auth, setAuth] = useState<AuthState>(loadAuthState);
 
+  const _logout = () => {
+    const newAuthState = DEFAULT_AUTH_STATE;
+    setAuth(newAuthState);
+    saveAuthState(newAuthState);
+  }
+
+  const checkAuth = async () => {
+    try {
+      const response = await getUsers();
+      if (response.status === 401) {
+        _logout();
+      }
+    } catch (err : any) {
+      _logout();
+    }
+  }
+
+  // check authentication when app loads
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   const login = (token : string, username: string, email: string, isAdmin: boolean = false) => {
     const newAuthState = { isLoggedIn: true, isAdmin, token: token, username: username, email: email };
 
@@ -48,11 +71,11 @@ export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
     saveAuthState(newAuthState);
   };
 
-  const logout = () => {
-    const newAuthState = DEFAULT_AUTH_STATE;
+  const logout = async () => {
+    const response = await sendLogoutRequest();
+    console.log(response);
 
-    setAuth(newAuthState);
-    saveAuthState(newAuthState);
+    _logout();
   };
 
   // Effect to sync auth state changes to localStorage

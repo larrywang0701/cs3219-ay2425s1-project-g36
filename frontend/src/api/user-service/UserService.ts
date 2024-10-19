@@ -5,6 +5,7 @@ const USER_SERVICE_URL = "http://localhost:4000";
 const USERS_BASE_URL = "/users";
 const AUTH_BASE_URL = "/authentication";
 const LOGIN_API = "/login";
+const LOGOUT_API = "/logout";
 const SIGNUP_API = "/";
 const RESET_PASSWORD_API = "/forgot-password";
 
@@ -80,4 +81,32 @@ async function sendSignupRequest(username : string, emailAddress : string, passw
   }
 }
 
-export { sendLoginRequest, sendResetPasswordRequest, sendSignupRequest };
+/**
+ * An async function to send a logout request to the backend.
+ * 
+ * @returns An object containing the HTTP status code of the request and the responded message from the backend.
+ */
+async function sendLogoutRequest() {
+  try {
+    const response = await api.post(AUTH_BASE_URL + LOGOUT_API, {});
+    return {status: response.status, message: response.data.message};
+  } catch (error : any) {
+    console.error("Logout error:", error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
+/**
+ * An async function that gets the list of users from the backend.
+ */
+async function getUsers() {
+  try {
+    const response = await api.get(USERS_BASE_URL);
+    return {status: response.status, message: response.data.message};
+  } catch (error: any) {
+    console.error("Error when retrieving user list", error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
+export { sendLoginRequest, sendResetPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers };
