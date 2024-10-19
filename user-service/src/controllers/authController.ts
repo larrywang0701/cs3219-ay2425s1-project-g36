@@ -145,6 +145,14 @@ export async function logout(req: Request, res: Response) {
     // Add the token to the blacklist
     await Blacklist.create({ token, expiresAt })
 
+    // Remove JWT token cookie upon logout (as added measure)
+    res.cookie('jwt', '', { 
+        httpOnly: true, 
+		secure: process.env.NODE_ENV !== "development", 
+        sameSite: 'strict', 
+        maxAge: 0 // Expire the cookie immediately
+    });
+
     //TODO: clean up session data
 
     res.json({ message: 'Logout successful' });
