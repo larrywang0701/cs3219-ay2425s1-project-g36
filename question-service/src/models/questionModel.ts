@@ -1,12 +1,16 @@
 import mongoose, { Document } from "mongoose";
+import QUESTION_TOPICS from "./questionTopics";
 const AutoIncrement = require("mongoose-sequence")(mongoose);
+
 
 interface IQuestion extends Document {
     title: string;
     difficulty: "easy" | "medium" | "hard";
-    topics?: string[];
+    topics?: Topic[];
     description: string;
 }
+
+type Topic = typeof QUESTION_TOPICS[number]
 
 const questionSchema = new mongoose.Schema(
     {
@@ -31,6 +35,7 @@ const questionSchema = new mongoose.Schema(
         topics: {
             type: [String],
             required: false,
+            
         },
         description: {
             type: String,

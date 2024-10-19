@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+
 import { Blacklist } from '../models/blacklistModel'
 
 // Middleware for verifying token and checking blacklist
