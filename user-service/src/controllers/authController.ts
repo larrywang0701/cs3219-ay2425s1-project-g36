@@ -73,6 +73,7 @@ export async function forgotPassword(req: Request, res: Response) {
     });
 
     const mailOptions = {
+        from: `"PeerPrep" ${EMAIL}`,
         to: user.email,
         subject: 'Password Reset',
         text: `Please use the following link to reset your password: ${resetURL}`
