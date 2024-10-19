@@ -7,7 +7,8 @@ const AUTH_BASE_URL = "/authentication";
 const LOGIN_API = "/login";
 const LOGOUT_API = "/logout";
 const SIGNUP_API = "/";
-const RESET_PASSWORD_API = "/forgot-password";
+const FORGOT_PASSWORD_API = "/forgot-password";
+const RESET_PASSWORD_API = "/reset-password";
 
 const api = axios.create({
   baseURL: USER_SERVICE_URL,
@@ -44,15 +45,15 @@ async function sendLoginRequest(email : string, password : string, captcha : str
 
 
 /**
- * An async function for sending a reset password request to the backend.
+ * An async function for sending a forgot password request to the backend.
  * @param emailAddress The email address of the account for resetting password.
  * @returns An object containing the HTTP status code of the request and the responded message from the backend.
  */
-async function sendResetPasswordRequest(emailAddress : string) {
+async function sendForgotPasswordRequest(emailAddress : string) {
   const requestBody = {
     email : emailAddress
   }
-  return await api.post(AUTH_BASE_URL + RESET_PASSWORD_API, requestBody).then(response => {
+  return await api.post(AUTH_BASE_URL + FORGOT_PASSWORD_API, requestBody).then(response => {
     return {status: response.status, message: response.data.message};
   }).catch(error => {
     return {status: error.status, message: error.response.data.message};
@@ -109,4 +110,33 @@ async function getUsers() {
   }
 }
 
-export { sendLoginRequest, sendResetPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers };
+/**
+ * An async function that gets the user by the password reset token.
+ */
+async function getUserFromToken(token : string) {
+  try {
+    const response = await api.get(AUTH_BASE_URL + RESET_PASSWORD_API + "/" + token);
+    return {status: response.status, username: response.data.username, email: response.data.email};
+  } catch (error: any) {
+    console.error("Error when retrieving user from token", error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
+/**
+ * An async function that resets a password given the token and new password.
+ */
+async function resetPassword(token : string, password: string) {
+  const resetPasswordData = {
+    password: password
+  };
+  try {
+    const response = await api.post(AUTH_BASE_URL + RESET_PASSWORD_API + "/" + token, resetPasswordData);
+    return {status: response.status, message: response.data.message};
+  } catch (error: any) {
+    console.error("Error when resetting password", error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
+export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword };
