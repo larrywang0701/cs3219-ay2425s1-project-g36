@@ -15,7 +15,6 @@ import { TDifficulty } from "../Difficulty";
 import QuestionTopicsField from "./QuestionTopicsField";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * A form for the editing of questions. Requires the following

@@ -10,6 +10,7 @@ import AccountSettingsPage from "./pages/user-service/AccountSettingsPage";
 import ErrorPage from "./pages/ErrorPage";
 import AddQuestionPage from "./pages/question-service/AddQuestionPage";
 import { Toaster } from "./components/ui/toaster";
+import ResetPasswordPage from "./pages/user-service/ResetPasswordPage";
 import StartMatchingPage from "./pages/matching-service/StartMatchingPage";
 import WaitForMatchingPage from "./pages/matching-service/WaitForMatchingPage";
 import MatchingFailedPage from "./pages/matching-service/MatchingFailedPage";
@@ -121,6 +122,11 @@ function App() {
           <Route path="/forgot-password" element={
             <PublicRoute>
               <ForgotPasswordPage />
+            </PublicRoute>
+          } />
+          <Route path="/reset-password/:token" element={
+            <PublicRoute>
+              <ResetPasswordPage />
             </PublicRoute>
           } />
           <Route path="/settings" element={

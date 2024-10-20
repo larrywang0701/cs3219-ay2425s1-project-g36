@@ -41,7 +41,7 @@ export async function login(req: Request, res: Response) {
     await user.save();
 
     generateTokenAndSetCookie(user.id, res);
-    res.json({ message: 'Login successful' });
+    res.json({ message: 'Login successful', username: user.username, email: user.email, isAdmin: user.isAdmin });
 }
 
 export async function forgotPassword(req: Request, res: Response) {
@@ -63,7 +63,7 @@ export async function forgotPassword(req: Request, res: Response) {
     await user.save();
 
     // Send email 
-    const resetURL = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    const resetURL = `${req.get('Referer')}reset-password/${resetToken}`;
     const transporter = nodemailer.createTransport({ 
         service: 'gmail',
         auth: {
@@ -73,6 +73,7 @@ export async function forgotPassword(req: Request, res: Response) {
     });
 
     const mailOptions = {
+        from: `"PeerPrep" ${EMAIL}`,
         to: user.email,
         subject: 'Password Reset',
         text: `Please use the following link to reset your password: ${resetURL}`
@@ -86,6 +87,23 @@ export async function forgotPassword(req: Request, res: Response) {
         user.passwordResetTokenExpiration = undefined;
         await user.save();
         return res.status(500).json({ message: 'Error sending email' });
+    }
+}
+
+export async function getUserFromToken(req: Request, res: Response) {
+    const { token } = req.params;
+    
+    // Hash the token and find the user
+    const hashedResetToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({ 
+        passwordResetToken: hashedResetToken, 
+        passwordResetTokenExpiration: { $gt: Date.now() } 
+    });
+
+    if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token', username: null, email: null });
+    } else {
+        return res.status(200).json({ username: user.username, email: user.email });
     }
 }
 
@@ -144,6 +162,14 @@ export async function logout(req: Request, res: Response) {
 
     // Add the token to the blacklist
     await Blacklist.create({ token, expiresAt })
+
+    // Remove JWT token cookie upon logout (as added measure)
+    res.cookie('jwt', '', { 
+        httpOnly: true, 
+		secure: process.env.NODE_ENV !== "development", 
+        sameSite: 'strict', 
+        maxAge: 0 // Expire the cookie immediately
+    });
 
     //TODO: clean up session data
 

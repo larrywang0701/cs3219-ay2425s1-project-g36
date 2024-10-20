@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InputFieldWithTip from "../InputFieldWithTip";
-import SignupButton from "./SignupButton";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
-import { sendLoginRequest, sendSignupRequest } from "@/api/user-service/UserService";
+import { getUserFromToken, resetPassword } from "@/api/user-service/UserService";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import ResetPasswordButton from "./ResetPasswordButton";
+import { useToast } from "@/hooks/use-toast";
 
-export default function LoginForm(){
+export default function ResetPasswordForm({ token } : { token : string }){
 
     const [username, setUsername] = useState("");
     const [emailAddress, setEmailAddress] = useState("");
@@ -14,22 +14,12 @@ export default function LoginForm(){
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [displayedSignupMessage, setDisplayedSignupMessage] = useState<DisplayedMessage | null>(null);
-    const { login } = useAuth();
+    const { toast } = useToast();
 
     const navigate = useNavigate();
 
-    const tip_username = "Your username should only contains A-Z, a-z, 0-9 and underscores, and it should be unique among all users.";
-    const tip_email = "You can only signup one account per email address."
-    const tip_password = "Your can use A-Z, a-z and 0-9 to form your password. Your password should be at least 8 characters long, and should contains at least one upper case letter, one lower case letter and one digit.";
+    const tip_password = "Your password should be at least 8 characters long, and should contains at least one upper case letter, one lower case letter and one digit.";
     const tip_confirmpassword = "Please repeat your password.";
-
-    const isUsernameValid= () => {
-        return /^[0-9A-Za-z_]*$/.test(username);
-    }
-
-    const isEmailAddressValid = () => {
-        return /^[0-9A-Za-z._]+@[0-9A-Za-z._]+\.[A-Za-z]+$/.test(emailAddress);
-    }
 
     const isPasswordValid = () => {
         const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
@@ -40,6 +30,7 @@ export default function LoginForm(){
         setPassword(newPassword);
         let passwordStrengthSum = 0;
         passwordStrengthSum += newPassword.length * 4; // longer password is considered safer
+        const specialChars = "- ?!@#$%^&*\/\\";
         if(newPassword.length > 1) {
             // 0=number 1=upper case, 2=lower case
             const getCharacterType = (index : number) => {
@@ -52,6 +43,9 @@ export default function LoginForm(){
                 }
                 if(charCode >= 97 && charCode <= 122) { // a-z
                     return 2;
+                }
+                if (specialChars.includes(newPassword[index])) { // special characters
+                    return 3;
                 }
                 return 0;
             }
@@ -66,19 +60,12 @@ export default function LoginForm(){
         setDisplayedSignupMessage({message : message, type : type});
     }
 
-    const startSigningUp = () => {
-        if(username==="" || emailAddress === "" || password === "" || confirmPassword === "") {
+    const startResetPassword = () => {
+        if(password === "" || confirmPassword === "") {
             showDisplayedSignupMessage("All fields cannot be empty.", DisplayedMessageTypes.Error);
             return;
         }
-        if(!isUsernameValid()){
-            showDisplayedSignupMessage("Invalid username.", DisplayedMessageTypes.Error);
-            return;
-        }
-        if(!isEmailAddressValid()){
-            showDisplayedSignupMessage("Invalid email address.", DisplayedMessageTypes.Error);
-            return;
-        }
+        
         if(password.length < 8){
             showDisplayedSignupMessage("The password needs to be at least 8 characters long.", DisplayedMessageTypes.Error);
             return;
@@ -90,49 +77,61 @@ export default function LoginForm(){
                 DisplayedMessageTypes.Error);
             return;
         }
+
         if(confirmPassword !== password){
             showDisplayedSignupMessage("Password and confirm password does not match each other.", DisplayedMessageTypes.Error);
             return;
         }
-        showDisplayedSignupMessage("Signing up...", DisplayedMessageTypes.Info);
-        sendSignupRequest(username, emailAddress, password) // TODO: captcha logic (after captcha logic is implemented in the backend)
+        showDisplayedSignupMessage("Resetting password...", DisplayedMessageTypes.Info);
+        resetPassword(token, password) // TODO: captcha logic (after captcha logic is implemented in the backend)
             .then(response => {
                 const message = response.message;
-                const isSuccess = response.status === 201;
+                const isSuccess = response.status === 200;
                 const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
                 showDisplayedSignupMessage(message, type);
                 if (isSuccess) {
-                    // log user in
-                    sendLoginRequest(emailAddress, password, "").then(response => {
-                        const isLoginSuccess = response.status === 200;
-                        const isAdmin = response.userInfo?.isAdmin;
-                        const email = response.userInfo?.email;
-                        const username = response.userInfo?.username;
-                        const token = response.userInfo?.token;
-                        if(isLoginSuccess) {
-                            login(token, username, email, isAdmin);
-                            navigate("/");
-                        } else {
-                            navigate("/login");
-                        }
-                    });
+                    // redirect users to login page
+                    toast({
+                        description: `Your password has been reset successfully. Please log in with your new password.`, 
+                    })
+                    navigate("/login");
+                } else {
+                    // error in resetting the password
+                    toast({
+                        description: `There was an error resetting the password. Try again?`, 
+                    })
                 }
             });
     }
+
+    useEffect(() => {
+        getUserFromToken(token).then(response => {
+            if (response.status === 200) {
+                setUsername(response.username ?? "");
+                setEmailAddress(response.email ?? "");
+            } else {
+                // reset token is expired or invalid
+                toast({
+                    description: `Redirected to login page as reset token is invalid!`, 
+                })
+                navigate("/login");
+            }
+        }).catch(_error => {
+            // error in retrieving the token
+            toast({
+                description: `Redirected to login page as there was an error retrieving the token!`, 
+            })
+            navigate("/login");
+        });
+    }, []);
 
     return(
         <>
           <form onSubmit={evt => {evt.preventDefault();}} className="w-3/4">
             <p className="font-bold mb-1">Username:</p>
-            <InputFieldWithTip placeholder="Your username" onChange={setUsername} type="text">
-              {!isUsernameValid() && (<div className="text-red-300">Invalid username.</div>)}
-              {tip_username}
-            </InputFieldWithTip>
+            <p>{ username }</p>
             <p className="font-bold mt-3 mb-1">Email Address:</p>
-            <InputFieldWithTip placeholder="Your email" onChange={setEmailAddress} type="text">
-              {!isEmailAddressValid() && (<div className="text-red-300">Invalid email address.</div>)}
-              {tip_email}
-            </InputFieldWithTip>
+            <p>{ emailAddress }</p>
             <p className="font-bold mt-3 mb-1">Password:</p>
             <InputFieldWithTip placeholder="Your password" onChange={passwordInputFieldOnChangeHandler} type="password">
              {!isPasswordValid() && (<div className="text-red-300">Invalid password.</div>)}
@@ -151,7 +150,7 @@ export default function LoginForm(){
               {tip_confirmpassword}
             </InputFieldWithTip>
             <DisplayedMessageContainer displayedMessage={displayedSignupMessage}/>
-            <SignupButton onClick={ startSigningUp }/>
+            <ResetPasswordButton onClick={ startResetPassword }/>
           </form>
         </>
     )

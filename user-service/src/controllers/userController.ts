@@ -14,21 +14,26 @@ export async function createUser(req: Request, res: Response) {
     // Valid: user@example.com, invalid: user@ example.com
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
-			return res.status(400).json({ error: "Invalid email format" });
+			return res.status(400).json({ message: "Invalid email format" });
 		}
 
     const existingUser = await User.findOne({ username });
 		if (existingUser) {
-			return res.status(400).json({ error: "Username is already taken" });
+			return res.status(400).json({ message: "Username is already taken" });
 		}
 
 		const existingEmail = await User.findOne({ email });
 		if (existingEmail) {
-			return res.status(400).json({ error: "Email is already taken" });
+			return res.status(400).json({ message: "Email is already taken" });
 		}
 
-		if (password.length < 10) {
-			return res.status(400).json({ error: "Password must be at least 10 characters long" });
+    const isPasswordValid = () => {
+      const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
+      return re.test(password);
+    }
+
+		if (!isPasswordValid()) {
+			return res.status(400).json({ message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one digit. Special characters must be these: - ?!@#$%^&*\/\\" });
 		}
 
     // create new user
@@ -50,7 +55,7 @@ export async function createUser(req: Request, res: Response) {
         email: newUser.email,
       });
     } else {
-      res.status(400).json({ error: "Invalid user data" });
+      res.status(400).json({ message: "Invalid user data" });
     }
   } catch (err) {
     console.error(err);
@@ -99,16 +104,16 @@ export const updateUser = async (req: Request, res: Response) => {
     } 
 
 		if ((!newPassword && currentPassword) || (!currentPassword && newPassword)) {
-			return res.status(400).json({ error: "Please provide both current password and new password" });
+			return res.status(400).json({ message: "Please provide both current password and new password" });
 		}
 
 		if (currentPassword && newPassword) {
 			const isMatch = await bcrypt.compare(currentPassword, user.password);
 			if (!isMatch) {
-        return res.status(400).json({ error: "Current password is incorrect" });
+        return res.status(400).json({ message: "Current password is incorrect" });
       }
 			if (newPassword.length < 10) {
-				return res.status(400).json({ error: "Password must be at least 10 characters long" });
+				return res.status(400).json({ message: "Password must be at least 10 characters long" });
 			}
 
 			const salt = await bcrypt.genSalt(10);
