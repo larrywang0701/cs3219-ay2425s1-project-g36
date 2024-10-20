@@ -21,6 +21,10 @@ class UserStore {
     removeUser(userToken: string) {
         this.userStore.delete(userToken);
     }
+
+    hasUser(userToken: string) {
+        return this.userStore.has(userToken);
+    }
 }
 
 const userStore = new UserStore();
