@@ -62,7 +62,7 @@ export default function LoginForm(){
         setPasswordStrength(passwordStrengthSum);
     }
 
-    const showDisplayedSignupMessage = (message : string, type : DisplayedMessageTypes) => {
+    const showDisplayedSignupMessage = (message : string | React.ReactNode, type : DisplayedMessageTypes) => {
         setDisplayedSignupMessage({message : message, type : type});
     }
 
@@ -83,7 +83,11 @@ export default function LoginForm(){
             showDisplayedSignupMessage("The password needs to be at least 8 characters long.", DisplayedMessageTypes.Error);
             return;
         } else if (!isPasswordValid()) {
-            showDisplayedSignupMessage("The password needs to contain one uppercase letter, one lowercase letter and one digit.", DisplayedMessageTypes.Error);
+            showDisplayedSignupMessage(
+                <>
+                    The password needs to contain one uppercase letter, one lowercase letter and one digit. Special characters must be these: <code>- ?!@#$%^&*/\</code>
+                </>,
+                DisplayedMessageTypes.Error);
             return;
         }
         if(confirmPassword !== password){

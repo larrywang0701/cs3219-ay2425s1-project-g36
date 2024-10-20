@@ -9,15 +9,17 @@ enum DisplayedMessageTypes {
 }
 
 type DisplayedMessage = {
-    message : string,
+    message : string | React.ReactNode,
     type : DisplayedMessageTypes
 }
 
-function DisplayedMessageComponent({message, color, icon : Icon}:{message : string, color : string, icon : ComponentType}) {
+function DisplayedMessageComponent({message, color, icon : Icon}:{message : React.ReactNode, color : string, icon : ComponentType}) {
     return (
       <>
-        <div className={"text-" + color + "-500 flex items-center justify-center"}>
-          <Icon />
+        <div className={"text-" + color + "-500 flex gap-2 items-center justify-center"}>
+          <div className="min-w-4">
+            <Icon />
+          </div>
           <p className="p-1">{message}</p>
         </div>
         

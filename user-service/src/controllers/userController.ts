@@ -33,7 +33,7 @@ export async function createUser(req: Request, res: Response) {
     }
 
 		if (!isPasswordValid()) {
-			return res.status(400).json({ message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one digit." });
+			return res.status(400).json({ message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one digit. Special characters must be these: - ?!@#$%^&*\/\\" });
 		}
 
     // create new user
