@@ -18,6 +18,8 @@ export async function login(req: Request, res: Response) {
     const user = await User.findOne({ email })
     if (!user) return res.status(400).json({ message: 'User not found' })
 
+    /*   
+    // To be implemented in future milestones
     // Check if account is blocked due to too many failed attempts
     if (user.numberOfFailedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
         return res.status(403).json({ message: 'Account locked due to too many failed attempts' });
@@ -33,6 +35,13 @@ export async function login(req: Request, res: Response) {
             //TODO: Implement captcha
             return res.status(403).json({ message: 'Captcha Required' });
         }
+        return res.status(400).json({ message: 'Invalid Credentials' })
+    }
+    */
+
+    // Check if password is correct
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
         return res.status(400).json({ message: 'Invalid Credentials' })
     }
 
