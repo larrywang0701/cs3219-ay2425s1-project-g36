@@ -1,10 +1,8 @@
 import { useState } from "react";
-import InputFieldWithTip from "../InputFieldWithTip";
+import InputFieldWithTip from "./InputFieldWithTip";
 import SignupButton from "./SignupButton";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
-import { sendLoginRequest, sendSignupRequest } from "@/api/user-service/UserService";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { sendSignupRequest } from "@/api/user-service/UserService";
 
 export default function LoginForm(){
 
@@ -14,9 +12,6 @@ export default function LoginForm(){
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [displayedSignupMessage, setDisplayedSignupMessage] = useState<DisplayedMessage | null>(null);
-    const { login } = useAuth();
-
-    const navigate = useNavigate();
 
     const tip_username = "Your username should only contains A-Z, a-z, 0-9 and underscores, and it should be unique among all users.";
     const tip_email = "You can only signup one account per email address."
@@ -32,8 +27,7 @@ export default function LoginForm(){
     }
 
     const isPasswordValid = () => {
-        const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
-        return re.test(password);
+        return password.length >= 8 && /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[0-9A-Za-z]*$/.test(password);
     }
 
     const passwordInputFieldOnChangeHandler = (newPassword : string) => {
@@ -62,7 +56,7 @@ export default function LoginForm(){
         setPasswordStrength(passwordStrengthSum);
     }
 
-    const showDisplayedSignupMessage = (message : string | React.ReactNode, type : DisplayedMessageTypes) => {
+    const showDisplayedSignupMessage = (message : string, type : DisplayedMessageTypes) => {
         setDisplayedSignupMessage({message : message, type : type});
     }
 
@@ -79,15 +73,8 @@ export default function LoginForm(){
             showDisplayedSignupMessage("Invalid email address.", DisplayedMessageTypes.Error);
             return;
         }
-        if(password.length < 8){
-            showDisplayedSignupMessage("The password needs to be at least 8 characters long.", DisplayedMessageTypes.Error);
-            return;
-        } else if (!isPasswordValid()) {
-            showDisplayedSignupMessage(
-                <>
-                    The password needs to contain one uppercase letter, one lowercase letter and one digit. Special characters must be these: <code>- ?!@#$%^&*/\</code>
-                </>,
-                DisplayedMessageTypes.Error);
+        if(!isPasswordValid()){
+            showDisplayedSignupMessage("Invalid password.", DisplayedMessageTypes.Error);
             return;
         }
         if(confirmPassword !== password){
@@ -95,34 +82,21 @@ export default function LoginForm(){
             return;
         }
         showDisplayedSignupMessage("Signing up...", DisplayedMessageTypes.Info);
-        sendSignupRequest(username, emailAddress, password) // TODO: captcha logic (after captcha logic is implemented in the backend)
-            .then(response => {
-                const message = response.message;
-                const isSuccess = response.status === 201;
-                const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
-                showDisplayedSignupMessage(message, type);
-                if (isSuccess) {
-                    // log user in
-                    sendLoginRequest(emailAddress, password, "").then(response => {
-                        const isLoginSuccess = response.status === 200;
-                        const isAdmin = response.userInfo?.isAdmin;
-                        const email = response.userInfo?.email;
-                        const username = response.userInfo?.username;
-                        const token = response.userInfo?.token;
-                        if(isLoginSuccess) {
-                            login(token, username, email, isAdmin);
-                            navigate("/");
-                        } else {
-                            navigate("/login");
-                        }
-                    });
-                }
-            });
+        sendSignupRequest(username, emailAddress, password, "") // TODO: captcha logic (after captcha logic is implemented in the backend)
+        .then(response => {
+            const message = response.message;
+            const isSuccess = response.status === 200;
+            const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
+            showDisplayedSignupMessage(message, type);
+            if(isSuccess) {
+              // TODO: Show email verification page, or go back to login page, or...? Will implement here after signup login is implemented in the backend.
+            }
+          });
     }
 
     return(
         <>
-          <form onSubmit={evt => {evt.preventDefault();}} className="w-3/4">
+          <form onSubmit={evt => {evt.preventDefault(); startSigningUp();}} className="w-3/4">
             <p className="font-bold mb-1">Username:</p>
             <InputFieldWithTip placeholder="Your username" onChange={setUsername} type="text">
               {!isUsernameValid() && (<div className="text-red-300">Invalid username.</div>)}
@@ -151,7 +125,7 @@ export default function LoginForm(){
               {tip_confirmpassword}
             </InputFieldWithTip>
             <DisplayedMessageContainer displayedMessage={displayedSignupMessage}/>
-            <SignupButton onClick={ startSigningUp }/>
+            <SignupButton onClick={startSigningUp}/>
           </form>
         </>
     )

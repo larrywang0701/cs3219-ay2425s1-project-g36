@@ -2,7 +2,7 @@ import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } fr
 import ForgotPasswordButton from "./ForgotPasswordButton";
 import EmailAddressInputField from "./EmailAddressInputField";
 import { useState } from "react";
-import { sendForgotPasswordRequest } from "@/api/user-service/UserService";
+import { sendResetPasswordRequest } from "@/api/user-service/UserService";
 import { Link } from "react-router-dom";
 
 export default function ForgotPasswordForm(){
@@ -20,7 +20,7 @@ export default function ForgotPasswordForm(){
           return;
       }
       showDisplayedResetPasswordMessage("Sending request...", DisplayedMessageTypes.Info);
-      sendForgotPasswordRequest(emailAddress).then(response => {
+      sendResetPasswordRequest(emailAddress).then(response => {
         const message = response.message;
         const isSuccess = response.status === 200;
         const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
@@ -33,7 +33,7 @@ export default function ForgotPasswordForm(){
 
     return(
       <>
-        <form onSubmit={evt => {evt.preventDefault();}} className="w-3/4">
+        <form onSubmit={evt => {evt.preventDefault(); if(!requestSent){sendRequest();}}} className="w-3/4">
           <p className="font-bold m-3">Email Address:</p>
           <EmailAddressInputField onChange={setEmailAddress}/>
           <DisplayedMessageContainer displayedMessage={displayedResetPasswordMessage} />

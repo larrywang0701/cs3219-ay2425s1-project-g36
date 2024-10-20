@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Command,
   CommandEmpty,
@@ -29,15 +30,19 @@ export default function QuestionTopicsField({
     fetchTopics().then((topics) => setTopics(topics));
   }, []);
 
+  const { toast } = useToast();
+
   const removeTopic = (removed: string) => {
     setValue(value.filter((topic) => topic !== removed));
   };
 
-  const toggleTopic = (newTopic: string) => {
+  const addTopic = (newTopic: string) => {
     if (!value.includes(newTopic)) {
       setValue([...value, newTopic]);
     } else {
-      setValue(value.filter(topic => topic !== newTopic));
+      toast({
+        description: "Topic not added as it already exists.",
+      });
     }
   };
 
@@ -77,7 +82,7 @@ export default function QuestionTopicsField({
             align="start"
           >
             <Command>
-              <CommandInput placeholder="Search..." />
+              <CommandInput placeholder="search..." />
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup heading="Topics">
@@ -85,7 +90,7 @@ export default function QuestionTopicsField({
                     {topics.map((topic) => (
                       <CommandItem
                         key={topic}
-                        onSelect={() => toggleTopic(topic)}
+                        onSelect={() => addTopic(topic)}
                         className="cursor-pointer rounded-md px-2 py-1 text-sm hover:bg-gray-100"
                       >
                         <span className={cn(

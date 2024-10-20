@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext"
  */
 export default function PageAccountNav() {
 
-  const { auth, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <div className="z-10">
@@ -36,8 +36,8 @@ export default function PageAccountNav() {
         <DropdownMenuContent className="w-56 bg-white" align="end">
           <DropdownMenuLabel>
             <div>
-              <p>{ auth.username }</p>
-              <p className="font-normal">{ auth.email }</p>
+              <p>Username</p>
+              <p className="font-normal">Email</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-gray-200" />

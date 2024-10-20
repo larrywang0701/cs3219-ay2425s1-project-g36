@@ -1,12 +1,10 @@
-import { getUsers, sendLogoutRequest } from '@/api/user-service/UserService';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+/** TODO: add username, email if required */
 // authentication state
 interface AuthState {
   isLoggedIn: boolean; // whether a user is logged in.
   isAdmin: boolean; // whether a user is an admin.
-  username: string; // the username of the logged in user.
-  email: string; // the email address of the logged in user.
   token: string; // the token of the current user (if logged in)
 }
 
@@ -14,14 +12,12 @@ interface AuthState {
 const DEFAULT_AUTH_STATE = {
   isLoggedIn: false,
   isAdmin: false,
-  username: "",
-  email: "",
   token: "",
 }
 
 interface AuthContextType {
   auth: AuthState; // current authentication state (logged in? admin?)
-  login: (token : string, username: string, email: string, isAdmin?: boolean) => void; // function for login
+  login: (token : string, isAdmin?: boolean) => void; // function for login
   logout: () => void; // function for logout
 }
 
@@ -42,40 +38,18 @@ const saveAuthState = (auth: AuthState) => {
 export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
   const [auth, setAuth] = useState<AuthState>(loadAuthState);
 
-  const _logout = () => {
-    const newAuthState = DEFAULT_AUTH_STATE;
-    setAuth(newAuthState);
-    saveAuthState(newAuthState);
-  }
-
-  const checkAuth = async () => {
-    try {
-      const response = await getUsers();
-      if (response.status === 401) {
-        _logout();
-      }
-    } catch (err : any) {
-      _logout();
-    }
-  }
-
-  // check authentication when app loads
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const login = (token : string, username: string, email: string, isAdmin: boolean = false) => {
-    const newAuthState = { isLoggedIn: true, isAdmin, token: token, username: username, email: email };
+  const login = (token : string, isAdmin: boolean = false) => {
+    const newAuthState = { isLoggedIn: true, isAdmin, token: token };
 
     setAuth(newAuthState);
     saveAuthState(newAuthState);
   };
 
-  const logout = async () => {
-    const response = await sendLogoutRequest();
-    console.log(response);
+  const logout = () => {
+    const newAuthState = DEFAULT_AUTH_STATE;
 
-    _logout();
+    setAuth(newAuthState);
+    saveAuthState(newAuthState);
   };
 
   // Effect to sync auth state changes to localStorage
