@@ -27,11 +27,11 @@ export default function LoginForm(){
       sendLoginRequest(username, password, captcha).then(response => {
         const message = response.message;
         const isSuccess = response.status === 200;
-        const isAdmin = response.userInfo?.isAdmin;
-        const token = response.userInfo?.token;
         const type = isSuccess ? DisplayedMessageTypes.Info : DisplayedMessageTypes.Error;
         showDisplayedLoginMessage(message, type);
         if(isSuccess) {
+          const isAdmin = (response as any).isAdmin;
+          const token = (response as any).token;
           login(token, isAdmin);
           navigate("/");
         }
