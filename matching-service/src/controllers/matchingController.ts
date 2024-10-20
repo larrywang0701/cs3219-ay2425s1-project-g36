@@ -5,7 +5,7 @@ import userStore from "../utils/userStore";
 
 const kafka = new Kafka({
     clientId: 'matching-service',
-    brokers: ['localhost:9092'], // TODO: add to env variables
+    brokers: ['kafka:9092'], // TODO: add to env variables
 });
 
 
