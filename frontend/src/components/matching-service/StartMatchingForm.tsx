@@ -8,6 +8,10 @@ import { sendStartMatchingRequest } from "@/api/matching-service/MatchingService
 import { useNavigate } from "react-router-dom";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "../common/DisplayedMessage";
 
+const HTTP_OK = 200
+const HTTP_NO_CONTENT = 204
+const HTTP_REQUEST_TIMEOUT = 408
+
 export default function StartMatchingForm() {
 
   const { auth } = useAuth();
@@ -26,15 +30,23 @@ export default function StartMatchingForm() {
       displayError("You must select at least one topic.");
       return;
     }
+
+    console.log("try to start matching")
+
+    const difficultiesStr = Object.entries(selectedDifficultyData).filter(val => val[1]).map(val => val[0]).join(", ");
+    const topicsStr = questionTopics.join(", ");
+    navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
+
     sendStartMatchingRequest(auth.token, selectedDifficultyData, questionTopics).then(
       response => {
-        const isSuccess = response.status === 200;
-        if(isSuccess) {
-          const difficultiesStr = Object.entries(selectedDifficultyData).filter(val => val[1]).map(val => val[0]).join(", ");
-          const topicsStr = questionTopics.join(", ");
-          navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
-        }
-        else {
+        const httpStatus = response.status;
+        const errorMessage = response.message
+
+        if (httpStatus === HTTP_OK) {
+          navigate("/matching/get_ready")
+        } else if (httpStatus === HTTP_NO_CONTENT || httpStatus === HTTP_REQUEST_TIMEOUT) {
+          navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+        } else {
           displayError("An error has occured: \n" + response.message);
         }
       }
