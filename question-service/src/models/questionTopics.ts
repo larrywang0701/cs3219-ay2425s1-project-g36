@@ -33,6 +33,10 @@ const QUESTION_TOPICS = [
     "Matrix",
     "Graph Traversal",
     "Topological Sort",
+    "Data Structures",
+    "Algorithms",
+    "Databases",
+    "Brainteaser"
 ];
   
 export default QUESTION_TOPICS
