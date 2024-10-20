@@ -43,7 +43,7 @@ export default function StartMatchingForm() {
         const errorMessage = response.message
 
         if (httpStatus === HTTP_OK) {
-          navigate("/matching/get_ready")
+          // navigate("/matching/get_ready")
         } else if (httpStatus === HTTP_NO_CONTENT || httpStatus === HTTP_REQUEST_TIMEOUT) {
           navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         } else {

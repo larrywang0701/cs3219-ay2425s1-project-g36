@@ -6,8 +6,12 @@ const MATCHING_BASE_URL = "/matching";
 const START_MATCHING_URL = "/start_matching";
 const CONFIRM_MATCH_URL = "/confirm_match";
 const CANCEL_MATCHING_URL = "/cancel";
+const CHECK_MATCHING_STATE_URL = "/check_state";
 
-const api = axios.create({baseURL : MATCHING_SERVICE_URL})
+const api = axios.create({
+  baseURL : MATCHING_SERVICE_URL,
+  withCredentials : true
+})
 
 let previousStartMatchingData : any = null;
 
@@ -55,6 +59,27 @@ async function retryPreviousMatching(token : string) {
 }
 
 /**
+ * An async function for sending a check matching state request to the backend.
+ * You should call this function intermittently for multiple times when waiting for matching in order to get the latest matching state.
+ * 
+ * @param token The current user's token.
+ * @returns An object containing the HTTP status code of the request and the message from the backend server.
+ */
+async function sendCheckMatchingStateRequest(token : string) {
+  const requestBody = {
+    userToken : token
+  }
+  return await api.post(MATCHING_BASE_URL + CHECK_MATCHING_STATE_URL, requestBody).then(response => {
+    return {status : response.status, message : response.data.message}
+  }).catch(error => {
+    if(error.code === "ERR_NETWORK") {
+      return {status : error.status, message : "ERR_NETWORK"}
+    }
+    return {status : error.status, message : error.response.data.message}
+  });
+}
+
+/**
  * An async function for sending a cancel matching request to the backend.
  * The request is for notifying the backend that the frontend stops using the matching service (for example: user decided to cancel matching, user left the waiting matching page, etc.)
  * 
@@ -92,4 +117,4 @@ async function sendConfirmMatch(token : string) {
   });
 }
 
-export { sendStartMatchingRequest, sendConfirmMatch, sendCancelMatchingRequest, retryPreviousMatching };
+export { sendStartMatchingRequest, sendConfirmMatch, sendCancelMatchingRequest, retryPreviousMatching, sendCheckMatchingStateRequest };
