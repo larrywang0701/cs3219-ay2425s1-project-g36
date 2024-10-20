@@ -50,7 +50,6 @@ export async function login(req: Request, res: Response) {
     await user.save();
 
     const token = generateTokenAndSetCookie(user.id, res);
-    console.log(token)
     res.json({ token: token, message: 'Login successful', username: user.username, email: user.email, isAdmin: user.isAdmin });
 }
 
