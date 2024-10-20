@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express";
-import matchingManagerInstance from "../model/queueManager";
 import { sendQueueingMessage, sendConfirmationMessage, listenForMatchResult, listenForConfirmationResult} from "../controllers/matchingController";
 import userStore from "../utils/userStore";
 
@@ -26,8 +25,8 @@ const router = Router();
  *
  * Response status:
  * - 200: Match found
- * - 200: No match found due to timeout
- * - 200: No match found
+ * - 408: No match found due to timeout
+ * - 204: No match found
  * - 500: Failed to match user
  */
 router.post("/start_matching", async (req : Request, res : Response) => {
@@ -50,13 +49,13 @@ router.post("/start_matching", async (req : Request, res : Response) => {
 
             } else if (result === 'timeout') {
                 userStore.removeUser(user.userToken);
-                return res.status(200).send({message: "No match found due to timeout"});
+                return res.status(408).send({message: "No match found due to timeout"});
             }
         });
 
         // By default, no match is found
         userStore.removeUser(user.userToken);
-        return res.status(200).send({message: "No match found"});
+        return res.status(204).send({message: "No match found"});
     }
     catch(error) {
         console.error("Error when trying to match:" + error);
@@ -72,7 +71,7 @@ router.post("/start_matching", async (req : Request, res : Response) => {
  * 
  * Response status:
  * - 200: Match confirmed
- * - 200: Confirmation timed out
+ * - 204: Confirmation timed out
  * - 400: User not found
  * - 400: Match declined
  * - 500: Error confirming match
@@ -102,45 +101,22 @@ router.post("/confirm_match", async (req : Request, res : Response) => {
 
                 } else if (result === 'declined') {
                     // Not supposed to happen
-                    return res.status(400).send({message: "Match declined"});
+                    return res.status(204).send({message: "Match declined"});
 
                 } else if (result === 'timeout') {
-                    return res.status(200).send({message: "Confirmation timed out"});
+                    return res.status(408).send({message: "Confirmation timed out"});
                 }
             });
 
         }
         // Time out match by default
-        return res.status(200).send({message: "Confirmation timed out"});
+        return res.status(408).send({message: "Confirmation timed out"});
 
     } catch (error) {
         console.error("Error confirming match:", error);
         return res.status(500).send({ message: "Error confirming match." });
     }
 
-});
-
-/**
- * Check the state of the user
- */
-router.post("/check_state", async (req : Request, rsp : Response) => {
-    try {
-        const { userToken } = req.body;
-        if(!matchingManagerInstance.isUserInMatchingService(userToken)) {
-            return rsp.status(400).send({message: "This user does not exist in the matching service."});
-        }
-        let isUserMatched = matchingManagerInstance.isUserMatched(userToken);
-        if(!isUserMatched) {
-            isUserMatched = matchingManagerInstance.tryMatchWith(userToken);
-        }
-        if(isUserMatched) {
-            return rsp.status(200).send({message: "match found"});
-        }
-        return rsp.status(200).send({message: "matching"});
-    }
-    catch(error : any) {
-        return rsp.status(500).send({message : error.message});
-    }
 });
 
 /**

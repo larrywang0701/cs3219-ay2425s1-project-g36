@@ -13,7 +13,7 @@ const kafka = new Kafka({
 const consumer = kafka.consumer({ groupId: "matching-service-group" });
 
 const TIMEOUT_DURATION = 60000; // Timeout set for 1 minute
-const CONFIRMATION_DURATION = 5000; // Confirmation timeout set for 10 seconds
+const CONFIRMATION_DURATION = 10000; // Confirmation timeout set for 10 seconds
 
 /**
  * Find a matching user (among previous users) for a new user based on their topics and difficulties
