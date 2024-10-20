@@ -49,8 +49,9 @@ export async function login(req: Request, res: Response) {
     user.numberOfFailedLoginAttempts = 0;
     await user.save();
 
-    generateTokenAndSetCookie(user.id, res);
-    res.json({ message: 'Login successful', username: user.username, email: user.email, isAdmin: user.isAdmin });
+    const token = generateTokenAndSetCookie(user.id, res);
+    console.log(token)
+    res.json({ token: token, message: 'Login successful', username: user.username, email: user.email, isAdmin: user.isAdmin });
 }
 
 export async function forgotPassword(req: Request, res: Response) {
