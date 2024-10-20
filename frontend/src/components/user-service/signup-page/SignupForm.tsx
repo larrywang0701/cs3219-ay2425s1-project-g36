@@ -32,7 +32,8 @@ export default function LoginForm(){
     }
 
     const isPasswordValid = () => {
-        return password.length >= 8 && /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[0-9A-Za-z]*$/.test(password);
+        const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
+        return re.test(password);
     }
 
     const passwordInputFieldOnChangeHandler = (newPassword : string) => {
@@ -78,8 +79,11 @@ export default function LoginForm(){
             showDisplayedSignupMessage("Invalid email address.", DisplayedMessageTypes.Error);
             return;
         }
-        if(!isPasswordValid()){
-            showDisplayedSignupMessage("The password set is not secure enough.", DisplayedMessageTypes.Error);
+        if(password.length < 8){
+            showDisplayedSignupMessage("The password needs to be at least 8 characters long.", DisplayedMessageTypes.Error);
+            return;
+        } else if (!isPasswordValid()) {
+            showDisplayedSignupMessage("The password needs to contain one uppercase letter, one lowercase letter and one digit.", DisplayedMessageTypes.Error);
             return;
         }
         if(confirmPassword !== password){

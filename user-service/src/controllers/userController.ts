@@ -27,8 +27,13 @@ export async function createUser(req: Request, res: Response) {
 			return res.status(400).json({ message: "Email is already taken" });
 		}
 
-		if (password.length < 10) {
-			return res.status(400).json({ message: "Password must be at least 10 characters long" });
+    const isPasswordValid = () => {
+      const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
+      return re.test(password);
+    }
+
+		if (!isPasswordValid()) {
+			return res.status(400).json({ message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one digit." });
 		}
 
     // create new user

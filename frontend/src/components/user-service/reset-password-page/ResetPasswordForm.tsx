@@ -18,17 +18,19 @@ export default function ResetPasswordForm({ token } : { token : string }){
 
     const navigate = useNavigate();
 
-    const tip_password = "Your can use A-Z, a-z and 0-9 to form your password. Your password should be at least 8 characters long, and should contains at least one upper case letter, one lower case letter and one digit.";
+    const tip_password = "Your password should be at least 8 characters long, and should contains at least one upper case letter, one lower case letter and one digit.";
     const tip_confirmpassword = "Please repeat your password.";
 
     const isPasswordValid = () => {
-        return password.length >= 8 && /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[0-9A-Za-z]*$/.test(password);
+        const re = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[a-zA-Z0-9- ?!@#$%^&*\/\\]{8,}$/;
+        return re.test(password);
     }
 
     const passwordInputFieldOnChangeHandler = (newPassword : string) => {
         setPassword(newPassword);
         let passwordStrengthSum = 0;
         passwordStrengthSum += newPassword.length * 4; // longer password is considered safer
+        const specialChars = "- ?!@#$%^&*\/\\";
         if(newPassword.length > 1) {
             // 0=number 1=upper case, 2=lower case
             const getCharacterType = (index : number) => {
@@ -41,6 +43,9 @@ export default function ResetPasswordForm({ token } : { token : string }){
                 }
                 if(charCode >= 97 && charCode <= 122) { // a-z
                     return 2;
+                }
+                if (specialChars.includes(newPassword[index])) { // special characters
+                    return 3;
                 }
                 return 0;
             }
@@ -60,10 +65,15 @@ export default function ResetPasswordForm({ token } : { token : string }){
             showDisplayedSignupMessage("All fields cannot be empty.", DisplayedMessageTypes.Error);
             return;
         }
-        if(!isPasswordValid()){
-            showDisplayedSignupMessage("The password set is not secure enough.", DisplayedMessageTypes.Error);
+        
+        if(password.length < 8){
+            showDisplayedSignupMessage("The password needs to be at least 8 characters long.", DisplayedMessageTypes.Error);
+            return;
+        } else if (!isPasswordValid()) {
+            showDisplayedSignupMessage("The password needs to contain one uppercase letter, one lowercase letter and one digit.", DisplayedMessageTypes.Error);
             return;
         }
+
         if(confirmPassword !== password){
             showDisplayedSignupMessage("Password and confirm password does not match each other.", DisplayedMessageTypes.Error);
             return;
