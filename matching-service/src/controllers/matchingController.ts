@@ -6,6 +6,11 @@ import userStore from "../utils/userStore";
 const kafka = new Kafka({
     clientId: 'matching-service',
     brokers: ['kafka:9092'], // TODO: add to env variables
+    retry: {
+        retries: 10,           // Increase the number of retries
+        initialRetryTime: 300,  // Increase initial retry time
+        factor: 2,             // Exponential backoff
+    },
 });
 
 
