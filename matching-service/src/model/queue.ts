@@ -56,6 +56,15 @@ class Queue {
     removeUser(user : User) : void {
         this.removeAt(this.queue.indexOf(user));
     }
+
+    getUserTokens() : string[] { 
+        const user_tokens: string[] = []; 
+        this.queue.forEach((user) => { 
+            user_tokens.push(user.userToken);  
+        }); 
+ 
+        return user_tokens;  
+    }
 }
 
 export { Queue };
