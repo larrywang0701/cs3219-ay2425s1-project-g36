@@ -6,6 +6,11 @@ import userStore from "../utils/userStore";
 const kafka = new Kafka({
     clientId: 'matching-service',
     brokers: ['kafka:9092'], // TODO: add to env variables
+    retry: {
+        retries: 10,           // Increase the number of retries
+        initialRetryTime: 300,  // Increase initial retry time
+        factor: 2,             // Exponential backoff
+    },
 });
 
 
@@ -53,9 +58,10 @@ export const startMatching = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
+    console.log("Queue status: ", waitingQueue);
 
     await consumer.run({
-        eachMessage: async ({ message }) => {
+        eachMessage: async ({ message } : { message : any }) => {
             const value = message.value!.toString();
 
             console.log(`Received message: ${value}`);
@@ -127,6 +133,10 @@ export const startMatching = async () => {
                 newUser.timeout = confirmationTimeout;
                 matchedUser.timeout = confirmationTimeout;
 
+                // Remove matched user from the queue
+                waitingQueue.removeUser(matchedUser); 
+                console.log("Queue status: ", waitingQueue);
+
 
                 // Notify both users that a match has been found
                 // sendMatchResult(newUser.userToken, 'matched');
@@ -134,6 +144,7 @@ export const startMatching = async () => {
             } else { 
                 // Add user to the waiting queue
                 waitingQueue.push(newUser);
+                console.log("Queue status: ", waitingQueue);
                 console.log(`User ${newUser.userToken} added to waiting list`);
             }
         }
