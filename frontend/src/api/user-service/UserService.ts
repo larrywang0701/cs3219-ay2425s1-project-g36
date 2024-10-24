@@ -32,6 +32,7 @@ async function sendLoginRequest(email : string, password : string, captcha : str
   {
     const userInfo = {
       token : response.data.token,
+      id: response.data.id,
       isAdmin: response.data.isAdmin ? true : false,
       username: response.data.username,
       email: response.data.email,

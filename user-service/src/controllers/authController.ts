@@ -50,7 +50,7 @@ export async function login(req: Request, res: Response) {
     await user.save();
 
     generateTokenAndSetCookie(user.id, res);
-    res.json({ message: 'Login successful', username: user.username, email: user.email, isAdmin: user.isAdmin });
+    res.json({ message: 'Login successful', id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin });
 }
 
 export async function forgotPassword(req: Request, res: Response) {
