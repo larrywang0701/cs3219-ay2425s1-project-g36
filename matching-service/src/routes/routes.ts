@@ -32,6 +32,7 @@ const router = Router();
 router.post("/start_matching", async (req : Request, res : Response) => {
     const data = req.body;
     const user = {
+        id: data.id,
         email: data.email,
         difficulties: data.difficulties,
         topics: data.topics,
@@ -42,8 +43,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     
     try {
         // Send the new user to the Kafka topic
-        await sendQueueingMessage(user.email);
-        userStore.addUser(user.email, user);
+        userStore.addUser(user.id, user);
+        await sendQueueingMessage(user.id);
 
         // Listen to matching outcome
         // await listenForMatchResult(user.userToken, (result) => {
@@ -63,26 +64,24 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     }
     catch(error) {
         console.error("Error when trying to match:" + error);
-        userStore.removeUser(user.email);
+        userStore.removeUser(user.id);
         return res.status(500).send({message: "Failed to match user."});
     }
 });
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
-        const email = req.body.email;
-        if (!email) {
-            return rsp.status(400).send({message: "Email is not provided."});
+        const id = req.body.id;
+        if (!id) {
+            return rsp.status(400).send({message: "ID is not provided for checking status."});
         } else {
-            // console.log('User Email:', email);
-            if(!userStore.hasUser(email)) {
-                return rsp.status(400).send({message: "This user does not exist in the matching queue."});
+            if(!userStore.hasUser(id)) {
+                return rsp.status(400).send({message: "This user does not exist in the queue."});
             }
-            
-            // console.log('User Exists:', userStore.hasUser(email));
-            const user = userStore.getUser(email);
+
+            const user = userStore.getUser(id);
             if(user!.matchedUser) {
-                console.log('Status: Match found for user:', email);
+                console.log('Status: Match found for user:', id);
                 return rsp.status(200).send({message: "match found"});
             } else {
                 return rsp.status(200).send({message: "matching"});

@@ -18,14 +18,14 @@ let previousStartMatchingData : any = null;
 /**
  * An async function for sending a start matching request to the backend.
  * 
- * @param email The current user's token.
+ * @param id The current user's token.
  * @param difficulties The difficulties selected by the user for matching.
  * @param topics The topics selected by the user for matching.
  * @returns An object containing the HTTP status code of the request and the message from the backend server
  */
-async function sendStartMatchingRequest(email : string, difficulties : SelectedDifficultyData, topics : string[]) {
+async function sendStartMatchingRequest(id : string, difficulties : SelectedDifficultyData, topics : string[]) {
   const requestBody = {
-    email : email,
+    id : id,
     difficulties : difficulties,
     topics : topics
   }
@@ -65,9 +65,9 @@ async function retryPreviousMatching(token : string) {
  * @param email The current user's token.
  * @returns An object containing the HTTP status code of the request and the message from the backend server.
  */
-async function sendCheckMatchingStateRequest(email : string) {
+async function sendCheckMatchingStateRequest(id : string) {
   const requestBody = {
-    email : email
+    id : id
   }
   return await api.post(MATCHING_BASE_URL + CHECK_MATCHING_STATE_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}

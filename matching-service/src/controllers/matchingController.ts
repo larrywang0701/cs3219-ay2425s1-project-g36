@@ -33,7 +33,7 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
         const user = waitingQueue.peek(i);
 
         // Avoid matching with itself
-        if (newUser.email === user.email) {
+        if (newUser.id === user.id) {
             continue;
         }
 
@@ -58,34 +58,35 @@ export const startMatching = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
-    console.log("Queue status: ", waitingQueue.getUserTokens());
+    console.log("Queue status: ", waitingQueue.getUserIds());
 
     await consumer.run({
         eachMessage: async ({ message } : { message : any }) => {
+            const key = message.key!.toString();
             const value = message.value!.toString();
 
-            console.log(`Received message: ${value}`);
+            console.log(`Received message: ${key}`);
 
             // Check if it is a tombstone message
-            if (!value) {
+            if (value === 'cancel') {
                 return;
             }
 
             // Get user object from the store
-            const newUser = userStore.getUser(value);
+            const newUser = userStore.getUser(key);
             if (!newUser) {
-                console.log(`User ${value} not found in the user store.`);
+                console.log(`User ${key} not found in the user store.`);
                 // sendMatchResult(value, 'declined');
                 return;
             }
 
-            console.log(`User ${newUser.email} is ready to be matched.`);
+            console.log(`User ${newUser.id} is ready to be matched.`);
 
             const timeout = setTimeout(() => {
                 if (newUser.matchedUser === null) {
-                    console.log(`User ${newUser.email} has timed out and will be removed from the queue.`);
+                    console.log(`User ${newUser.id} has timed out and will be removed from the queue.`);
                     waitingQueue.removeUser(newUser); // Remove user from the queue
-                    console.log("Queue status: ", waitingQueue.getUserTokens());
+                    console.log("Queue status: ", waitingQueue.getUserIds());
 
                     // Send message to notify user that no match was found
                     // sendMatchResult(newUser.userToken, 'timeout');
@@ -100,7 +101,7 @@ export const startMatching = async () => {
             const matchedUser = findMatchingUser(newUser, waitingQueue); 
 
             if (matchedUser) {
-                console.log(`Matched user ${matchedUser.email} with ${newUser.email}`);
+                console.log(`Matched user ${matchedUser.id} with ${newUser.id}`);
 
                 // Update matched user fields
                 matchedUser.matchedUser = newUser;
@@ -135,8 +136,8 @@ export const startMatching = async () => {
 
                 // Remove matched user from the queue
                 waitingQueue.removeUser(matchedUser); 
-                console.log("Remove matched user from queue: User ", matchedUser.email);
-                console.log("Queue status: ", waitingQueue.getUserTokens());
+                console.log("Remove matched user from queue: User ", matchedUser.id);
+                console.log("Queue status: ", waitingQueue.getUserIds());
 
 
                 // Notify both users that a match has been found
@@ -145,8 +146,8 @@ export const startMatching = async () => {
             } else { 
                 // Add user to the waiting queue
                 waitingQueue.push(newUser);
-                console.log(`User ${newUser.email} added to waiting list`);
-                console.log("Queue status: ", waitingQueue.getUserTokens());
+                console.log(`User ${newUser.id} added to waiting list`);
+                console.log("Queue status: ", waitingQueue.getUserIds());
             }
         }
     });
@@ -292,13 +293,13 @@ const producer = kafka.producer();
  * @param user Topics, difficulties, and user token
  * @param isCancel Whether the user wants to stop matching, set to false by default
  */
-export const sendQueueingMessage = async (email: string, isCancel: boolean = false) => {
+export const sendQueueingMessage = async (id: string, isCancel: boolean = false) => {
     await producer.connect();
-    console.log(`Sending user ${email} to the queue.`);
+    console.log(`Sending user ${id} to the queue.`);
     await producer.send({
         topic: 'user-matching',
         messages: [
-            { key: email, value: isCancel ? null : email },
+            { key: id, value: isCancel ? "cancel ": "match" },
         ],
     });
     await producer.disconnect();

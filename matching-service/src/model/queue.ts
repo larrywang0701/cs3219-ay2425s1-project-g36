@@ -21,7 +21,7 @@ class Queue {
     }
 
     push(user : User) : void {
-        if(this.isUserInQueue(user.email)) {
+        if(this.isUserInQueue(user.id)) {
             throw new Error("This user is already matching.");
         }
         this.queue.push(user);
@@ -49,21 +49,21 @@ class Queue {
         return this.count() === 0;
     }
 
-    isUserInQueue(email : string) : boolean {
-        return this.queue.filter(u => u.email === email).length > 0;
+    isUserInQueue(id : string) : boolean {
+        return this.queue.filter(u => u.id === id).length > 0;
     }
 
     removeUser(user : User) : void {
         this.removeAt(this.queue.indexOf(user));
     }
 
-    getUserTokens() : string[] { 
-        const user_emails: string[] = []; 
+    getUserIds() : string[] { 
+        const user_ids: string[] = []; 
         this.queue.forEach((user) => { 
-            user_emails.push(user.email);  
+            user_ids.push(user.id);  
         }); 
  
-        return user_emails;  
+        return user_ids;  
     }
 }
 
