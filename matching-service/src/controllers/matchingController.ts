@@ -58,7 +58,7 @@ export const startMatching = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
-    console.log("Queue status: ", waitingQueue);
+    console.log("Queue status: ", waitingQueue.getUserTokens());
 
     await consumer.run({
         eachMessage: async ({ message } : { message : any }) => {
@@ -85,6 +85,7 @@ export const startMatching = async () => {
                 if (newUser.matchedUser === null) {
                     console.log(`User ${newUser.email} has timed out and will be removed from the queue.`);
                     waitingQueue.removeUser(newUser); // Remove user from the queue
+                    console.log("Queue status: ", waitingQueue.getUserTokens());
 
                     // Send message to notify user that no match was found
                     // sendMatchResult(newUser.userToken, 'timeout');
@@ -97,9 +98,6 @@ export const startMatching = async () => {
             // Search for a matching user in the queue, starting from the oldest user
             // TODO: specify type of queue used
             const matchedUser = findMatchingUser(newUser, waitingQueue); 
-
-            console.log(`Found matching user: ${matchedUser}`);
-
 
             if (matchedUser) {
                 console.log(`Matched user ${matchedUser.email} with ${newUser.email}`);
@@ -137,7 +135,8 @@ export const startMatching = async () => {
 
                 // Remove matched user from the queue
                 waitingQueue.removeUser(matchedUser); 
-                console.log("Queue status: ", waitingQueue);
+                console.log("Remove matched user from queue: User ", matchedUser.email);
+                console.log("Queue status: ", waitingQueue.getUserTokens());
 
 
                 // Notify both users that a match has been found
@@ -146,8 +145,8 @@ export const startMatching = async () => {
             } else { 
                 // Add user to the waiting queue
                 waitingQueue.push(newUser);
-                console.log("Queue status: ", waitingQueue);
                 console.log(`User ${newUser.email} added to waiting list`);
+                console.log("Queue status: ", waitingQueue.getUserTokens());
             }
         }
     });

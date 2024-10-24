@@ -85,7 +85,6 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
                 console.log('Status: Match found for user:', email);
                 return rsp.status(200).send({message: "match found"});
             } else {
-                console.log('Status: Matching for user:', email);
                 return rsp.status(200).send({message: "matching"});
             }
         }
