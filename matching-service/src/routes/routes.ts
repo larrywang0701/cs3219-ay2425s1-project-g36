@@ -32,7 +32,7 @@ const router = Router();
 router.post("/start_matching", async (req : Request, res : Response) => {
     const data = req.body;
     const user = {
-        userToken: req.cookies.jwt,
+        email: data.email,
         difficulties: data.difficulties,
         topics: data.topics,
         isPeerReady: false,
@@ -42,8 +42,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     
     try {
         // Send the new user to the Kafka topic
-        await sendQueueingMessage(user.userToken);
-        userStore.addUser(user.userToken, user);
+        await sendQueueingMessage(user.email);
+        userStore.addUser(user.email, user);
 
         // Listen to matching outcome
         // await listenForMatchResult(user.userToken, (result) => {
@@ -58,34 +58,34 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         return res.status(200).send({message: "Started Queueing"});
 
         // By default, no match is found
-        userStore.removeUser(user.userToken);
-        return res.status(204).send({message: "No match found"});
+        // userStore.removeUser(user.userToken);
+        // return res.status(204).send({message: "No match found"});
     }
     catch(error) {
         console.error("Error when trying to match:" + error);
-        userStore.removeUser(user.userToken);
+        userStore.removeUser(user.email);
         return res.status(500).send({message: "Failed to match user."});
     }
 });
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
-    console.log("user cookies: " + req.cookies); // Log cookies to check
-    console.log("user cookies jwt: " + req.cookies.jwt); // Log cookies to check
     try {
-        const userToken = req.cookies.jwt;
-        if (!userToken) {
-            return rsp.status(400).send({message: "User token is not provided."});
+        const email = req.body.email;
+        if (!email) {
+            return rsp.status(400).send({message: "Email is not provided."});
         } else {
-            console.log('User Token:', userToken);
-            if(!userStore.hasUser(userToken)) {
-                return rsp.status(400).send({message: "This user does not exist in the matching service."});
+            // console.log('User Email:', email);
+            if(!userStore.hasUser(email)) {
+                return rsp.status(400).send({message: "This user does not exist in the matching queue."});
             }
             
-            console.log('User Exists:', userStore.hasUser(userToken));
-            const user = userStore.getUser(userToken);
+            // console.log('User Exists:', userStore.hasUser(email));
+            const user = userStore.getUser(email);
             if(user!.matchedUser) {
+                console.log('Status: Match found for user:', email);
                 return rsp.status(200).send({message: "match found"});
             } else {
+                console.log('Status: Matching for user:', email);
                 return rsp.status(200).send({message: "matching"});
             }
         }
