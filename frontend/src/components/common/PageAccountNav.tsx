@@ -38,6 +38,7 @@ export default function PageAccountNav() {
             <div>
               <p>{ auth.username }</p>
               <p className="font-normal">{ auth.email }</p>
+              <p className="font-normal">{ auth.id }</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-gray-200" />
