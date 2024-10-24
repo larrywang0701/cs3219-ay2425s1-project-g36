@@ -18,7 +18,7 @@ let previousStartMatchingData : any = null;
 /**
  * An async function for sending a start matching request to the backend.
  * 
- * @param id The current user's token.
+ * @param id The current user's id.
  * @param difficulties The difficulties selected by the user for matching.
  * @param topics The topics selected by the user for matching.
  * @returns An object containing the HTTP status code of the request and the message from the backend server
@@ -62,7 +62,7 @@ async function retryPreviousMatching(token : string) {
  * An async function for sending a check matching state request to the backend.
  * You should call this function intermittently for multiple times when waiting for matching in order to get the latest matching state.
  * 
- * @param email The current user's token.
+ * @param id The current user's id.
  * @returns An object containing the HTTP status code of the request and the message from the backend server.
  */
 async function sendCheckMatchingStateRequest(id : string) {

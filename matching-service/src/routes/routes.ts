@@ -9,11 +9,11 @@ const router = Router();
  * Start the matching process for the user. 
  * 
  * Request body should contain the following fields:
- * A JSON format contains the user's token, the selected difficulties and the topics.
+ * A JSON format contains the user's id, the selected difficulties and the topics.
  * Example request body:
  * ```
  * {
- *     "userToken": "user-token-here",
+ *     "id": "id",
  *     "difficulties": {
  *         "easy": true,
  *         "medium": true,
@@ -69,6 +69,18 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     }
 });
 
+/**
+ * Check the matching state for the user
+ * 
+ * Request body should contain the user's id.
+ * 
+ * Response status:
+ * - 200: Match found
+ * - 204: Matching
+ * - 400: User ID not found
+ * - 400: User not found in the queue
+ * - 500: Error checking match status
+ */
 router.post("/check_state", async (req : Request, rsp : Response) => {
     try {
         const id = req.body.id;
@@ -161,17 +173,17 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
 //  */
 // router.post("/cancel", async (req : Request, res : Response) => {
 //     try {
-//         const { userToken } = req.cookies.jwt;
-//         const user = userStore.getUser(userToken);
+//         const userId = req.body.id;
+//         const user = userStore.getUser(userId);
         
 //         if (user) {
 //             // Send tombstone message to the Kafka topic to remove user from the queue
-//             await sendQueueingMessage(user.userToken, true);
-//             userStore.removeUser(userToken);
+//             await sendQueueingMessage(userId, true);
 //         } else {
 //             return res.status(400).send({ message: "User not found" });
 //         }
 
+//         userStore.removeUser(userId);
 //         return res.status(200).send({message: "User is removed from queue"});
 //     }
 //     catch(error : any) {
