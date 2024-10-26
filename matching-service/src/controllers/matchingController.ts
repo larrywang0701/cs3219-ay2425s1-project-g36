@@ -72,6 +72,7 @@ export const startMatching = async () => {
                 //Remove user from waiting queue if inside
                 if (waitingQueue.isUserInQueue(key)) {
                     const user = userStore.getUser(key)!;
+                    clearTimeout(user.timeout!);
                     waitingQueue.removeUser(user);
                     userStore.removeUser(key);
                     // User email cannot be logged here as the user object is removed from the store
