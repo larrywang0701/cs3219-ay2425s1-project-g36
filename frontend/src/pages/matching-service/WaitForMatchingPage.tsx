@@ -55,9 +55,9 @@ export default function WaitForMatchingPage() {
         const isSuccess = response.status === 200;
         if(isSuccess) {
           if(response.message === "match found") {
-            console.log("match found!");
+            const roomId = response.roomId
             cancelMatching(false);
-            navigate(`../collaboration`);
+            navigate(`../collaboration/${roomId}`);
           }
           return;
         }

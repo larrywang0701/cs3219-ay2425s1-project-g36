@@ -20,9 +20,9 @@ const io = new Server(COLLABORATION_SERVICE_PORT, {
     },
 })
 
+// runs when the collaboration page is loaded
 io.on("connection", socket => {
     socket.on('get-document', async (documentId: string) => {
-        console.log(`server received documentId, which is: ${documentId}`)
         const document = await findOrCreateDocument(documentId)
         if (document) {
             socket.join(documentId)

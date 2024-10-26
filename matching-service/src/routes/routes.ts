@@ -37,7 +37,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         topics: data.topics,
         isPeerReady: false,
         matchedUser: null,
-        timeout: null
+        timeout: null,
+        roomId: null
     }
     
     try {
@@ -69,22 +70,25 @@ router.post("/start_matching", async (req : Request, res : Response) => {
 });
 
 router.post("/check_state", async (req : Request, rsp : Response) => {
-    console.log("user cookies: " + req.cookies); // Log cookies to check
-    console.log("user cookies jwt: " + req.cookies.jwt); // Log cookies to check
+    // console.log("user cookies: " + req.cookies); // Log cookies to check
+    // console.log("user cookies jwt: " + req.cookies.jwt); // Log cookies to check
     try {
         const userToken = req.cookies.jwt;
         if (!userToken) {
             return rsp.status(400).send({message: "User token is not provided."});
         } else {
-            console.log('User Token:', userToken);
+            // console.log('User Token:', userToken);
             if(!userStore.hasUser(userToken)) {
                 return rsp.status(400).send({message: "This user does not exist in the matching service."});
             }
             
-            console.log('User Exists:', userStore.hasUser(userToken));
+            // console.log('User Exists:', userStore.hasUser(userToken));
             const user = userStore.getUser(userToken);
             if(user!.matchedUser) {
-                return rsp.status(200).send({message: "match found"});
+                return rsp.status(200).send({
+                    message: "match found",
+                    roomId: user?.roomId
+                });
             } else {
                 return rsp.status(200).send({message: "matching"});
             }

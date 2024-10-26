@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
 import Quill from "quill"
 import "quill/dist/quill.snow.css"
-import { io } from "socket.io-client"
+import { io, Socket } from "socket.io-client"
 
 const SAVE_INTERVAL_MS = 2000
 
 export default function TextEditor({ documentId }: { documentId: string }) {
-    const [quill, setQuill] = useState<any>()
-    const [socket, setSocket] = useState<any>()
+    const [quill, setQuill] = useState<Quill>()
+    const [socket, setSocket] = useState<Socket>()
     
     // connects to socket upon component mount
     useEffect(() => {
@@ -45,7 +45,7 @@ export default function TextEditor({ documentId }: { documentId: string }) {
     // whenever socket receives changes, update Quill
     useEffect(() => {
         if (socket == null || quill == null) return
-        const handler = delta => {
+        const handler = (delta: any) => {
             quill.updateContents(delta)
         }
 
@@ -56,10 +56,10 @@ export default function TextEditor({ documentId }: { documentId: string }) {
 
     }, [quill, socket])
 
-    // whenever user makes changes to Quill, send theco changes to socket
+    // whenever user makes changes to Quill, send the changes to socket
     useEffect(() => {
         if (socket == null || quill == null) return
-        const handler = (delta, oldDelta, source) => {
+        const handler = (delta: any, oldDelta: any, source: string) => {
             if (source !== 'user') return
             socket.emit('send-changes', delta)
         }
@@ -71,7 +71,7 @@ export default function TextEditor({ documentId }: { documentId: string }) {
     }, [quill, socket])
 
     // 'inserts' Quill text editor into your div element
-    const wrapperRef = useCallback(wrapper => {
+    const wrapperRef = useCallback((wrapper: HTMLDivElement) => {
         if (wrapper == null) return
 
         wrapper.innerHTML = ''

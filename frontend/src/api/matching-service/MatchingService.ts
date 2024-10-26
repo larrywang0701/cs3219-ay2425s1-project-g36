@@ -70,12 +70,12 @@ async function sendCheckMatchingStateRequest(token : string) {
     userToken : token
   }
   return await api.post(MATCHING_BASE_URL + CHECK_MATCHING_STATE_URL, requestBody).then(response => {
-    return {status : response.status, message : response.data.message}
+    return {status : response.status, message : response.data.message, roomId: response.data.roomId}
   }).catch(error => {
     if(error.code === "ERR_NETWORK") {
-      return {status : error.status, message : "ERR_NETWORK"}
+      return {status : error.status, message : "ERR_NETWORK", roomId: null}
     }
-    return {status : error.status, message : error.response.data.message}
+    return {status : error.status, message : error.response.data.message, roomId: null}
   });
 }
 
