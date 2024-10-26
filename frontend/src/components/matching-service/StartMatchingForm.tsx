@@ -11,6 +11,7 @@ import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } fr
 const HTTP_OK = 200
 const HTTP_NO_CONTENT = 204
 const HTTP_REQUEST_TIMEOUT = 408
+const HTTP_ALREADY_EXISTS = 409
 
 export default function StartMatchingForm() {
 
@@ -44,7 +45,7 @@ export default function StartMatchingForm() {
 
         if (httpStatus === HTTP_OK) {
           // navigate("/matching/get_ready")
-        } else if (httpStatus === HTTP_NO_CONTENT || httpStatus === HTTP_REQUEST_TIMEOUT) {
+        } else if (httpStatus === HTTP_NO_CONTENT || httpStatus === HTTP_REQUEST_TIMEOUT || httpStatus === HTTP_ALREADY_EXISTS) {
           navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         } else {
           displayError("An error has occured: \n" + response.message);

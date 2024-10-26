@@ -114,7 +114,7 @@ export default function WaitForMatchingPage() {
   const updateEndMatchingTimer = () => {
     setEndMatchingTimer(val => {
       if(val - 1 <= 0) {
-        cancelMatching();
+        cancelMatching(false);
         console.log("matching cancelled due to timed out");
         navigate(`../matching/failed?message=A match couldn't be found after ${MAXIMUM_MATCHING_DURATION} seconds. You may try again or refine your question selections to increase your chances to match.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
       }

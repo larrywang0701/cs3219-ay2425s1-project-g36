@@ -73,8 +73,9 @@ export const startMatching = async () => {
                 if (waitingQueue.isUserInQueue(key)) {
                     const user = userStore.getUser(key)!;
                     waitingQueue.removeUser(user);
+                    userStore.removeUser(key);
                     // User email cannot be logged here as the user object is removed from the store
-                    console.log(`User ${key} has been removed from the queue.`);
+                    console.log(`User ${user.email} has been removed from the queue.`);
                     console.log("Queue status: ", waitingQueue.getUserEmails());
                 }
                 return;
@@ -94,10 +95,9 @@ export const startMatching = async () => {
                 if (newUser.matchedUser === null) {
                     console.log(`User ${newUser.email} has timed out and will be removed from the queue.`);
                     waitingQueue.removeUser(newUser); // Remove user from the queue
+                    userStore.removeUser(newUser.id); // Remove user from the store
                     console.log("Queue status: ", waitingQueue.getUserEmails());
 
-                    // Send message to notify user that no match was found
-                    // sendMatchResult(newUser.userToken, 'timeout');
                 }
             }, TIMEOUT_DURATION);
 
@@ -304,9 +304,9 @@ const producer = kafka.producer();
 export const sendQueueingMessage = async (id: string, isCancel: boolean = false) => {
     await producer.connect();
     if (isCancel) {
-        console.log(`Sending user ${id} to the queue to cancel.`);
+        console.log(`Sending User ${id} to the queue to cancel.`);
     } else {
-        console.log(`Sending user ${id} to the queue.`);
+        console.log(`Sending User ${id} to the queue.`);
     }
     await producer.send({
         topic: 'user-matching',

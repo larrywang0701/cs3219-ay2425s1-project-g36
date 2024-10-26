@@ -42,20 +42,15 @@ router.post("/start_matching", async (req : Request, res : Response) => {
     }
     
     try {
+
+        // Check if the user is already matching or matched
+        if (userStore.hasUser(user.id)) {
+            return res.status(409).send({message: "This user already matching."});
+        }
         // Send the new user to the Kafka topic
         userStore.addUser(user.id, user);
         await sendQueueingMessage(user.id);
-
-        // Listen to matching outcome
-        // await listenForMatchResult(user.userToken, (result) => {
-        //     if (result === 'matched') {
-        //         return res.status(200).send({message: "Match found"});
-
-        //     } else if (result === 'timeout') {
-        //         userStore.removeUser(user.userToken);
-        //         return res.status(408).send({message: "No match found due to timeout"});
-        //     }
-        // });
+        
         return res.status(200).send({message: "Started Queueing User: " + user.email});
 
         // By default, no match is found
@@ -93,6 +88,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
 
             const user = userStore.getUser(id);
             if(user!.matchedUser) {
+                userStore.removeUser(id);
                 console.log('Status: Match found for user:', user?.email);
                 return rsp.status(200).send({message: "match found"});
             } else {
@@ -183,8 +179,7 @@ router.post("/cancel", async (req : Request, res : Response) => {
             return res.status(400).send({ message: "User not found" });
         }
 
-        userStore.removeUser(userId);
-        return res.status(200).send({message: "User is removed from queue"});
+        return res.status(200).send({message: "Request to cancel matching is sent for User: " + user.email});
     }
     catch(error : any) {
         return res.status(500).send({message : error.message});
