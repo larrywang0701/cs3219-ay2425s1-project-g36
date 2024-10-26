@@ -25,6 +25,14 @@ class UserStore {
     hasUser(userId: string) {
         return this.userStore.has(userId);
     }
+
+    toString() {
+        let userStoreString = "";
+        this.userStore.forEach((user, userId) => {
+            userStoreString += userId + " : " + user.toString() + "\n";
+        });
+        return userStoreString;
+    }
 }
 
 const userStore = new UserStore();

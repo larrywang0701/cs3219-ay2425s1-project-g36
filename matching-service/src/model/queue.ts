@@ -65,6 +65,15 @@ class Queue {
  
         return user_ids;  
     }
+
+    getUserEmails() : string[] { 
+        const user_emails: string[] = []; 
+        this.queue.forEach((user) => { 
+            user_emails.push(user.email);  
+        }); 
+ 
+        return user_emails;  
+    }
 }
 
 export { Queue };

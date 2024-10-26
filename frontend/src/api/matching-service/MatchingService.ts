@@ -23,9 +23,10 @@ let previousStartMatchingData : any = null;
  * @param topics The topics selected by the user for matching.
  * @returns An object containing the HTTP status code of the request and the message from the backend server
  */
-async function sendStartMatchingRequest(id : string, difficulties : SelectedDifficultyData, topics : string[]) {
+async function sendStartMatchingRequest(id : string, email : string, difficulties : SelectedDifficultyData, topics : string[]) {
   const requestBody = {
     id : id,
+    email : email,
     difficulties : difficulties,
     topics : topics
   }
@@ -86,9 +87,9 @@ async function sendCheckMatchingStateRequest(id : string) {
  * @param token The current user's token.
  * @returns An object containing the HTTP status code of the request and the message from the backend server.
  */
-async function sendCancelMatchingRequest(token : string) {
+async function sendCancelMatchingRequest(id : string) {
   const requestBody = {
-    userToken : token
+    id : id
   }
   return await api.post(MATCHING_BASE_URL + CANCEL_MATCHING_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}

@@ -56,7 +56,7 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         //         return res.status(408).send({message: "No match found due to timeout"});
         //     }
         // });
-        return res.status(200).send({message: "Started Queueing"});
+        return res.status(200).send({message: "Started Queueing User: " + user.email});
 
         // By default, no match is found
         // userStore.removeUser(user.userToken);
@@ -93,7 +93,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
 
             const user = userStore.getUser(id);
             if(user!.matchedUser) {
-                console.log('Status: Match found for user:', id);
+                console.log('Status: Match found for user:', user?.email);
                 return rsp.status(200).send({message: "match found"});
             } else {
                 return rsp.status(200).send({message: "matching"});
@@ -171,24 +171,24 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
 //  * - 400: User not found
 //  * - 500: Error cancelling matching
 //  */
-// router.post("/cancel", async (req : Request, res : Response) => {
-//     try {
-//         const userId = req.body.id;
-//         const user = userStore.getUser(userId);
+router.post("/cancel", async (req : Request, res : Response) => {
+    try {
+        const userId = req.body.id;
+        const user = userStore.getUser(userId);
         
-//         if (user) {
-//             // Send tombstone message to the Kafka topic to remove user from the queue
-//             await sendQueueingMessage(userId, true);
-//         } else {
-//             return res.status(400).send({ message: "User not found" });
-//         }
+        if (user) {
+            // Send tombstone message to the Kafka topic to remove user from the queue
+            await sendQueueingMessage(userId, true);
+        } else {
+            return res.status(400).send({ message: "User not found" });
+        }
 
-//         userStore.removeUser(userId);
-//         return res.status(200).send({message: "User is removed from queue"});
-//     }
-//     catch(error : any) {
-//         return res.status(500).send({message : error.message});
-//     }
-// });
+        userStore.removeUser(userId);
+        return res.status(200).send({message: "User is removed from queue"});
+    }
+    catch(error : any) {
+        return res.status(500).send({message : error.message});
+    }
+});
 
 export default router;

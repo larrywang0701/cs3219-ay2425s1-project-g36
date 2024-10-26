@@ -93,7 +93,7 @@ export default function WaitForMatchingPage() {
       window.clearInterval(endMatchingTimerIntervalID.current);
     }
     if(sendCancellationRequest) {
-      sendCancelMatchingRequest(auth.token);
+      sendCancelMatchingRequest(auth.id);
     }
     navigate("../matching/start");
   }
