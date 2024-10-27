@@ -1,9 +1,7 @@
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import { DocumentModel, DocumentType } from './src/models/document'
-import { COLLABORATION_SERVICE_PORT, COLLABORATION_SERVICE_MONGODB_URI } from './config'
-
-const FRONTEND_PORT = 5173
+import { COLLABORATION_SERVICE_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT } from './config'
 
 mongoose
     .connect(COLLABORATION_SERVICE_MONGODB_URI)
