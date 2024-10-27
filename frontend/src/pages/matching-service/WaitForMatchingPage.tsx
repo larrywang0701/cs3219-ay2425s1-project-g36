@@ -52,16 +52,15 @@ export default function WaitForMatchingPage() {
     }
     sendCheckMatchingStateRequest(auth.id).then(
       response => {
-        const isSuccess = response.status === 200;
-        if(isSuccess) {
-          if(response.message === "match found") {
-            console.log("match found!");
-            cancelMatching(false);
-            navigate(`../collaboration`);
-          }
-          return;
+        if(response.status === 200) {
+          console.log("match found!");
+          cancelMatching(false);
+          navigate(`../collaboration`);
+        } else if (response.status === 202) {
+          //Do nothing
+          console.log("matching...");
         }
-        if(response.message === "ERR_NETWORK") {
+        else if (response.message === "ERR_NETWORK") {
           checkMatchingStateNetworkErrorCount.current++;
           if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
             cancelMatching(false);

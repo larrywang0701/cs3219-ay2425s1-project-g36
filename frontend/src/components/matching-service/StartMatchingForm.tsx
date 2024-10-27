@@ -9,9 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "../common/DisplayedMessage";
 
 const HTTP_OK = 200
-const HTTP_NO_CONTENT = 204
-const HTTP_REQUEST_TIMEOUT = 408
 const HTTP_ALREADY_EXISTS = 409
+const HTTP_ERROR = 500
 
 export default function StartMatchingForm() {
 
@@ -44,8 +43,8 @@ export default function StartMatchingForm() {
         const errorMessage = response.message
 
         if (httpStatus === HTTP_OK) {
-          // navigate("/matching/get_ready")
-        } else if (httpStatus === HTTP_NO_CONTENT || httpStatus === HTTP_REQUEST_TIMEOUT || httpStatus === HTTP_ALREADY_EXISTS) {
+          // Do nothing here
+        } else if (httpStatus === HTTP_ALREADY_EXISTS || httpStatus === HTTP_ERROR) {
           navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         } else {
           displayError("An error has occured: \n" + response.message);

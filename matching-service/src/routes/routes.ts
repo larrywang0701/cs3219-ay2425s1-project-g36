@@ -53,9 +53,6 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         
         return res.status(200).send({message: "Started Queueing User: " + user.email});
 
-        // By default, no match is found
-        // userStore.removeUser(user.userToken);
-        // return res.status(204).send({message: "No match found"});
     }
     catch(error) {
         console.error("Error when trying to match:" + error);
@@ -83,7 +80,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
             return rsp.status(400).send({message: "ID is not provided for checking status."});
         } else {
             if(!userStore.hasUser(id)) {
-                return rsp.status(400).send({message: "This user does not exist in the queue."});
+                return rsp.status(400).send({message: "This user does not exist in the queue anymore. Please try matching again."});
             }
 
             const user = userStore.getUser(id);
@@ -92,7 +89,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
                 console.log('Status: Match found for user:', user?.email);
                 return rsp.status(200).send({message: "match found"});
             } else {
-                return rsp.status(200).send({message: "matching"});
+                return rsp.status(202).send({message: "matching"});
             }
         }
 
