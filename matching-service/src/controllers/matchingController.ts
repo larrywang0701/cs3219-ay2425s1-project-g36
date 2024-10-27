@@ -33,7 +33,7 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
         const user = waitingQueue.peek(i);
 
         // Avoid matching with itself
-        if (newUser.userToken === user.userToken) {
+        if (newUser.id === user.id) {
             continue;
         }
 
@@ -58,36 +58,47 @@ export const startMatching = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
-    console.log("Queue status: ", waitingQueue);
+    console.log("Queue status: ", waitingQueue.getUserEmails());
 
     await consumer.run({
         eachMessage: async ({ message } : { message : any }) => {
+            const key = message.key!.toString();
             const value = message.value!.toString();
 
-            console.log(`Received message: ${value}`);
+            console.log(`Received message from User: ${key}`);
 
             // Check if it is a tombstone message
-            if (!value) {
+            if (value === 'cancel') {
+                //Remove user from waiting queue if inside
+                if (waitingQueue.isUserInQueue(key)) {
+                    const user = userStore.getUser(key)!;
+                    clearTimeout(user.timeout!);
+                    waitingQueue.removeUser(user);
+                    userStore.removeUser(key);
+                    // User email cannot be logged here as the user object is removed from the store
+                    console.log(`User ${user.email} has been removed from the queue.`);
+                    console.log("Queue status: ", waitingQueue.getUserEmails());
+                }
                 return;
             }
 
             // Get user object from the store
-            const newUser = userStore.getUser(value);
+            const newUser = userStore.getUser(key);
             if (!newUser) {
-                console.log(`User ${value} not found in the user store.`);
+                console.log(`User ${key} not found in the user store.`);
                 // sendMatchResult(value, 'declined');
                 return;
             }
-
-            console.log(`User ${newUser.userToken} is ready to be matched.`);
+            console.log('User ID: ', newUser.id, '. User Email: ', newUser.email);
+            console.log(`User ${newUser.email} is ready to be matched.`);
 
             const timeout = setTimeout(() => {
                 if (newUser.matchedUser === null) {
-                    console.log(`User ${newUser.userToken} has timed out and will be removed from the queue.`);
+                    console.log(`User ${newUser.email} has timed out and will be removed from the queue.`);
                     waitingQueue.removeUser(newUser); // Remove user from the queue
+                    userStore.removeUser(newUser.id); // Remove user from the store
+                    console.log("Queue status: ", waitingQueue.getUserEmails());
 
-                    // Send message to notify user that no match was found
-                    // sendMatchResult(newUser.userToken, 'timeout');
                 }
             }, TIMEOUT_DURATION);
 
@@ -98,11 +109,8 @@ export const startMatching = async () => {
             // TODO: specify type of queue used
             const matchedUser = findMatchingUser(newUser, waitingQueue); 
 
-            console.log(`Found matching user: ${matchedUser}`);
-
-
             if (matchedUser) {
-                console.log(`Matched user ${matchedUser.userToken} with ${newUser.userToken}`);
+                console.log(`Matched user ${matchedUser.email} with ${newUser.email}`);
 
                 // Update matched user fields
                 matchedUser.matchedUser = newUser;
@@ -114,6 +122,7 @@ export const startMatching = async () => {
                     clearTimeout(matchedUser.timeout);
                 }
 
+                /*
                 // Add new timeout for confirmation
                 const confirmationTimeout = setTimeout(() => {
                     if (!newUser.isPeerReady || !matchedUser.isPeerReady) {
@@ -132,10 +141,12 @@ export const startMatching = async () => {
                 // Update timeout for both users
                 newUser.timeout = confirmationTimeout;
                 matchedUser.timeout = confirmationTimeout;
+                */
 
                 // Remove matched user from the queue
                 waitingQueue.removeUser(matchedUser); 
-                console.log("Queue status: ", waitingQueue);
+                console.log("Remove matched user from queue: User ", matchedUser.email);
+                console.log("Queue status: ", waitingQueue.getUserEmails());
 
 
                 // Notify both users that a match has been found
@@ -144,8 +155,8 @@ export const startMatching = async () => {
             } else { 
                 // Add user to the waiting queue
                 waitingQueue.push(newUser);
-                console.log("Queue status: ", waitingQueue);
-                console.log(`User ${newUser.userToken} added to waiting list`);
+                console.log(`User ${newUser.email} added to waiting list`);
+                console.log("Queue status: ", waitingQueue.getUserEmails());
             }
         }
     });
@@ -291,13 +302,17 @@ const producer = kafka.producer();
  * @param user Topics, difficulties, and user token
  * @param isCancel Whether the user wants to stop matching, set to false by default
  */
-export const sendQueueingMessage = async (userToken: string, isCancel: boolean = false) => {
+export const sendQueueingMessage = async (id: string, isCancel: boolean = false) => {
     await producer.connect();
-    console.log(`Sending user ${userToken} to the queue.`);
+    if (isCancel) {
+        console.log(`Sending User ${id} to the queue to cancel.`);
+    } else {
+        console.log(`Sending User ${id} to the queue.`);
+    }
     await producer.send({
         topic: 'user-matching',
         messages: [
-            { key: userToken, value: isCancel ? null : userToken },
+            { key: id, value: isCancel ? "cancel": "match" },
         ],
     });
     await producer.disconnect();
