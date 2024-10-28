@@ -50,18 +50,18 @@ export default function WaitForMatchingPage() {
       console.log("matching cancelled due to leaving page");
       return;
     }
-    sendCheckMatchingStateRequest(auth.token).then(
+    sendCheckMatchingStateRequest(auth.id).then(
       response => {
-        const isSuccess = response.status === 200;
-        if(isSuccess) {
-          if(response.message === "match found") {
-            const roomId = response.roomId
-            cancelMatching(false);
-            navigate(`../collaboration/${roomId}`);
-          }
-          return;
+        if(response.status === 200) {
+          console.log("match found!");
+          cancelMatching(false);
+          const roomId = response.roomId
+          navigate(`../collaboration/${roomId}`);
+        } else if (response.status === 202) {
+          //Do nothing
+          console.log("matching...");
         }
-        if(response.message === "ERR_NETWORK") {
+        else if (response.message === "ERR_NETWORK") {
           checkMatchingStateNetworkErrorCount.current++;
           if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
             cancelMatching(false);
@@ -93,7 +93,7 @@ export default function WaitForMatchingPage() {
       window.clearInterval(endMatchingTimerIntervalID.current);
     }
     if(sendCancellationRequest) {
-      sendCancelMatchingRequest(auth.token);
+      sendCancelMatchingRequest(auth.id);
     }
     navigate("../matching/start");
   }
@@ -114,7 +114,7 @@ export default function WaitForMatchingPage() {
   const updateEndMatchingTimer = () => {
     setEndMatchingTimer(val => {
       if(val - 1 <= 0) {
-        cancelMatching();
+        cancelMatching(false);
         console.log("matching cancelled due to timed out");
         navigate(`../matching/failed?message=A match couldn't be found after ${MAXIMUM_MATCHING_DURATION} seconds. You may try again or refine your question selections to increase your chances to match.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
       }

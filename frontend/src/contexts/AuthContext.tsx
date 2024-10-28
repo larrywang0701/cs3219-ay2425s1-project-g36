@@ -1,3 +1,4 @@
+import { sendCancelMatchingRequest } from '@/api/matching-service/MatchingService';
 import { getUsers, sendLogoutRequest } from '@/api/user-service/UserService';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -44,7 +45,10 @@ const saveAuthState = (auth: AuthState) => {
 export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
   const [auth, setAuth] = useState<AuthState>(loadAuthState);
 
-  const _logout = () => {
+  const _logout = async () => {
+    // no matter what, try to send a cancel matching request if required
+    await sendCancelMatchingRequest(auth.id);
+
     const newAuthState = DEFAULT_AUTH_STATE;
     setAuth(newAuthState);
     saveAuthState(newAuthState);
