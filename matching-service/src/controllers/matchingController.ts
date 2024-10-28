@@ -2,6 +2,7 @@ import { User, hasCommonDifficulties } from "../model/user";
 import { Kafka } from "kafkajs";
 import { Queue } from "../model/queue";
 import userStore from "../utils/userStore";
+import { v4 as uuidv4 } from 'uuid'
 
 const kafka = new Kafka({
     clientId: 'matching-service',
@@ -115,6 +116,11 @@ export const startMatching = async () => {
                 // Update matched user fields
                 matchedUser.matchedUser = newUser;
                 newUser.matchedUser = matchedUser;
+
+                // give both users a room Id to collaborate
+                const roomId = uuidv4()
+                matchedUser.roomId = roomId 
+                newUser.roomId = roomId 
 
                 // Clear timeout for both users
                 clearTimeout(newUser.timeout);

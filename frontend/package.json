@@ -28,10 +28,12 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "lucide-react": "^0.445.0",
+    "quill": "^2.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
     "react-router-dom": "^6.26.2",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@types/node": "^22.5.5",
+    "@types/quill": "^2.0.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

@@ -9,6 +9,7 @@ interface User {
     timeout : NodeJS.Timeout | null;
     isPeerReady : boolean;
     matchedUser : User | null;
+    roomId: string | null; // uuid for collaboration-service
 }
 
 const hasCommonDifficulties = (user1 : User, user2 : User) : boolean => {

@@ -67,6 +67,17 @@ services:
     ports:
       - "${QUESTIONSVC_PORT:-3000}:3000"
     container_name: question-service-container
+  collaboration:
+    restart: always
+    build:
+      context:
+        ./collaboration-service
+    volumes:
+      - ./collaboration-service:/usr/src/collaboration-service
+      - /usr/src/collaboration-service/node_modules
+    ports:
+      - "${COLLABORATIONSVC_PORT:-3001}:3001"
+    container_name: collaboration-service-container
   matching:
     restart: always
     build:

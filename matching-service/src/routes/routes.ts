@@ -38,7 +38,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         topics: data.topics,
         isPeerReady: false,
         matchedUser: null,
-        timeout: null
+        timeout: null,
+        roomId: null
     }
     
     try {
@@ -74,6 +75,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
  * - 500: Error checking match status
  */
 router.post("/check_state", async (req : Request, rsp : Response) => {
+    // console.log("user cookies: " + req.cookies); // Log cookies to check
+    // console.log("user cookies jwt: " + req.cookies.jwt); // Log cookies to check
     try {
         const id = req.body.id;
         if (!id) {
@@ -87,7 +90,10 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
             if(user!.matchedUser) {
                 userStore.removeUser(id);
                 console.log('Status: Match found for user:', user?.email);
-                return rsp.status(200).send({message: "match found"});
+                return rsp.status(200).send({
+                    message: "match found",
+                    roomId: user?.roomId
+                });
             } else {
                 return rsp.status(202).send({message: "matching"});
             }
