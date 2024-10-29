@@ -6,13 +6,15 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import TextEditor from "@/components/collaboration-service/TextEditor";
-import { useParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 
 export default function CollaborationPage() {
-  const { documentId } = useParams()
-  console.log(`documentId is: ${documentId}`)
+  const [parameters] = useSearchParams()
+  const roomId = parameters.get("roomId")
+  const matchedUserId = parameters.get("matchedUserId") // TODO: use this matchedUserId to retrive matched user's name
+  const questionId = parameters.get("questionId") // TODO: use this questionId to retrive question details
 
-  if (documentId == null) {
+  if (roomId == null) {
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
@@ -34,9 +36,9 @@ export default function CollaborationPage() {
       <PageHeader />
       <MainContainer>
         <div className="max-w-5xl mx-auto p-6 space-y-6">
-          <h1 className="text-2xl font-bold">Practice with (insert collaborator name here)</h1>
+          <h1 className="text-2xl font-bold">Practice with another user of id: {matchedUserId}</h1>
           <h2 className="text-xl font-semibold">
-            (insert question name here) - <span>(insert question difficulty here)</span>
+            questionId: {questionId} - <span>(insert question difficulty here)</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -45,7 +47,7 @@ export default function CollaborationPage() {
                 Python3
                 <ChevronDown className="ml-2 h-5 w-5" aria-hidden="true" />
               </button>
-              <TextEditor documentId={documentId} />
+              <TextEditor roomId={roomId} />
             </section>
 
             <section className="space-y-4">

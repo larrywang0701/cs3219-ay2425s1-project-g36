@@ -90,10 +90,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
             if(user!.matchedUser) {
                 userStore.removeUser(id);
                 console.log('Status: Match found for user:', user?.email);
-                return rsp.status(200).send({
-                    message: "match found",
-                    roomId: user?.roomId
-                });
+                return rsp.status(200).send({message: "match found"});
             } else {
                 return rsp.status(202).send({message: "matching"});
             }

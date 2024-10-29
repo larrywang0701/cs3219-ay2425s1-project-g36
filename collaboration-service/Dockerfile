@@ -4,5 +4,5 @@ COPY package.json /usr/src/collaboration-service/package.json
 COPY package-lock.json /usr/src/collaboration-service/package-lock.json
 RUN npm install
 COPY . /usr/src/collaboration-service
-EXPOSE 3001
+EXPOSE 3001 3002 
 CMD ["npm", "run", "dev"]

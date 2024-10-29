@@ -1,4 +1,5 @@
 import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/matching-service/MatchingService";
+import { getCollaborationInformation } from "@/api/collaboration-service/CollaborationService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
@@ -43,40 +44,60 @@ export default function WaitForMatchingPage() {
   //   return () => clearInterval(intervalId);
   // }, []);
 
-  const checkMatchingState = () => {
+  const checkMatchingState = async () => {
     console.log("checking matching state");
-    if(location.pathname !== pathname) {
-      cancelMatching();
-      console.log("matching cancelled due to leaving page");
-      return;
+    
+    // Check if the pathname has changed
+    if (location.pathname !== pathname) {
+        cancelMatching();
+        console.log("matching cancelled due to leaving page");
+        return;
     }
-    sendCheckMatchingStateRequest(auth.id).then(
-      response => {
-        if(response.status === 200) {
-          console.log("match found!");
-          cancelMatching(false);
-          const roomId = response.roomId
-          navigate(`../collaboration/${roomId}`);
-        } else if (response.status === 202) {
-          //Do nothing
-          console.log("matching...");
+
+    // Send request to check matching state
+    const response = await sendCheckMatchingStateRequest(auth.id);
+    
+    if (response.status === 200) {
+        // Get collaboration information, before navigating to collab page
+        const collaborationInfo = await getCollaborationInformation(auth.id);
+        const collaborationStatus = collaborationInfo.status
+        const collaborationMessage = collaborationInfo.message
+        
+        const data = collaborationInfo.data
+        const userId = data.userId
+        const matchedUserId = data.matchedUserId
+        const roomId = data.roomId
+        const questionId = data.questionId
+
+        // Check if collaborationInfo is valid
+        if (collaborationStatus === 200) {
+            console.log("match found!");
+            cancelMatching(false);
+
+            navigate(`../collaboration?roomId=${roomId}&matchedUserId=${matchedUserId}&questionId=${questionId}`);
+        } else {
+            // Handle case where collaboration information retrieval failed
+            console.log(`Error retrieving collaboration information: ${collaborationInfo.message}`);
+            cancelMatching();
+            navigate(`../matching/failed?message=${collaborationInfo.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
-        else if (response.message === "ERR_NETWORK") {
-          checkMatchingStateNetworkErrorCount.current++;
-          if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
+
+    } else if (response.status === 202) {
+        console.log("matching...");
+    } else if (response.message === "ERR_NETWORK") {
+        checkMatchingStateNetworkErrorCount.current++;
+        if (checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
             cancelMatching(false);
             console.log("matching cancelled due to network error");
             navigate(`../matching/failed?message=Network error, please check your network and try again.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-          }
         }
-        else {
-          cancelMatching();
-          console.log("matching cancelled due to backend error");
-          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-        }
-      }
-    );
-  }
+    } else {
+        cancelMatching();
+        console.log("matching cancelled due to backend error");
+        navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+    }
+};
+
 
   // const cancelMatching = useCallback(() => {
   //   sendCancelMatchingRequest(auth.token).then(() => {

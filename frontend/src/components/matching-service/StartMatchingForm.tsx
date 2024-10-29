@@ -42,6 +42,7 @@ export default function StartMatchingForm() {
         const httpStatus = response.status;
         const errorMessage = response.message
 
+        // this httpStatus tells us if user is sent to waitingQueue or not
         if (httpStatus === HTTP_OK) {
           // Do nothing here
         } else if (httpStatus === HTTP_ALREADY_EXISTS || httpStatus === HTTP_ERROR) {

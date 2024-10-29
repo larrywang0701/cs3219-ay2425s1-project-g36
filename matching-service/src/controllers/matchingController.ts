@@ -3,6 +3,7 @@ import { Kafka } from "kafkajs";
 import { Queue } from "../model/queue";
 import userStore from "../utils/userStore";
 import { v4 as uuidv4 } from 'uuid'
+import { findCommonDifficulties, findCommonTopics } from "../model/user";
 
 const kafka = new Kafka({
     clientId: 'matching-service',
@@ -117,10 +118,12 @@ export const startMatching = async () => {
                 matchedUser.matchedUser = newUser;
                 newUser.matchedUser = matchedUser;
 
-                // give both users a room Id to collaborate
-                const roomId = uuidv4()
-                matchedUser.roomId = roomId 
-                newUser.roomId = roomId 
+                const roomId = uuidv4() // give both users a room Id to collaborate 
+                const question_topics = findCommonTopics(newUser, matchedUser)
+                const question_difficulties = findCommonDifficulties(newUser, matchedUser)
+
+                // matching-service sends information to collab-service using kafka 
+                await sendCollaborationMessage(newUser.id, matchedUser.id, roomId, question_topics, question_difficulties)
 
                 // Clear timeout for both users
                 clearTimeout(newUser.timeout);
@@ -321,6 +324,30 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
             { key: id, value: isCancel ? "cancel": "match" },
         ],
     });
+    await producer.disconnect();
+}
+
+// send collaboration information to collab-service
+export const sendCollaborationMessage = async (user1_id: string, user2_id: string, roomId: string, question_topics: string[], question_difficulties: string[]) => {
+    if (user1_id === null || user2_id === null || roomId === null || question_topics.length === 0 || question_difficulties.length === 0) return
+    
+    await producer.connect()
+    
+    const message = JSON.stringify({
+        user1_id,
+        user2_id,
+        roomId,
+        question_topics,
+        question_difficulties
+    })
+
+    await producer.send({
+        topic: 'collaboration',
+        messages: [
+            { key: roomId, value: message },
+        ],
+    });
+
     await producer.disconnect();
 }
 
