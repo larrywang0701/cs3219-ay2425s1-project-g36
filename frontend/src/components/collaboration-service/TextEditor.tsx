@@ -5,7 +5,7 @@ import { io, Socket } from "socket.io-client"
 
 const SAVE_INTERVAL_MS = 2000
 
-export default function TextEditor({ documentId }: { documentId: string }) {
+export default function TextEditor({ roomId }: { roomId: string }) {
     const [quill, setQuill] = useState<Quill>()
     const [socket, setSocket] = useState<Socket>()
     
@@ -27,8 +27,8 @@ export default function TextEditor({ documentId }: { documentId: string }) {
             quill.setContents(document)
             quill.enable()
         })
-        socket.emit('get-document', documentId)
-    }, [quill, socket, documentId])
+        socket.emit('get-document', roomId)
+    }, [quill, socket, roomId])
 
     // saves changes to db every 2 seconds
     useEffect(() => {

@@ -174,7 +174,7 @@ function App() {
             </PrivateRoute>
           }
           />
-          <Route path="/collaboration/:documentId" element={
+          <Route path="/collaboration" element={
             <PrivateRoute>
               <CollaborationPage />
             </PrivateRoute>
