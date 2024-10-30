@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 const USER_SERVICE_URL = "http://localhost:4000";
 const USERS_BASE_URL = "/users";
 const AUTH_BASE_URL = "/authentication";
@@ -100,6 +99,16 @@ async function sendLogoutRequest() {
   }
 }
 
+async function getUserById(id: string) {
+  try {
+    const response = await api.get(USERS_BASE_URL + `/${id}`)
+    return {status: response.status, message: response.data.message, data: response.data.data};
+  } catch (error : any) {
+    console.error("Error retrieving user" , error);
+    return {status: error.response.status, message: error.response.data.message, data: null};
+  }
+}
+
 /**
  * An async function that gets the list of users from the backend.
  */
@@ -142,7 +151,6 @@ async function resetPassword(token : string, password: string) {
   }
 }
 
-
 /**
  * An async function that updates the currently logged in user's username and email.
  */
@@ -174,4 +182,4 @@ async function deleteAccount(id : string) {
   }
 }
 
-export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword, updateAccount, deleteAccount };
+export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserById, getUserFromToken, resetPassword, updateAccount, deleteAccount };

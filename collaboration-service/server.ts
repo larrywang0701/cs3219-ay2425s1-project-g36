@@ -1,7 +1,29 @@
+import express, { Application, Request, Response } from "express";
+import cors from 'cors'
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import { DocumentModel, DocumentType } from './src/models/document'
-import { COLLABORATION_SERVICE_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT } from './config'
+import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
+import { listenToMatchingService } from './src/kafka/collabController'
+
+import routes from './src/routes/collabRoute'
+
+const app: Application = express();
+
+app.use(express.json());
+
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200,
+    credentials: true
+}
+
+app.use(cors(corsOptions))
+app.use("/collaboration", routes);
+
+app.listen(COLLABORATION_SERVICE_PORT, () => {
+    console.log(`Collab server is running on port ${COLLABORATION_SERVICE_PORT}`);
+});
 
 mongoose
     .connect(COLLABORATION_SERVICE_MONGODB_URI)
@@ -11,12 +33,14 @@ mongoose
         console.error(error);
     })
 
-const io = new Server(COLLABORATION_SERVICE_PORT, {
+const io = new Server(WEBSOCKET_PORT, {
     cors: {
         origin: `http://localhost:${FRONTEND_PORT}`,
         methods: ["GET", "POST"],
     },
 })
+
+listenToMatchingService()
 
 // runs when the collaboration page is loaded
 io.on("connection", socket => {
@@ -24,7 +48,7 @@ io.on("connection", socket => {
         const document = await findOrCreateDocument(documentId)
         if (document) {
             socket.join(documentId)
-            socket.emit('load-document', document.data)
+            socket.emit('load-document', document.data) // tells frontend to update its contents
 
             socket.on('send-changes', (delta: object) => {
                 // when server receives changes from client, server will emit changes to the document
@@ -32,7 +56,7 @@ io.on("connection", socket => {
             })
 
             socket.on('save-document', async data => {
-                // after emitting changes, also need to update database
+                // need to update database every 2 seconds
                 await DocumentModel.findByIdAndUpdate(documentId, { data })
             })
         }

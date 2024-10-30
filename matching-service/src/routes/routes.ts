@@ -6,6 +6,13 @@ import userStore from "../utils/userStore";
 const router = Router();
 
 /**
+ * Dummy API to test if matching-service is running
+ */
+router.get("/", async (req : Request, res : Response) => {
+    return res.status(200).send({message: "Matching service is running"});
+});
+
+/**
  * Start the matching process for the user. 
  * 
  * Request body should contain the following fields:
@@ -90,10 +97,7 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
             if(user!.matchedUser) {
                 userStore.removeUser(id);
                 console.log('Status: Match found for user:', user?.email);
-                return rsp.status(200).send({
-                    message: "match found",
-                    roomId: user?.roomId
-                });
+                return rsp.status(200).send({message: "match found"});
             } else {
                 return rsp.status(202).send({message: "matching"});
             }
