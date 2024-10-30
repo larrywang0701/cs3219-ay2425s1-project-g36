@@ -101,7 +101,6 @@ async function sendLogoutRequest() {
 async function getUserById(id: string) {
   try {
     const response = await api.get(USERS_BASE_URL + `/${id}`)
-    console.log('success retrieve user: ', response.data)
     return {status: response.status, message: response.data.message, data: response.data.data};
   } catch (error : any) {
     console.error("Error retrieving user" , error);
