@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 const USER_SERVICE_URL = "http://localhost:4000";
 const USERS_BASE_URL = "/users";
 const AUTH_BASE_URL = "/authentication";
@@ -104,7 +103,7 @@ async function getUserById(id: string) {
     return {status: response.status, message: response.data.message, data: response.data.data};
   } catch (error : any) {
     console.error("Error retrieving user" , error);
-    return {status: error.response.status, message: error.response.data.message};
+    return {status: error.response.status, message: error.response.data.message, data: null};
   }
 }
 

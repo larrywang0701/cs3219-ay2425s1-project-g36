@@ -1,5 +1,5 @@
 import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/matching-service/MatchingService";
-import { getCollaborationInformation } from "@/api/collaboration-service/CollaborationService";
+import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
@@ -58,28 +58,16 @@ export default function WaitForMatchingPage() {
     const response = await sendCheckMatchingStateRequest(auth.id);
     
     if (response.status === 200) {
-        // Get collaboration information, before navigating to collab page
-        const collaborationInfo = await getCollaborationInformation(auth.id);
-        const collaborationStatus = collaborationInfo.status
-        const collaborationMessage = collaborationInfo.message
-        
-        const data = collaborationInfo.data
-        const userId = data.userId
-        const matchedUserId = data.matchedUserId
-        const roomId = data.roomId
-        const questionId = data.questionId
+        // Check if the required information is in collaboration-service, before navigating to collab page
+        const response = await isUserInCollabStore(auth.id);
 
-        // Check if collaborationInfo is valid
-        if (collaborationStatus === 200) {
-            console.log("match found!");
+        if (response.status === 200) {
             cancelMatching(false);
 
-            navigate(`../collaboration?roomId=${roomId}&matchedUserId=${matchedUserId}&questionId=${questionId}`);
+            navigate("/collaboration");
         } else {
-            // Handle case where collaboration information retrieval failed
-            console.log(`Error retrieving collaboration information: ${collaborationMessage}`);
             cancelMatching();
-            navigate(`../matching/failed?message=${collaborationMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+            navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
 
     } else if (response.status === 202) {

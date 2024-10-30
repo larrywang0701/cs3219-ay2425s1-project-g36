@@ -1,5 +1,5 @@
 import { Kafka } from "kafkajs"
-import userStore from '../utils/userStore'
+import collabStore from '../utils/collabStore'
 
 const kafka = new Kafka({
     clientId: 'collaboration-service',
@@ -13,8 +13,9 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: "collaboration-service-group" });
 
-// This function is called in server.ts whenever collaboration-service runs
-// Listens to a '2 users have matched' event. Update userStore
+// This function runs whenever collaboration-service runs.
+// Listens to a '2 users have matched' event. Update collabStore.
+// collabStore is a single source of truth to give all the information regarding a user's collaboration details.
 export const listenToMatchingService = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: "collaboration", fromBeginning: true });
@@ -36,23 +37,23 @@ export const listenToMatchingService = async () => {
             // TODO: put in the selected question id
             const selectedQuestionId = 75 // dummy value, to be changed
 
-            // at this point, update the user store, which is a local data structure
-            userStore.addUser(user1_id, {
+            // at this point, update the collab store, which is a local data structure
+            collabStore.addUser(user1_id, {
                 userId : user1_id,
                 matchedUserId: user2_id,
                 roomId: roomId,
                 questionId: selectedQuestionId
             })
-            userStore.addUser(user2_id, {
+            collabStore.addUser(user2_id, {
                 userId : user2_id,
                 matchedUserId: user1_id,
                 roomId: roomId,
                 questionId: selectedQuestionId
             })
             
-            // nice way to view the contents of user store
-            console.log("printing contents of user store")
-            userStore.printContents()
+            // nice way to view the contents of collab store
+            console.log("printing contents of collab store")
+            collabStore.printContents()
         }
     })
 }

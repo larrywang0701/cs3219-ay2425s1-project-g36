@@ -1,30 +1,75 @@
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import { useState, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import TextEditor from "@/components/collaboration-service/TextEditor";
-import { useSearchParams, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { getUserById } from "@/api/user-service/UserService";
 import { User } from "@/api/user-service/User";
 import { Question } from "@/api/question-service/Question";
 import { fetchQuestion } from "@/api/question-service/QuestionService";
 import { useAuth } from "@/contexts/AuthContext";
-import { removeUserFromUserStore } from "@/api/collaboration-service/CollaborationService";
+import { removeUserFromCollabStore, isUserInCollabStore, getCollaborationInformation } from "@/api/collaboration-service/CollaborationService";
 
 export default function CollaborationPage() {
-  const [parameters] = useSearchParams()
-  const roomId = parameters.get("roomId")
-  const matchedUserId = parameters.get("matchedUserId") 
-  const questionId = parameters.get("questionId")
+  const [roomId, setRoomId] = useState<string | null>(null)
+  const [matchedUserId, setMatchedUserId] = useState<string | null>(null)
+  const [questionId, setQuestionId] = useState<string | null>(null)
+
   const { auth } = useAuth()
   const navigate = useNavigate();
 
   const [matchedUser, setMatchedUser] = useState<User | null>(null)
   const [question, setQuestion] = useState<Question | null>(null)
   
-  // use matchedUserId to retrive matched user's details 
+  // When user enters this page, check if his ID is in collabStore. If isn't, block the user from entering this page
+  useEffect(() => {
+    const checkIfUserInStore = async () => {
+      if (auth.id === null) return
+
+      try {
+        const response = await isUserInCollabStore(auth.id)
+        if (response.status !== 200) {
+          // Means that user is not in user store, so he cannot access the collab-page
+          navigate("/matching/start")
+        }
+
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    checkIfUserInStore()
+  }, [])
+
+  // Using the user's ID, retrieve collaboration details
+  useEffect(() => {
+    const getCollaborationDetails = async () => {
+      if (auth.id === null) return
+
+      try {
+        const response = await getCollaborationInformation(auth.id)
+        const data = response.data
+
+        setRoomId(data.roomId)
+        setMatchedUserId(data.matchedUserId)
+        setQuestionId(data.questionId)
+
+        // console.log('setting the variables here')
+        // console.log(`roomId: ${data.roomId}`)
+        // console.log(`matchedUser: ${data.matchedUserId}`)
+        // console.log(`question: ${data.questionId}`)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    getCollaborationDetails()
+  }, [])
+
+  // Use matchedUserId to retrieve matched user's details 
   useEffect(() => {
     const fetchMatchedUser = async () => {
       if (matchedUserId === null) return
@@ -38,9 +83,9 @@ export default function CollaborationPage() {
     }
     
     fetchMatchedUser()
-  }, [])
+  }, [matchedUserId])
 
-  // use questionId to retrive question details 
+  // Use questionId to retrieve question details 
   useEffect(() => {
     const fetchQues = async () => {
       if (questionId === null) return
@@ -54,9 +99,14 @@ export default function CollaborationPage() {
     }
 
     fetchQues()
-  }, [])
+  }, [questionId])
 
   if (roomId == null || matchedUser == null || question == null) {
+    // console.log('one of the below is null')
+    // console.log(`roomId: ${roomId}`)
+    // console.log(`matchedUser: ${matchedUser}`)
+    // console.log(`question: ${question}`)
+
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
@@ -73,10 +123,10 @@ export default function CollaborationPage() {
     )
   }
 
-  // when user ends session, remove user from userStore
+  // When user ends session, remove user from collabStore
   const endSession = async () => {
     try {
-      await removeUserFromUserStore(auth.id)
+      await removeUserFromCollabStore(auth.id)
       navigate("/matching/start")
     } catch (error) {
       console.error(error)

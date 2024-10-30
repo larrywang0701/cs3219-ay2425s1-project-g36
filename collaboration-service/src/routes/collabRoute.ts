@@ -1,9 +1,9 @@
 import { Router, Request, Response } from "express";
-import userStore from '../utils/userStore'
+import collabStore from '../utils/collabStore'
 
 const router = Router()
 
-// checks if user_id is present in the userStore, and returns the information of the collaboration
+// Retrieves the information of the collaboration
 router.get("/:id", (req: Request, res: Response): any => {
     const id = req.params.id;
     if (id === null) {
@@ -12,10 +12,10 @@ router.get("/:id", (req: Request, res: Response): any => {
         })
     }
 
-    const present = userStore.hasUser(id)
+    const present = collabStore.hasUser(id)
 
     if (present) {
-        const data = userStore.getUser(id)
+        const data = collabStore.getUser(id)
         return res.status(200).send({
             data: data,
             message: "The information of the collaboration is obtained"
@@ -26,7 +26,7 @@ router.get("/:id", (req: Request, res: Response): any => {
     })
 }); 
 
-// removes user from userStore
+// Removes user from collabStore
 router.post("/remove/:id", (req: Request, res, Response): any => {
     const id = req.params.id;
     if (id === null) {
@@ -35,19 +35,41 @@ router.post("/remove/:id", (req: Request, res, Response): any => {
         })
     }
 
-    const present = userStore.hasUser(id)
+    const present = collabStore.hasUser(id)
 
     if (present) {
-        userStore.removeUser(id)
-        console.log('after removing user, the userStore is:')
-        userStore.printContents()
+        collabStore.removeUser(id)
+        console.log('after removing user, the collabStore is:')
+        collabStore.printContents()
         return res.status(200).send({
-            message: `User ${id} is removed from userStore`
+            message: `User ${id} is removed from collabStore`
         })
     }
     return res.status(404).send({
         message: `This user ${id} is not in the user store`
     })
 })
+
+// Checks if user is in collabStore
+router.get("/in-store/:id", (req: Request, res: Response): any => {
+    const id = req.params.id;
+
+    if (id === null) {
+        return res.status(400).send({
+            message: "You need to put a user ID in the URL"
+        })
+    }
+
+    const present = collabStore.hasUser(id)
+
+    if (present) {
+        return res.status(200).send({
+            message: "User is in collab store"
+        })
+    }
+    return res.status(404).send({
+        message: "The user is not in the collab store"
+    })
+}); 
 
 export default router
