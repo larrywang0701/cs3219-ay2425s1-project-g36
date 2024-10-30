@@ -89,11 +89,11 @@ export default function GetReadyPage() {
     }
     sendCheckConfirmationStateRequest(auth.id).then(
       response => {
-        if(response.status === HTTP_OK) {
+        if(response.status === HTTP_OK && 'roomId' in response) {
           console.log("confirmation received, starting collaboration");
           onNavigatingAway();
-          // TODO: update based on collab service
-          navigate(`../collaboration`);
+          const roomId = response.roomId;
+          navigate(`../collaboration/${roomId}`);
         } else if (response.status === HTTP_WAITING) {
           //Do nothing
           console.log("matching...");

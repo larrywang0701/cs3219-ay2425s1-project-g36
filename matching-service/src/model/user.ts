@@ -10,6 +10,7 @@ interface User {
     isPeerReady : boolean;
     matchedUser : User | null;
     confirmationStatus: string | null; // "confirmed" | "timeout" | "declined" | "waiting"
+    roomId: string | null; // uuid for collaboration-service
 }
 
 const hasCommonDifficulties = (user1 : User, user2 : User) : boolean => {

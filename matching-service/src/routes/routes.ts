@@ -39,7 +39,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         isPeerReady: false,
         matchedUser: null,
         timeout: null,
-        confirmationStatus: null
+        confirmationStatus: null,
+        roomId: null
     }
     
     try {
@@ -74,29 +75,28 @@ router.post("/start_matching", async (req : Request, res : Response) => {
  * - 400: User not found in the queue
  * - 500: Error checking match status
  */
-router.post("/check_matching_state", async (req : Request, rsp : Response) => {
+router.post("/check_matching_state", async (req : Request, res : Response) => {
     try {
         const id = req.body.id;
         if (!id) {
-            return rsp.status(400).send({message: "ID is not provided for checking matching status."});
+            return res.status(400).send({message: "ID is not provided for checking matching status."});
         } 
         
         if (!userStore.hasUser(id)) {
-            return rsp.status(400).send({message: "This user does not exist in the matching queue anymore. Please try matching again."});
+            return res.status(400).send({message: "This user does not exist in the matching queue anymore. Please try matching again."});
         }
             
         const user = userStore.getUser(id);
         if(user!.matchedUser) {
-            // userStore.removeUser(id);
             console.log('Status: Match found for user:', user?.email);
-            return rsp.status(200).send({message: "match found"});
+            return res.status(200).send({message: "match found"});
         } else {
-            return rsp.status(202).send({message: "matching"});
+            return res.status(202).send({message: "matching"});
         }
 
     }
     catch(error : any) {
-        return rsp.status(500).send({message : error.message});
+        return res.status(500).send({message : error.message});
     }
 });
 
@@ -197,7 +197,7 @@ router.post("/check_confirmation_state", async (req : Request, res : Response) =
             const user = userStore.getUser(id);
             if (user!.confirmationStatus === "confirmed") {
                 console.log('Status: Both users have confirmed, updating ', user?.email);
-                return res.status(200).send({message: "match found"});
+                return res.status(200).send({message: "match found", roomId: user?.roomId});
             } else if (user!.confirmationStatus === "timeout") {
                 // Do nothing.. ? user is already removed from user store in the timeout function
             } else if (user!.confirmationStatus === "declined") {
