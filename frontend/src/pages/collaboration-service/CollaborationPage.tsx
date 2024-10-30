@@ -149,7 +149,6 @@ export default function CollaborationPage() {
                 </p>
               </div>
 
-              <Button variant="default" className="ml-auto">Run code</Button>
               <Button variant="destructive" className="ml-auto" onClick={endSession}>End session</Button>
             </section>
           </div>

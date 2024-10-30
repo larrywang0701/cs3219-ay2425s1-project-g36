@@ -59,18 +59,8 @@ export default function WaitForMatchingPage() {
     
     if (response.status === 200) {
         console.log('2 users are matched')
-        // Check if the required information is in collaboration-service, before navigating to collab page
-        const response = await isUserInCollabStore(auth.id);
-
-        if (response.status === 200) {
-          cancelMatching(false);
-
-          navigate("/collaboration");
-        } else {
-          cancelMatching();
-          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-        }
-
+        cancelMatching(false);
+        navigate("/collaboration");
     } else if (response.status === 202) {
         console.log("matching...");
     } else if (response.message === "ERR_NETWORK") {
