@@ -40,6 +40,12 @@ export default function CollaborationPage() {
           setRoomId(data.roomId)
           setMatchedUserId(data.matchedUserId)
           setQuestionId(data.questionId)
+
+          console.log('variables information are below')
+          console.log('user id is', auth.id)
+          console.log('roomId is: ', data.roomId)
+          console.log('matchedUserId is: ', data.matchedUserId)
+          console.log('questionId is: ', data.questionId)
         } else {
           // Means that user is not in user store, so he cannot access the collab-page
           navigate("/matching/start")
@@ -85,10 +91,10 @@ export default function CollaborationPage() {
   }, [questionId])
 
   if (roomId == null || matchedUser == null || question == null) {
-    // console.log('one of the below is null')
-    // console.log(`roomId: ${roomId}`)
-    // console.log(`matchedUser: ${matchedUser}`)
-    // console.log(`question: ${question}`)
+    console.log('one of the below is null')
+    console.log(`roomId: ${roomId}`)
+    console.log(`matchedUser: ${matchedUser}`)
+    console.log(`question: ${question}`)
 
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
@@ -141,14 +147,6 @@ export default function CollaborationPage() {
                 <p className="text-sm">
                   {question.description}
                 </p>
-              </div>
-
-              <div className="border border-gray-300 rounded-md p-4">
-                <h3 className="font-semibold mb-2">Test cases</h3>
-                <ul className="list-disc list-inside text-sm">
-                  <li className="text-red-600">Test case 1 failed</li>
-                  <li className="text-green-600">Test case 2 passed</li>
-                </ul>
               </div>
 
               <Button variant="default" className="ml-auto">Run code</Button>

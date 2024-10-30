@@ -10,7 +10,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
 const MAXIMUM_MATCHING_DURATION = 60; // in seconds
-const CHECK_MATCHING_STATE_INTERVAL = 1000; // in milliseconds
+const CHECK_MATCHING_STATE_INTERVAL = 500; // in milliseconds
 
 export default function WaitForMatchingPage() {
   const [parameters] = useSearchParams();
@@ -63,12 +63,12 @@ export default function WaitForMatchingPage() {
         const response = await isUserInCollabStore(auth.id);
 
         if (response.status === 200) {
-            cancelMatching(false);
+          cancelMatching(false);
 
-            navigate("/collaboration");
+          navigate("/collaboration");
         } else {
-            cancelMatching();
-            navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+          cancelMatching();
+          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
 
     } else if (response.status === 202) {
