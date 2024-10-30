@@ -107,6 +107,23 @@ export const updateUser = async (req: Request, res: Response) => {
 			return res.status(400).json({ message: "Please provide both current password and new password" });
 		}
 
+    // sanity check
+    // Valid: user@example.com, invalid: user@ example.com
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({ message: "Invalid email format" });
+		}
+
+    const existingUser = await User.findOne({ username });
+		if (existingUser && existingUser.username !== user.username) {
+			return res.status(400).json({ message: "Username is already taken" });
+		}
+
+		const existingEmail = await User.findOne({ email });
+		if (existingEmail && existingEmail.email !== user.email) {
+			return res.status(400).json({ message: "Email is already taken" });
+		}
+
 		if (currentPassword && newPassword) {
 			const isMatch = await bcrypt.compare(currentPassword, user.password);
 			if (!isMatch) {

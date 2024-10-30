@@ -9,6 +9,7 @@ const LOGOUT_API = "/logout";
 const SIGNUP_API = "/";
 const FORGOT_PASSWORD_API = "/forgot-password";
 const RESET_PASSWORD_API = "/reset-password";
+const UPDATE_ACCOUNT_API = "/update";
 
 const api = axios.create({
   baseURL: USER_SERVICE_URL,
@@ -132,7 +133,7 @@ async function resetPassword(token : string, password: string) {
     password: password
   };
   try {
-    const response = await api.post(AUTH_BASE_URL + RESET_PASSWORD_API + "/" + token, resetPasswordData);
+    const response = await api.post(USERS_BASE_URL + RESET_PASSWORD_API + "/" + token, resetPasswordData);
     return {status: response.status, message: response.data.message};
   } catch (error: any) {
     console.error("Error when resetting password", error);
@@ -140,4 +141,37 @@ async function resetPassword(token : string, password: string) {
   }
 }
 
-export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword };
+
+/**
+ * An async function that updates the currently logged in user's username and email.
+ */
+async function updateAccount(username : string, email : string) {
+  const updateAccountData = {
+    username : username,
+    email : email,
+  };
+  try {
+    const response = await api.patch(USERS_BASE_URL + UPDATE_ACCOUNT_API, updateAccountData);
+    console.log("Successfully updated account with the following details:\nUsername:", username, "\nEmail:", email);
+    return {status: response.status, message: response.data.message};
+  } catch (error: any) {
+    console.error("Error when updating account", error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
+
+// /**
+//  * An async function that resets a password given the token and new password.
+//  */
+// async function deleteAccount(id : string) {
+//   try {
+//     const response = await api.delete(AUTH_BASE_URL + UPDATE_ACCOUNT_API);
+//     return {status: response.status, message: response.data.message};
+//   } catch (error: any) {
+//     console.error("Error when resetting password", error);
+//     return {status: error.response.status, message: error.response.data.message};
+//   }
+// }
+
+export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword, updateAccount, deleteAccount };

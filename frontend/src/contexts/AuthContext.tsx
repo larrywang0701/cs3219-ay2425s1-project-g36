@@ -25,6 +25,7 @@ const DEFAULT_AUTH_STATE = {
 interface AuthContextType {
   auth: AuthState; // current authentication state (logged in? admin?)
   login: (token : string, id: string, username: string, email: string, isAdmin?: boolean) => void; // function for login
+  update: (username: string, email: string) => void; // function for updating auth status
   logout: () => void; // function for logout
 }
 
@@ -84,13 +85,38 @@ export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
     _logout();
   };
 
+  /**
+   * Updates the current auth context with the new username and email.
+   * @param username The username to update the current auth context.
+   * @param email The email to update the current auth context.
+   */
+  const update = async (username : string, email : string) => {
+    const newAuthState = { ...auth, username: username, email: email };
+
+    setAuth(newAuthState);
+    saveAuthState(newAuthState);
+  }
+
   // Effect to sync auth state changes to localStorage
   useEffect(() => {
     saveAuthState(auth);
   }, [auth]);
 
+  // update auth state across browser tabs
+  useEffect(() => {
+    const handleStorageChange = (event : StorageEvent) => {
+      const newAuthState = JSON.parse(event.newValue ?? "");
+
+      setAuth(newAuthState);
+      saveAuthState(newAuthState);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <AuthContext.Provider value={{ auth, login, logout, update }}>
       { children }
     </AuthContext.Provider> 
   )
