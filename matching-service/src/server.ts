@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { FRONTEND_ADDRESS, PORT } from "./config";
 import MatchingRoute from "./routes/routes";
-import { startMatching } from "./controllers/matchingController";
+import { initializeConsumer, startConfirmation, startMatching } from "./controllers/matchingController";
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -19,11 +19,15 @@ app.use(cors(corsOptions));
 
 app.use("/matching", MatchingRoute);
 
+const startServer = async () => {
+    await initializeConsumer();
+    startMatching();
+    startConfirmation();
 
-startMatching();
-// startConfirmation();
+    app.listen(PORT, () => {
+        console.log(`Server started. Port = ${PORT}`);
+    });
+};
 
-app.listen(PORT, () => {
-    console.log(`Server started. Port = ${PORT}`);
-})
+startServer();
 

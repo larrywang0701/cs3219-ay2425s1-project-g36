@@ -8,8 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
-const MAXIMUM_MATCHING_DURATION = 60; // in seconds
-const CHECK_MATCHING_STATE_INTERVAL = 1000; // in milliseconds
+const MAXIMUM_MATCHING_DURATION = 30; // in seconds
+const CHECK_MATCHING_STATE_INTERVAL = 500; // in milliseconds
 
 export default function WaitForMatchingPage() {
   const [parameters] = useSearchParams();
@@ -55,7 +55,8 @@ export default function WaitForMatchingPage() {
         if(response.status === 200) {
           console.log("match found!");
           cancelMatching(false);
-          navigate(`../collaboration`);
+          // navigate(`../collaboration`);
+          navigate(`../matching/get_ready?difficulties=${difficultiesStr}&topics=${topicsStr}`);
         } else if (response.status === 202) {
           //Do nothing
           console.log("matching...");
@@ -77,11 +78,6 @@ export default function WaitForMatchingPage() {
     );
   }
 
-  // const cancelMatching = useCallback(() => {
-  //   sendCancelMatchingRequest(auth.token).then(() => {
-  //     navigate("/matching/start");
-  //   });
-  // }, [auth.token, navigate]);
 
   const cancelMatching = (sendCancellationRequest : boolean = true) => {
     console.log("cancel matching");

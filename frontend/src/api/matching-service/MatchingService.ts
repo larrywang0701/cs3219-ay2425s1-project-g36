@@ -4,9 +4,10 @@ import { SelectedDifficultyData } from "@/components/matching-service/Difficulty
 const MATCHING_SERVICE_URL = "http://localhost:5000/";
 const MATCHING_BASE_URL = "/matching";
 const START_MATCHING_URL = "/start_matching";
-const CONFIRM_MATCH_URL = "/confirm_match";
+const CONFIRM_MATCH_URL = "/check_confirmation_state";
 const CANCEL_MATCHING_URL = "/cancel";
-const CHECK_MATCHING_STATE_URL = "/check_state";
+const CHECK_MATCHING_STATE_URL = "/check_matching_state";
+const CONFIRM_READY_URL = "/confirm_match";
 
 const api = axios.create({
   baseURL : MATCHING_SERVICE_URL,
@@ -99,14 +100,32 @@ async function sendCancelMatchingRequest(id : string) {
 }
 
 /**
- * An async function that is called when user clicks 'Yes, im ready'.
+ * An async function for sending a confirm ready request to the backend.
  * 
- * @param token The current user's token.
+ * @param id The current user's ID.
  * @returns An object containing the HTTP status code of the request and the message from the backend server.
  */
-async function sendConfirmMatch(token : string) {
+async function sendConfirmReadyRequest(id : string) {
   const requestBody = {
-    userToken : token
+    id : id
+  }
+  return await api.post(MATCHING_BASE_URL + CONFIRM_READY_URL, requestBody).then(response => {
+    return {status : response.status, message : response.data.message}
+  }).catch(error => {
+    return {status : error.status, message : error.response.data.message}
+  })
+}
+
+/**
+ * An async function for sending a check confirmation state request to the backend.
+ * You should call this function intermittently for multiple times when waiting for confirmation in order to get the latest confirmation state.
+ * 
+ * @param id The current user's ID.
+ * @returns An object containing the HTTP status code of the request and the message from the backend server.
+ */
+async function sendCheckConfirmationStateRequest(id : string) {
+  const requestBody = {
+    id : id
   }
   return await api.post(MATCHING_BASE_URL + CONFIRM_MATCH_URL, requestBody).then(response => {
     return {status : response.status, message : response.data.message}
@@ -118,4 +137,4 @@ async function sendConfirmMatch(token : string) {
   });
 }
 
-export { sendStartMatchingRequest, sendConfirmMatch, sendCancelMatchingRequest, retryPreviousMatching, sendCheckMatchingStateRequest };
+export { sendStartMatchingRequest, sendCancelMatchingRequest, retryPreviousMatching, sendCheckMatchingStateRequest, sendConfirmReadyRequest, sendCheckConfirmationStateRequest };

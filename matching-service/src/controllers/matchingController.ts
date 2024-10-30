@@ -15,10 +15,23 @@ const kafka = new Kafka({
 
 
 // Consumer related functions
-const consumer = kafka.consumer({ groupId: "matching-service-group" });
+// Seperate consumers for matching and confirmation to run them in parallel
+const matchConsumer = kafka.consumer({ groupId: "matching" });
+const confirmationConsumer = kafka.consumer({ groupId: "confirmation" });
 
-const TIMEOUT_DURATION = 60000; // Timeout set for 1 minute
-const CONFIRMATION_DURATION = 10000; // Confirmation timeout set for 10 seconds
+const TIMEOUT_DURATION = 30000; // Timeout set for 30 seconds
+const CONFIRMATION_DURATION = 5000; // Confirmation timeout set for 5 seconds
+
+// Main function to initialize and run the consumer
+export async function initializeConsumer() {
+    try {
+      matchConsumer.connect();
+      confirmationConsumer.connect();
+    } catch (error) {
+      console.error("Error connecting to consumer or running messages:", error);
+    }
+}
+
 
 /**
  * Find a matching user (among previous users) for a new user based on their topics and difficulties
@@ -48,6 +61,28 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
     return null;
 }
 
+const createConfirmationTimeout = (user: User, matchedUser: User) => {
+    const confirmationTimeout = setTimeout(() => {
+        if (!user.isPeerReady || !matchedUser.isPeerReady) {
+            if (!matchedUser.isPeerReady) {
+                console.log("Match declined for User ", user.email, "due to confirmation timeout for User ", user.email);
+            } else {
+                console.log("Match declined for User ", user.email, "due to confirmation timeout for User ", matchedUser.email);
+            }
+            // Remove matched user field 
+            user.matchedUser = null;
+
+            // Update status for the user
+            user.confirmationStatus = 'timeout';
+
+            userStore.removeUser(user.id);
+        }
+    }, CONFIRMATION_DURATION);
+
+    return confirmationTimeout;
+
+}
+
 /**
  * Listens to the queue for new users. When a match is found, both users are notified.
  * Else, adds the new user to the waiting queue. User waits for a match until the timeout 
@@ -55,17 +90,24 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
  */
 export const startMatching = async () => {
 
-    await consumer.connect();
-    await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
+    // await consumer.connect();
+    await matchConsumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
     console.log("Queue status: ", waitingQueue.getUserEmails());
 
-    await consumer.run({
+    await matchConsumer.run({
         eachMessage: async ({ message } : { message : any }) => {
-            const key = message.key!.toString();
-            const value = message.value!.toString();
 
-            console.log(`Received message from User: ${key}`);
+            const key = message.key ? message.key.toString() : null; // User ID
+            const value = message.value ? message.value.toString() : null; // "cancel" | "match"
+
+            // Check if key or value is null or doesn't match expected criteria, then skip
+            if (!key || !value || value === "placeholder_value") {
+                console.log("Ignoring placeholder message");
+                return;
+            }
+
+            console.log(`Received queueing message from User: ${key}`);
 
             // Check if it is a tombstone message
             if (value === 'cancel') {
@@ -122,36 +164,15 @@ export const startMatching = async () => {
                     clearTimeout(matchedUser.timeout);
                 }
 
-                /*
-                // Add new timeout for confirmation
-                const confirmationTimeout = setTimeout(() => {
-                    if (!newUser.isPeerReady || !matchedUser.isPeerReady) {
-                        console.log("Match declined due to timeout.");
-                        
-                        // // Notify that the confirmation has timed out
-                        // sendConfirmationResult(newUser.userToken, 'timeout');
-                        // sendConfirmationResult(matchedUser.userToken, 'timeout');
-
-                        // Remove matched user field from both users
-                        newUser.matchedUser = null;
-                        matchedUser.matchedUser = null;
-                    }
-                }, CONFIRMATION_DURATION);
-
                 // Update timeout for both users
-                newUser.timeout = confirmationTimeout;
-                matchedUser.timeout = confirmationTimeout;
-                */
-
+                newUser.timeout = createConfirmationTimeout(newUser, matchedUser);
+                matchedUser.timeout = createConfirmationTimeout(matchedUser, newUser);
+                
                 // Remove matched user from the queue
                 waitingQueue.removeUser(matchedUser); 
                 console.log("Remove matched user from queue: User ", matchedUser.email);
                 console.log("Queue status: ", waitingQueue.getUserEmails());
 
-
-                // Notify both users that a match has been found
-                // sendMatchResult(newUser.userToken, 'matched');
-                // sendMatchResult(matchedUser.userToken, 'matched');
             } else { 
                 // Add user to the waiting queue
                 waitingQueue.push(newUser);
@@ -198,84 +219,95 @@ export const startMatching = async () => {
 //     });
 // }
 
-// /**
-//  * Listens to the user-confirmation topic for user confirmations and handles confirmed matches.
-//  * If the users are not supposed to be matched, the match is declined.
-//  * If the users are matched, they are notified that the match has been confirmed.
-//  * If the users are not ready in time, the match is timed out.
-//  * If the other user is not ready, the user waits for the other user to confirm.
-//  */
-// export const startConfirmation = async () => {
-//     await consumer.connect();
-//     await consumer.subscribe({ topic: 'user-confirmation', fromBeginning: true });
+/**
+ * Listens to the user-confirmation topic for user confirmations and handles confirmed matches.
+ * If the users are not supposed to be matched, the match is declined.
+ * If the users are matched, they are notified that the match has been confirmed.
+ * If the users are not ready in time, the match is timed out.
+ * If the other user is not ready, the user waits for the other user to confirm.
+ */
+export const startConfirmation = async () => {
 
-//     await consumer.run({
-//         eachMessage: async ({ message }) => {
+    confirmationConsumer.subscribe({ topic: 'user-confirmation', fromBeginning: true });
 
-//             const key = message.key!.toString();
-//             const value = message.value!.toString();
-
-//             const user = userStore.getUser(key);
-//             const matchedUser = userStore.getUser(value);
-//             if (!user || !matchedUser) {
-//                 console.log(`User ${key} or matched user ${value} not found in the user store.`);
-//                 sendConfirmationResult(key, 'declined');
-//                 return;
-//             }
-
-//             // Check if they are each other's matched user
-//             if (user.matchedUser === matchedUser && matchedUser.matchedUser === user) {
-
-//                 // Since user is ready
-//                 matchedUser.isPeerReady = true;
-
-//                 // Check if matched user has confirmed
-//                 if (user.isPeerReady) {
-//                     console.log(`Both users have confirmed the match.`);
-
-//                     // Clear the timeout for both users
-//                     clearTimeout(user.timeout!);
-//                     clearTimeout(matchedUser.timeout!);
-
-//                     // Notify both users that the match has been confirmed
-//                     sendConfirmationResult(user.userToken, 'confirmed');
-//                     sendConfirmationResult(matchedUser.userToken, 'confirmed');
-//                 } else {
-//                     // Keep waiting
-//                     console.log(`User ${user.userToken} has confirmed the match.`);
-//                 }
-
-//             } else {
-//                 // Decline the match if the users are not supposed to be matched
-//                 sendConfirmationResult(user.userToken, 'declined');
-//                 sendConfirmationResult(matchedUser.userToken, 'declined');
-//             }
-
-//         }
-//     });
-
-// }
+    await confirmationConsumer.run({
+        eachMessage: async ({ message } : { message : any }) => {
+            const key = message.key ? message.key.toString() : null;
+            const value = message.value ? message.value.toString() : null;
 
 
-// /**
-//  * Listens to the user-confirmation topic for user confirmations and notifies the user
-//  * 
-//  * @param userToken The token of the user
-//  * @param onResult Callback function to handle the result of the confirmation process
-//  */
+
+            // Check if key or value is null or doesn't match expected criteria, then skip
+            if (!key || !value || value === "placeholder_value") {
+                console.log("Ignoring placeholder message");
+                return;
+            }
+
+            console.log(`Received confirmation message from User: ${key}`);
+
+            const user = userStore.getUser(key)!;
+            const matchedUser = userStore.getUser(value);
+
+            console.log('User ID:', user.id, '. User Email:', user.email);
+
+            // Check if they are each other's matched user
+            if (user.matchedUser === matchedUser && matchedUser.matchedUser === user) {
+
+                // Since user is ready
+                matchedUser.isPeerReady = true;
+
+                // Check if matched user has confirmed
+                if (user.isPeerReady) {
+                    console.log(`Both users have confirmed the match between User ${user.email} and User ${matchedUser.email}.`);
+
+                    // Clear the timeout for both users
+                    clearTimeout(user.timeout!);
+                    clearTimeout(matchedUser.timeout!);
+
+                    // Update the users' status
+                    user.confirmationStatus = 'confirmed';
+                    matchedUser.confirmationStatus = 'confirmed';
+
+                    // Remove from user store
+                    userStore.removeUser(user.id);
+                    userStore.removeUser(matchedUser.id);
+                } else {
+                    // Keep waiting
+                    console.log(`User ${user.email} has confirmed the match, waiting for ${matchedUser.email} to confirm.`);
+                    user.confirmationStatus = 'waiting';
+                }
+            } else {
+                // Decline the match if the users are not supposed to be matched. This is not supposed to happen
+                console.log(`Match declined between User ${user!.email} and User ${matchedUser!.email}.`);
+                user!.confirmationStatus = 'declined';
+                matchedUser!.confirmationStatus = 'declined';
+            }
+
+        }
+    });
+}
+
+
+/**
+ * Listens to the user-confirmation topic for user confirmations and notifies the user
+ * 
+ * @param id The token of the user
+ * @param onResult Callback function to handle the result of the confirmation process
+ */
 // export const listenForConfirmationResult = async (
-//     userToken: string, 
+//     id: string, 
 //     onResult: (result: 'confirmed' | 'declined' | 'timeout') => void
 // ) => {
-//     await consumer.connect();
-//     await consumer.subscribe({ topic: 'confirmation-result', fromBeginning: false });
 
 //     await consumer.run({
-//         eachMessage: async ({ message }) => {
+//         eachMessage: async ({ topic, message }) => {
+//             if (topic !== 'confirmation-result') {
+//                 return;
+//             }
 //             const receivedKey = message.key?.toString();
 //             const receivedValue = message.value?.toString();
 
-//             if (receivedKey === userToken) {
+//             if (receivedKey === id) {
 //                 const result = receivedValue;
 
 //                 if (result === 'confirmed') {
@@ -336,35 +368,36 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
 // }
 
 
-// /**
-//  * Send a user confirmation message to the user-confirmation topic
-//  * 
-//  * @param user The user
-//  * @param matchedUser The matched user
-//  */
-// export const sendConfirmationMessage = async (userToken: string, matchedUserToken: string) => {
-//     await producer.connect();
-//     await producer.send({
-//         topic: 'user-confirmation',
-//         messages: [
-//             { key: userToken, value: matchedUserToken },
-//         ],
-//     });
-//     await producer.disconnect();
-// }
+/**
+ * Send a user confirmation message to the user-confirmation topic
+ * 
+ * @param user The user
+ * @param matchedUser The matched user
+ */
+export const sendConfirmationMessage = async (userId: string, matchedUserId: string) => {
+    await producer.connect();
+    console.log(`Sending confirmation message from User ${userId} to User ${matchedUserId}`);
+    await producer.send({
+        topic: 'user-confirmation',
+        messages: [
+            { key: userId, value: matchedUserId },
+        ],
+    });
+    await producer.disconnect();
+}
 
-// /**
-//  * Send final match result to both users in the confirmation-result topic
-//  * 
-//  * @param userToken The token of the user
-//  * @param result The result of the confirmation
-//  */
-// export const sendConfirmationResult = async (userToken: string, result: string) => {
+/**
+ * Send final match result to both users in the confirmation-result topic
+ * 
+ * @param userId The token of the user
+ * @param result The result of the confirmation
+ */
+// export const sendConfirmationResult = async (userId: string, result: string) => {
 //     await producer.connect();
 //     await producer.send({
 //         topic: 'confirmation-result',
 //         messages: [
-//             { key: userToken, value: result },
+//             { key: userId, value: result },
 //         ],
 //     });
 //     await producer.disconnect(); 

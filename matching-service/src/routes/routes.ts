@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { sendQueueingMessage, } from "../controllers/matchingController";
+import { sendQueueingMessage, sendConfirmationMessage } from "../controllers/matchingController";
 import userStore from "../utils/userStore";
 
 
@@ -38,7 +38,8 @@ router.post("/start_matching", async (req : Request, res : Response) => {
         topics: data.topics,
         isPeerReady: false,
         matchedUser: null,
-        timeout: null
+        timeout: null,
+        confirmationStatus: null
     }
     
     try {
@@ -73,24 +74,24 @@ router.post("/start_matching", async (req : Request, res : Response) => {
  * - 400: User not found in the queue
  * - 500: Error checking match status
  */
-router.post("/check_state", async (req : Request, rsp : Response) => {
+router.post("/check_matching_state", async (req : Request, rsp : Response) => {
     try {
         const id = req.body.id;
         if (!id) {
-            return rsp.status(400).send({message: "ID is not provided for checking status."});
+            return rsp.status(400).send({message: "ID is not provided for checking matching status."});
+        } 
+        
+        if (!userStore.hasUser(id)) {
+            return rsp.status(400).send({message: "This user does not exist in the matching queue anymore. Please try matching again."});
+        }
+            
+        const user = userStore.getUser(id);
+        if(user!.matchedUser) {
+            // userStore.removeUser(id);
+            console.log('Status: Match found for user:', user?.email);
+            return rsp.status(200).send({message: "match found"});
         } else {
-            if(!userStore.hasUser(id)) {
-                return rsp.status(400).send({message: "This user does not exist in the queue anymore. Please try matching again."});
-            }
-
-            const user = userStore.getUser(id);
-            if(user!.matchedUser) {
-                userStore.removeUser(id);
-                console.log('Status: Match found for user:', user?.email);
-                return rsp.status(200).send({message: "match found"});
-            } else {
-                return rsp.status(202).send({message: "matching"});
-            }
+            return rsp.status(202).send({message: "matching"});
         }
 
     }
@@ -99,71 +100,16 @@ router.post("/check_state", async (req : Request, rsp : Response) => {
     }
 });
 
-// /**
-//  * Confirm the match between both users
-//  * 
-//  * Request body should contain the user's token.
-//  * 
-//  * Response status:
-//  * - 200: Match confirmed
-//  * - 204: Confirmation timed out
-//  * - 400: User not found
-//  * - 400: Match declined
-//  * - 500: Error confirming match
-//  */
-// router.post("/confirm_match", async (req : Request, res : Response) => {
-//     const { userToken } = req.cookies.jwt;
-
-//     try {
-//         const user = userStore.getUser(userToken);
-
-//         if (!user) {
-//             return res.status(400).send({ message: "User not found" });
-//         }
-
-//         const matchedUser = user.matchedUser;
-//         if (matchedUser) {
-//             // Send the confirmation to the Kafka topic
-//             await sendConfirmationMessage(user.userToken, matchedUser.userToken);
-
-//             // Listen to the confirmation outcome
-//             await listenForConfirmationResult(userToken, (result) => {
-//                 // Remove user from userStore regardless of the outcome
-//                 userStore.removeUser(userToken);
-
-//                 if (result === 'confirmed') {
-//                     return res.status(200).send({message: "Match confirmed"});
-
-//                 } else if (result === 'declined') {
-//                     // Not supposed to happen
-//                     return res.status(204).send({message: "Match declined"});
-
-//                 } else if (result === 'timeout') {
-//                     return res.status(408).send({message: "Confirmation timed out"});
-//                 }
-//             });
-
-//         }
-//         // Time out match by default
-//         return res.status(408).send({message: "Confirmation timed out"});
-
-//     } catch (error) {
-//         console.error("Error confirming match:", error);
-//         return res.status(500).send({ message: "Error confirming match." });
-//     }
-
-// });
-
-// /**
-//  * Cancel the matching process for the user
-//  * 
-//  * Request body should contain the user's token.
-//  * 
-//  * Response status:
-//  * - 200: User is removed from queue
-//  * - 400: User not found
-//  * - 500: Error cancelling matching
-//  */
+/**
+ * Cancel the matching process for the user
+ * 
+ * Request body should contain the user's token.
+ * 
+ * Response status:
+ * - 200: User is removed from queue
+ * - 400: User not found
+ * - 500: Error cancelling matching
+ */
 router.post("/cancel", async (req : Request, res : Response) => {
     try {
         const userId = req.body.id;
@@ -182,5 +128,91 @@ router.post("/cancel", async (req : Request, res : Response) => {
         return res.status(500).send({message : error.message});
     }
 });
+
+/**
+ * Confirm the match between both users
+ * 
+ * Request body should contain the user's token.
+ * 
+ * Response status:
+ * - 200: Match confirmed
+ * - 409: User not found
+ * - 500: Error confirming match
+*/
+router.post("/confirm_match", async (req : Request, res : Response) => {
+    
+    const id = req.body.id;
+    console.log("Confirming match for user:", id);
+
+    try {
+        const user = userStore.getUser(id);
+
+        if (!user) {
+            return res.status(409).send({ message: "User not found to confirm the match" });
+        }
+
+        const matchedUser = user.matchedUser;
+        if (matchedUser) {
+            // Check if the matched user is in the user store
+            if (!userStore.hasUser(matchedUser.id)) {
+                return res.status(409).send({ message: "No matched user found to confirm the match" });
+            }
+            // Send the confirmation to the Kafka topic
+            await sendConfirmationMessage(user.id, matchedUser.id);
+            return res.status(200).send({message: "Confirmation for user: " + user.email + " is sent."});
+        } else {
+            // User is not matched with anyone
+            return res.status(409).send({message: "No matched user found to confirm the match"});
+        }
+        
+
+    } catch (error) {
+        console.error("Error confirming match:", error);
+        return res.status(500).send({ message: "Error confirming match." });
+    }
+});
+
+/**
+ * Check the confirmation result for the user
+ * 
+ * Request body should contain the user's token.
+ * 
+ * Response status:
+ * - 200: Match confirmed
+ * - 204: Confirmation timed out
+ * - 400: User not found
+ * - 400: Match declined
+ * - 500: Error confirming match
+*/
+router.post("/check_confirmation_state", async (req : Request, res : Response) => {
+    try {
+        const id = req.body.id;
+        if (!id) {
+            return res.status(400).send({message: "ID is not provided for checking confirmation status."});
+        } else {
+            if(!userStore.hasUser(id)) {
+                return res.status(400).send({message: "This user does not exist in the matching queue anymore. Please try matching again."});
+            }
+            
+            const user = userStore.getUser(id);
+            if (user!.confirmationStatus === "confirmed") {
+                console.log('Status: Both users have confirmed, updating ', user?.email);
+                return res.status(200).send({message: "match found"});
+            } else if (user!.confirmationStatus === "timeout") {
+                // Do nothing.. ? user is already removed from user store in the timeout function
+            } else if (user!.confirmationStatus === "declined") {
+                // This should not happen, but just in case
+                return res.status(400).send({message: "Match declined for user: " + user!.email});
+            } else {
+                return res.status(202).send({message: "Waiting for confirmation"});
+            }
+        }
+
+    }
+    catch(error : any) {
+        return res.status(500).send({message : error.message});
+    }
+});
+
 
 export default router;
