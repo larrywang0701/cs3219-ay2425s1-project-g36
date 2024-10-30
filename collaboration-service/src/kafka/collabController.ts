@@ -34,7 +34,7 @@ export const listenToMatchingService = async () => {
             const question_difficulties = body.question_difficulties
             
             // TODO: put in the selected question id
-            const selectedQuestionId = 49 // dummy value, to be changed
+            const selectedQuestionId = 75 // dummy value, to be changed
 
             // at this point, update the user store, which is a local data structure
             userStore.addUser(user1_id, {

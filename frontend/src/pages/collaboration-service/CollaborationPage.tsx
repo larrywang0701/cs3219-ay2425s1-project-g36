@@ -8,20 +8,23 @@ import TextEditor from "@/components/collaboration-service/TextEditor";
 import { useSearchParams } from "react-router-dom"
 import { getUserById } from "@/api/user-service/UserService";
 import { User } from "@/api/user-service/User";
+import { Question } from "@/api/question-service/Question";
+import { fetchQuestion } from "@/api/question-service/QuestionService";
 
 export default function CollaborationPage() {
   const [parameters] = useSearchParams()
   const roomId = parameters.get("roomId")
   const matchedUserId = parameters.get("matchedUserId") 
-  const questionId = parameters.get("questionId") // TODO: use this questionId to retrive question details
+  const questionId = parameters.get("questionId")
 
   const [matchedUser, setMatchedUser] = useState<User | null>(null)
+  const [question, setQuestion] = useState<Question | null>(null)
   
   // use matchedUserId to retrive matched user's details 
   useEffect(() => {
     const fetchMatchedUser = async () => {
       if (matchedUserId === null) return
-
+      
       try {
         const response = await getUserById(matchedUserId)
         setMatchedUser(response.data)
@@ -29,11 +32,27 @@ export default function CollaborationPage() {
         console.error(error)
       }
     }
-
+    
     fetchMatchedUser()
   }, [])
 
-  if (roomId == null || matchedUser == null) {
+  // use questionId to retrive question details 
+  useEffect(() => {
+    const fetchQues = async () => {
+      if (questionId === null) return
+
+      try {
+        const q = await fetchQuestion(questionId)
+        setQuestion(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    fetchQues()
+  }, [])
+
+  if (roomId == null || matchedUser == null || question == null) {
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
@@ -57,7 +76,7 @@ export default function CollaborationPage() {
         <div className="max-w-5xl mx-auto p-6 space-y-6">
           <h1 className="text-2xl font-bold">Practice with {matchedUser.username}</h1>
           <h2 className="text-xl font-semibold">
-            questionId: {questionId} - <span>(insert question difficulty here)</span>
+            #{questionId}: - <span>{question.title}</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -71,9 +90,9 @@ export default function CollaborationPage() {
 
             <section className="space-y-4">
               <div className="p-4 rounded-md border border-gray-300">
-                <h3 className="font-semibold mb-2">(insert question name here)</h3>
+                <h3 className="font-semibold mb-2">{question.title}</h3>
                 <p className="text-sm">
-                  (insert question description here)
+                  {question.description}
                 </p>
               </div>
 
