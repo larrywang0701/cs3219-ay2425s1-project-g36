@@ -133,7 +133,7 @@ async function resetPassword(token : string, password: string) {
     password: password
   };
   try {
-    const response = await api.post(USERS_BASE_URL + RESET_PASSWORD_API + "/" + token, resetPasswordData);
+    const response = await api.post(AUTH_BASE_URL + RESET_PASSWORD_API + "/" + token, resetPasswordData);
     return {status: response.status, message: response.data.message};
   } catch (error: any) {
     console.error("Error when resetting password", error);
