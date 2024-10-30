@@ -16,12 +16,12 @@ const kafka = new Kafka({
 
 
 // Consumer related functions
-// Seperate consumers for matching and confirmation to run them in parallel
+// Separate consumers for matching and confirmation to run them in parallel
 const matchConsumer = kafka.consumer({ groupId: "matching" });
 const confirmationConsumer = kafka.consumer({ groupId: "confirmation" });
 
 const TIMEOUT_DURATION = 30000; // Timeout set for 30 seconds
-const CONFIRMATION_DURATION = 5000; // Confirmation timeout set for 5 seconds
+const CONFIRMATION_DURATION = 6000; // Confirmation timeout set for 6 seconds to prevent backend from being faster than frontend
 
 // Main function to initialize and run the consumer
 export async function initializeConsumer() {
@@ -62,6 +62,13 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
     return null;
 }
 
+/**
+ * Create a confirmation timeout for the user (6 seconds long)
+ * 
+ * @param user The user
+ * @param matchedUser The matched user
+ * @returns The confirmation timeout
+ */
 const createConfirmationTimeout = (user: User, matchedUser: User) => {
     const confirmationTimeout = setTimeout(() => {
         if (!user.isPeerReady || !matchedUser.isPeerReady) {
@@ -76,6 +83,7 @@ const createConfirmationTimeout = (user: User, matchedUser: User) => {
             // Update status for the user
             user.confirmationStatus = 'timeout';
 
+            console.log("user removed from user store")
             userStore.removeUser(user.id);
         }
     }, CONFIRMATION_DURATION);
@@ -85,13 +93,17 @@ const createConfirmationTimeout = (user: User, matchedUser: User) => {
 }
 
 /**
- * Listens to the queue for new users. When a match is found, both users are notified.
+ * Listens to the queue for new users. If a match is found, the users' status are updated. 
+ * (user.matchedUser is set to the matched user object and is no longer null)
+ * 
  * Else, adds the new user to the waiting queue. User waits for a match until the timeout 
  * and is notified if no match is found.
+ * 
+ * The waiting queue is a FIFO queue and the oldest user is matched first.
+ * This queue cannot be accessed from the outside.
  */
 export const startMatching = async () => {
 
-    // await consumer.connect();
     await matchConsumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
     console.log("Queue status: ", waitingQueue.getUserEmails());
@@ -115,10 +127,10 @@ export const startMatching = async () => {
                 //Remove user from waiting queue if inside
                 if (waitingQueue.isUserInQueue(key)) {
                     const user = userStore.getUser(key)!;
+                    // Clear the user's timeout, remove from the queue and user store
                     clearTimeout(user.timeout!);
                     waitingQueue.removeUser(user);
                     userStore.removeUser(key);
-                    // User email cannot be logged here as the user object is removed from the store
                     console.log(`User ${user.email} has been removed from the queue.`);
                     console.log("Queue status: ", waitingQueue.getUserEmails());
                 }
@@ -129,7 +141,6 @@ export const startMatching = async () => {
             const newUser = userStore.getUser(key);
             if (!newUser) {
                 console.log(`User ${key} not found in the user store.`);
-                // sendMatchResult(value, 'declined');
                 return;
             }
             console.log('User ID: ', newUser.id, '. User Email: ', newUser.email);
@@ -138,6 +149,8 @@ export const startMatching = async () => {
             const timeout = setTimeout(() => {
                 if (newUser.matchedUser === null) {
                     console.log(`User ${newUser.email} has timed out and will be removed from the queue.`);
+
+                    // Remove user from the queue and user store
                     waitingQueue.removeUser(newUser); // Remove user from the queue
                     userStore.removeUser(newUser.id); // Remove user from the store
                     console.log("Queue status: ", waitingQueue.getUserEmails());
@@ -149,7 +162,6 @@ export const startMatching = async () => {
             newUser.timeout = timeout;
 
             // Search for a matching user in the queue, starting from the oldest user
-            // TODO: specify type of queue used
             const matchedUser = findMatchingUser(newUser, waitingQueue); 
 
             if (matchedUser) {
@@ -164,13 +176,13 @@ export const startMatching = async () => {
                 matchedUser.roomId = roomId 
                 newUser.roomId = roomId 
 
-                // Clear timeout for both users
+                // Clear matching timeout for both users
                 clearTimeout(newUser.timeout);
                 if (matchedUser.timeout) {
                     clearTimeout(matchedUser.timeout);
                 }
 
-                // Update timeout for both users
+                // Update confirmation timeout for both users
                 newUser.timeout = createConfirmationTimeout(newUser, matchedUser);
                 matchedUser.timeout = createConfirmationTimeout(matchedUser, newUser);
                 
@@ -191,45 +203,12 @@ export const startMatching = async () => {
 }
 
 
-// /**
-//  * Listens to the match-result topic for match outcomes and notifies the user
-//  * 
-//  * @param userToken The token of the user
-//  * @param onResult Callback function to handle the result of the matching process
-//  */
-// export const listenForMatchResult = async (
-//     userToken: string, 
-//     onResult: (result: 'matched' | 'timeout') 
-// => void) => {
-//     const kafka = new Kafka({ brokers: ['kafka:9092'] });
-//     const consumer = kafka.consumer({ groupId: userToken });
-
-//     await consumer.connect();
-//     await consumer.subscribe({ topic: 'match-result', fromBeginning: false });
-
-//     await consumer.run({
-//         eachMessage: async ({ message }) => {
-//             const receivedKey = message.key?.toString();
-//             const receivedValue = message.value?.toString();
-
-//             if (receivedKey === userToken) {
-//                 const result = receivedValue;
-
-//                 if (result === 'matched') {
-//                     onResult('matched');
-//                 } else {
-//                     onResult('timeout');
-//                 }
-//             }
-//         }
-//     });
-// }
-
 /**
- * Listens to the user-confirmation topic for user confirmations and handles confirmed matches.
+ * Listens to the user-confirmation topic for user confirmations.
+ * 
  * If the users are not supposed to be matched, the match is declined.
- * If the users are matched, they are notified that the match has been confirmed.
- * If the users are not ready in time, the match is timed out.
+ * If the users are matched, the users' status are updated.
+ * If the users are not ready in time, the match is timed out and the users' status are updated.
  * If the other user is not ready, the user waits for the other user to confirm.
  */
 export const startConfirmation = async () => {
@@ -241,8 +220,6 @@ export const startConfirmation = async () => {
             const key = message.key ? message.key.toString() : null;
             const value = message.value ? message.value.toString() : null;
 
-
-
             // Check if key or value is null or doesn't match expected criteria, then skip
             if (!key || !value || value === "placeholder_value") {
                 console.log("Ignoring placeholder message");
@@ -251,6 +228,7 @@ export const startConfirmation = async () => {
 
             console.log(`Received confirmation message from User: ${key}`);
 
+            // Retrieve the user and matched user from the store
             const user = userStore.getUser(key)!;
             const matchedUser = userStore.getUser(value);
 
@@ -273,12 +251,8 @@ export const startConfirmation = async () => {
                     // Update the users' status
                     user.confirmationStatus = 'confirmed';
                     matchedUser.confirmationStatus = 'confirmed';
-
-                    // Remove from user store
-                    userStore.removeUser(user.id);
-                    userStore.removeUser(matchedUser.id);
                 } else {
-                    // Keep waiting
+                    // Keep waiting and update the user's status
                     console.log(`User ${user.email} has confirmed the match, waiting for ${matchedUser.email} to confirm.`);
                     user.confirmationStatus = 'waiting';
                 }
@@ -292,41 +266,6 @@ export const startConfirmation = async () => {
         }
     });
 }
-
-
-/**
- * Listens to the user-confirmation topic for user confirmations and notifies the user
- * 
- * @param id The token of the user
- * @param onResult Callback function to handle the result of the confirmation process
- */
-// export const listenForConfirmationResult = async (
-//     id: string, 
-//     onResult: (result: 'confirmed' | 'declined' | 'timeout') => void
-// ) => {
-
-//     await consumer.run({
-//         eachMessage: async ({ topic, message }) => {
-//             if (topic !== 'confirmation-result') {
-//                 return;
-//             }
-//             const receivedKey = message.key?.toString();
-//             const receivedValue = message.value?.toString();
-
-//             if (receivedKey === id) {
-//                 const result = receivedValue;
-
-//                 if (result === 'confirmed') {
-//                     onResult('confirmed');
-//                 } else if (result === 'declined') {
-//                     onResult('declined');
-//                 } else {
-//                     onResult('timeout');
-//                 }
-//             }
-//         }
-//     });
-// }
 
 
 
@@ -356,24 +295,6 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
     await producer.disconnect();
 }
 
-// /**
-//  * Send a match outcome to the match-result topic
-//  * 
-//  * @param userToken The token of the user
-//  * @param result The result of the match
-//  */
-// const sendMatchResult = async (userToken: string, result: string) => {
-//     await producer.connect();
-//     await producer.send({
-//         topic: 'match-result',
-//         messages: [
-//             { key: userToken, value: result },
-//         ],
-//     });
-//     await producer.disconnect();
-// }
-
-
 /**
  * Send a user confirmation message to the user-confirmation topic
  * 
@@ -391,20 +312,3 @@ export const sendConfirmationMessage = async (userId: string, matchedUserId: str
     });
     await producer.disconnect();
 }
-
-/**
- * Send final match result to both users in the confirmation-result topic
- * 
- * @param userId The token of the user
- * @param result The result of the confirmation
- */
-// export const sendConfirmationResult = async (userId: string, result: string) => {
-//     await producer.connect();
-//     await producer.send({
-//         topic: 'confirmation-result',
-//         messages: [
-//             { key: userId, value: result },
-//         ],
-//     });
-//     await producer.disconnect(); 
-// }

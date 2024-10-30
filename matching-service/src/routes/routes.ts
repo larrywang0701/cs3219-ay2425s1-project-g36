@@ -47,7 +47,7 @@ router.post("/start_matching", async (req : Request, res : Response) => {
 
         // Check if the user is already matching or matched
         if (userStore.hasUser(user.id)) {
-            return res.status(409).send({message: "This user already matching."});
+            return res.status(409).send({message: "This user is already in matching queue."});
         }
         // Send the new user to the Kafka topic
         userStore.addUser(user.id, user);
@@ -70,7 +70,7 @@ router.post("/start_matching", async (req : Request, res : Response) => {
  * 
  * Response status:
  * - 200: Match found
- * - 204: Matching
+ * - 202: Matching
  * - 400: User ID not found
  * - 400: User not found in the queue
  * - 500: Error checking match status
@@ -179,7 +179,7 @@ router.post("/confirm_match", async (req : Request, res : Response) => {
  * 
  * Response status:
  * - 200: Match confirmed
- * - 204: Confirmation timed out
+ * - 202: Waiting for confirmation
  * - 400: User not found
  * - 400: Match declined
  * - 500: Error confirming match
@@ -191,18 +191,19 @@ router.post("/check_confirmation_state", async (req : Request, res : Response) =
             return res.status(400).send({message: "ID is not provided for checking confirmation status."});
         } else {
             if(!userStore.hasUser(id)) {
-                return res.status(400).send({message: "This user does not exist in the matching queue anymore. Please try matching again."});
+                return res.status(400).send({message: "This user does not exist in the confirmation queue anymore. Please try matching again."});
             }
             
             const user = userStore.getUser(id);
             if (user!.confirmationStatus === "confirmed") {
                 console.log('Status: Both users have confirmed, updating ', user?.email);
-                return res.status(200).send({message: "match found", roomId: user?.roomId});
+                userStore.removeUser(user!.id);
+                return res.status(200).send({message: "Confirmed", roomId: user?.roomId});
             } else if (user!.confirmationStatus === "timeout") {
                 // Do nothing.. ? user is already removed from user store in the timeout function
             } else if (user!.confirmationStatus === "declined") {
                 // This should not happen, but just in case
-                return res.status(400).send({message: "Match declined for user: " + user!.email});
+                return res.status(400).send({message: "Confirmation declined " + user!.email});
             } else {
                 return res.status(202).send({message: "Waiting for confirmation"});
             }
