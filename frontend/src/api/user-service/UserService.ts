@@ -10,6 +10,7 @@ const SIGNUP_API = "/";
 const FORGOT_PASSWORD_API = "/forgot-password";
 const RESET_PASSWORD_API = "/reset-password";
 const UPDATE_ACCOUNT_API = "/update";
+const DELETE_ACCOUNT_API = "/";
 
 const api = axios.create({
   baseURL: USER_SERVICE_URL,
@@ -160,18 +161,17 @@ async function updateAccount(username : string, email : string) {
   }
 }
 
-
-// /**
-//  * An async function that resets a password given the token and new password.
-//  */
-// async function deleteAccount(id : string) {
-//   try {
-//     const response = await api.delete(AUTH_BASE_URL + UPDATE_ACCOUNT_API);
-//     return {status: response.status, message: response.data.message};
-//   } catch (error: any) {
-//     console.error("Error when resetting password", error);
-//     return {status: error.response.status, message: error.response.data.message};
-//   }
-// }
+/**
+ * An async function that deletes a user given the user ID.
+ */
+async function deleteAccount(id : string) {
+  try {
+    const response = await api.delete(USERS_BASE_URL + DELETE_ACCOUNT_API + '/' + id);
+    return {status: response.status, message: response.data.message};
+  } catch (error: any) {
+    console.error(`Error when deleting account ID ${id}\n`, error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
 
 export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword, updateAccount, deleteAccount };
