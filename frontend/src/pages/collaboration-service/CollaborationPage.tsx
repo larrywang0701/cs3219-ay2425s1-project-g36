@@ -1,24 +1,43 @@
 import { Link } from "react-router-dom";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
-import { useAuth } from "@/contexts/AuthContext";
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import TextEditor from "@/components/collaboration-service/TextEditor";
 import { useSearchParams } from "react-router-dom"
+import { getUserById } from "@/api/user-service/UserService";
+import { User } from "@/api/user-service/User";
 
 export default function CollaborationPage() {
   const [parameters] = useSearchParams()
   const roomId = parameters.get("roomId")
-  const matchedUserId = parameters.get("matchedUserId") // TODO: use this matchedUserId to retrive matched user's name
+  const matchedUserId = parameters.get("matchedUserId") 
   const questionId = parameters.get("questionId") // TODO: use this questionId to retrive question details
 
-  if (roomId == null) {
+  const [matchedUser, setMatchedUser] = useState<User | null>(null)
+  
+  // use matchedUserId to retrive matched user's details 
+  useEffect(() => {
+    const fetchMatchedUser = async () => {
+      if (matchedUserId === null) return
+
+      try {
+        const response = await getUserById(matchedUserId)
+        setMatchedUser(response.data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    fetchMatchedUser()
+  }, [])
+
+  if (roomId == null || matchedUser == null) {
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
-          You are at an invalid document ID for collaborating
+          There is some error when entering the collaboration page
         </h2>
         <div className="flex justify-center">
           <Button className="btnblack">
@@ -36,7 +55,7 @@ export default function CollaborationPage() {
       <PageHeader />
       <MainContainer>
         <div className="max-w-5xl mx-auto p-6 space-y-6">
-          <h1 className="text-2xl font-bold">Practice with another user of id: {matchedUserId}</h1>
+          <h1 className="text-2xl font-bold">Practice with {matchedUser.username}</h1>
           <h2 className="text-xl font-semibold">
             questionId: {questionId} - <span>(insert question difficulty here)</span>
           </h2>

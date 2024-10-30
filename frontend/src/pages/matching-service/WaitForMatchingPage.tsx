@@ -77,9 +77,9 @@ export default function WaitForMatchingPage() {
             navigate(`../collaboration?roomId=${roomId}&matchedUserId=${matchedUserId}&questionId=${questionId}`);
         } else {
             // Handle case where collaboration information retrieval failed
-            console.log(`Error retrieving collaboration information: ${collaborationInfo.message}`);
+            console.log(`Error retrieving collaboration information: ${collaborationMessage}`);
             cancelMatching();
-            navigate(`../matching/failed?message=${collaborationInfo.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+            navigate(`../matching/failed?message=${collaborationMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
 
     } else if (response.status === 202) {
@@ -96,7 +96,7 @@ export default function WaitForMatchingPage() {
         console.log("matching cancelled due to backend error");
         navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
     }
-};
+  };
 
 
   // const cancelMatching = useCallback(() => {

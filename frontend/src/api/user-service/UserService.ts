@@ -98,6 +98,17 @@ async function sendLogoutRequest() {
   }
 }
 
+async function getUserById(id: string) {
+  try {
+    const response = await api.get(USERS_BASE_URL + `/${id}`)
+    console.log('success retrieve user: ', response.data)
+    return {status: response.status, message: response.data.message, data: response.data.data};
+  } catch (error : any) {
+    console.error("Error retrieving user" , error);
+    return {status: error.response.status, message: error.response.data.message};
+  }
+}
+
 /**
  * An async function that gets the list of users from the backend.
  */
@@ -140,4 +151,4 @@ async function resetPassword(token : string, password: string) {
   }
 }
 
-export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserFromToken, resetPassword };
+export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserById, getUserFromToken, resetPassword };
