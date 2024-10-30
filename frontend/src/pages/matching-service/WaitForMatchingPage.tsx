@@ -58,6 +58,7 @@ export default function WaitForMatchingPage() {
     const response = await sendCheckMatchingStateRequest(auth.id);
     
     if (response.status === 200) {
+        console.log('2 users are matched')
         // Check if the required information is in collaboration-service, before navigating to collab page
         const response = await isUserInCollabStore(auth.id);
 

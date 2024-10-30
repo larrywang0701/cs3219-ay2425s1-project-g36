@@ -77,7 +77,7 @@ services:
       - /usr/src/collaboration-service/node_modules
     ports:
       - "${COLLABORATIONSVC_PORT:-3001}:3001" # WebSocket server
-      - "3002:3002"  # REST API server
+      - "${COLLABORATION_API_PORT:-3002}:3002"  # REST API server
     container_name: collaboration-service-container
   matching:
     restart: always

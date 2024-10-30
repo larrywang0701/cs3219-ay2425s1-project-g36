@@ -11,7 +11,7 @@ import { User } from "@/api/user-service/User";
 import { Question } from "@/api/question-service/Question";
 import { fetchQuestion } from "@/api/question-service/QuestionService";
 import { useAuth } from "@/contexts/AuthContext";
-import { removeUserFromCollabStore, isUserInCollabStore, getCollaborationInformation } from "@/api/collaboration-service/CollaborationService";
+import { removeUserFromCollabStore, isUserInCollabStore, getCollabInfo } from "@/api/collaboration-service/CollaborationService";
 
 export default function CollaborationPage() {
   const [roomId, setRoomId] = useState<string | null>(null)
@@ -30,43 +30,26 @@ export default function CollaborationPage() {
       if (auth.id === null) return
 
       try {
-        const response = await isUserInCollabStore(auth.id)
-        if (response.status !== 200) {
+        const response1 = await isUserInCollabStore(auth.id)
+        if (response1.status === 200) {
+          // Using the user's ID, retrieve collaboration details
+          console.log('getting collab info..')
+          const response2 = await getCollabInfo(auth.id)
+          const data = response2.data
+  
+          setRoomId(data.roomId)
+          setMatchedUserId(data.matchedUserId)
+          setQuestionId(data.questionId)
+        } else {
           // Means that user is not in user store, so he cannot access the collab-page
           navigate("/matching/start")
         }
-
       } catch (error) {
         console.error(error)
       }
     }
 
     checkIfUserInStore()
-  }, [])
-
-  // Using the user's ID, retrieve collaboration details
-  useEffect(() => {
-    const getCollaborationDetails = async () => {
-      if (auth.id === null) return
-
-      try {
-        const response = await getCollaborationInformation(auth.id)
-        const data = response.data
-
-        setRoomId(data.roomId)
-        setMatchedUserId(data.matchedUserId)
-        setQuestionId(data.questionId)
-
-        // console.log('setting the variables here')
-        // console.log(`roomId: ${data.roomId}`)
-        // console.log(`matchedUser: ${data.matchedUserId}`)
-        // console.log(`question: ${data.questionId}`)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    getCollaborationDetails()
   }, [])
 
   // Use matchedUserId to retrieve matched user's details 

@@ -11,7 +11,7 @@ const api = axios.create({
 })
 
 // Frontend uses this function to retrieve collaboration details
-async function getCollaborationInformation(userId : string) {
+async function getCollabInfo(userId : string) {
     return await api.get(COLLABORATION_BASE_URL + `/${userId}`).then(response => {
       return {
         status : response.status, 
@@ -57,4 +57,4 @@ async function isUserInCollabStore(userId: string) {
   })
 }
 
-export { getCollaborationInformation, removeUserFromCollabStore, isUserInCollabStore }
+export { getCollabInfo, removeUserFromCollabStore, isUserInCollabStore }
