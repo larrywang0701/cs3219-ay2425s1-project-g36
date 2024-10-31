@@ -1,6 +1,9 @@
 import { Kafka } from "kafkajs"
+import axios from 'axios'; 
+
 import collabStore from '../utils/collabStore'
 
+const DEFAULT_QUESTION_ID = 75;
 const kafka = new Kafka({
     clientId: 'collaboration-service',
     brokers: ['kafka:9092'], 
@@ -30,12 +33,15 @@ export const listenToMatchingService = async () => {
             const user2_id = body.user2_id
             const roomId = body.roomId
 
-            // TODO: based on the topics and difficulties, query database and retrieve a question
-            const question_topics = body.question_topics
-            const question_difficulties = body.question_difficulties
+            // Based on the topics and difficulties, query database and retrieve a question
+            const question_topics: string[] = body.question_topics
+            const question_difficulties: string[] = body.question_difficulties
             
-            // TODO: put in the selected question id
-            const selectedQuestionId = 75 // dummy value, to be changed
+            let selectedQuestionId: number | null = await getQuestionId(question_topics, question_difficulties);
+
+            if (selectedQuestionId === null) {
+                selectedQuestionId = DEFAULT_QUESTION_ID;
+            } 
 
             // at this point, update the collab store, which is a local data structure
             collabStore.addUser(user1_id, {
@@ -57,3 +63,41 @@ export const listenToMatchingService = async () => {
         }
     })
 }
+
+const getQuestionId = async (question_topics: string[], question_difficulties: string[]): Promise<number | null> => {
+    const QUESTION_SERVICE_URL = "http://question-service-container:3000/";
+    const api = axios.create({
+        baseURL: QUESTION_SERVICE_URL,
+    });
+
+    const joined_topics: string = question_topics.join(",");
+    const joined_difficulties: string = question_difficulties.join(",");
+
+    try {
+        const response = await api.post('/questions/filter', 
+            {
+                topics: joined_topics,
+                difficulties: joined_difficulties
+            }
+        );
+        
+        // Check for 200 status and presence of questionId
+        if (response.status === 200 && response.data?.questionId) {
+            const questionId: number = response.data.questionId;
+            console.log("Fetched Question ID:", questionId);
+            return questionId;
+        } else {
+            console.error("No question ID found in the response data.");
+            return null;
+        }
+    } catch (error) {
+        // Handle a 500 or any other error status
+        if (axios.isAxiosError(error) && error.response?.status === 500) {
+            console.error("Internal server error from the question service.");
+        } else {
+            console.error("Error fetching questions:", error);
+        }
+        return null;
+    }
+}
+

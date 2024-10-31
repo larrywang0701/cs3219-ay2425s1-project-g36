@@ -15,7 +15,6 @@ const kafka = new Kafka({
     },
 });
 
-
 // Consumer related functions
 // Separate consumers for matching and confirmation to run them in parallel
 const matchConsumer = kafka.consumer({ groupId: "matching" });
@@ -314,7 +313,15 @@ export const sendConfirmationMessage = async (userId: string, matchedUserId: str
     });
 }
 
-// send collaboration information to collab-service
+/**
+ * Send a collaboration message to the collaboration topic
+ * 
+ * @param user1_id The first user's ID
+ * @param user2_id The second user's ID
+ * @param roomId The room ID for the collaboration
+ * @param question_topics The common topics between the users
+ * @param question_difficulties The common difficulties between the users
+ */
 export const sendCollaborationMessage = async (user1_id: string, user2_id: string, roomId: string, question_topics: string[], question_difficulties: string[]) => {
     if (user1_id === null || user2_id === null || roomId === null || question_topics.length === 0 || question_difficulties.length === 0) return
     

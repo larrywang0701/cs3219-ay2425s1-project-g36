@@ -16,7 +16,6 @@ const corsOptions = {
 }
 app.use(cors(corsOptions));
 
-
 app.use("/matching", MatchingRoute);
 
 const startServer = async () => {
@@ -31,3 +30,4 @@ const startServer = async () => {
 
 startServer();
 
+startServer();
