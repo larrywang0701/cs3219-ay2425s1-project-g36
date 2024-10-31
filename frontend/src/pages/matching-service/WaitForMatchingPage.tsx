@@ -1,4 +1,5 @@
 import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/matching-service/MatchingService";
+import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
@@ -9,7 +10,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
 const MAXIMUM_MATCHING_DURATION = 60; // in seconds
-const CHECK_MATCHING_STATE_INTERVAL = 1000; // in milliseconds
+const CHECK_MATCHING_STATE_INTERVAL = 500; // in milliseconds
 
 export default function WaitForMatchingPage() {
   const [parameters] = useSearchParams();
@@ -43,40 +44,39 @@ export default function WaitForMatchingPage() {
   //   return () => clearInterval(intervalId);
   // }, []);
 
-  const checkMatchingState = () => {
+  const checkMatchingState = async () => {
     console.log("checking matching state");
-    if(location.pathname !== pathname) {
-      cancelMatching();
-      console.log("matching cancelled due to leaving page");
-      return;
+    
+    // Check if the pathname has changed
+    if (location.pathname !== pathname) {
+        cancelMatching();
+        console.log("matching cancelled due to leaving page");
+        return;
     }
-    sendCheckMatchingStateRequest(auth.id).then(
-      response => {
-        if(response.status === 200) {
-          console.log("match found!");
-          cancelMatching(false);
-          const roomId = response.roomId
-          navigate(`../collaboration/${roomId}`);
-        } else if (response.status === 202) {
-          //Do nothing
-          console.log("matching...");
-        }
-        else if (response.message === "ERR_NETWORK") {
-          checkMatchingStateNetworkErrorCount.current++;
-          if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
+
+    // Send request to check matching state
+    const response = await sendCheckMatchingStateRequest(auth.id);
+    
+    if (response.status === 200) {
+        console.log('2 users are matched')
+        cancelMatching(false);
+        navigate("/collaboration");
+    } else if (response.status === 202) {
+        console.log("matching...");
+    } else if (response.message === "ERR_NETWORK") {
+        checkMatchingStateNetworkErrorCount.current++;
+        if (checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
             cancelMatching(false);
             console.log("matching cancelled due to network error");
             navigate(`../matching/failed?message=Network error, please check your network and try again.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-          }
         }
-        else {
-          cancelMatching();
-          console.log("matching cancelled due to backend error");
-          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-        }
-      }
-    );
-  }
+    } else {
+        cancelMatching();
+        console.log("matching cancelled due to backend error");
+        navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+    }
+  };
+
 
   // const cancelMatching = useCallback(() => {
   //   sendCancelMatchingRequest(auth.token).then(() => {
