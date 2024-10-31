@@ -115,8 +115,7 @@ export default function GetReadyPage() {
           // Both users have confirmed, navigate to the collaboration page.
           console.log("confirmation received, starting collaboration");
           onNavigatingAway();
-          const roomId = response.roomId;
-          navigate(`../collaboration/${roomId}`);
+          navigate(`../collaboration`);
 
         } else if (response.status === HTTP_WAITING) {
           // Waiting for the other user to confirm, do nothing.

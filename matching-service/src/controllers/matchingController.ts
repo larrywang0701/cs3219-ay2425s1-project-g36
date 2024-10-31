@@ -173,13 +173,6 @@ export const startMatching = async () => {
                 matchedUser.matchedUser = newUser;
                 newUser.matchedUser = matchedUser;
 
-                const roomId = uuidv4() // give both users a room Id to collaborate 
-                const question_topics = findCommonTopics(newUser, matchedUser)
-                const question_difficulties = findCommonDifficulties(newUser, matchedUser)
-
-                // matching-service sends information to collab-service using kafka 
-                await sendCollaborationMessage(newUser.id, matchedUser.id, roomId, question_topics, question_difficulties)
-
                 // Clear matching timeout for both users
                 clearTimeout(newUser.timeout);
                 if (matchedUser.timeout) {
@@ -255,6 +248,13 @@ export const startConfirmation = async () => {
                     // Update the users' status
                     user.confirmationStatus = 'confirmed';
                     matchedUser.confirmationStatus = 'confirmed';
+
+                    const roomId = uuidv4() // give both users a room Id to collaborate 
+                    const question_topics = findCommonTopics(user, matchedUser)
+                    const question_difficulties = findCommonDifficulties(user, matchedUser)
+    
+                    // matching-service sends information to collab-service using kafka 
+                    await sendCollaborationMessage(user.id, matchedUser.id, roomId, question_topics, question_difficulties)
                 } else {
                     // Keep waiting and update the user's status
                     console.log(`User ${user.email} has confirmed the match, waiting for ${matchedUser.email} to confirm.`);
