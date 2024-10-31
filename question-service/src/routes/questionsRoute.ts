@@ -59,6 +59,11 @@ router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
     }
 });
 
+// Retrieve a question randomly based on difficulty and topic
+router.get('/:difficulty/:topic', async (req: Request, res: Response) => {
+    const { difficulty, topic } = req.params;
+});
+
 // create a question
 router.post("/", async (req: Request, res: Response): Promise<Response> => {
     const question = req.body;
