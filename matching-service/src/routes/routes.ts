@@ -6,6 +6,13 @@ import userStore from "../utils/userStore";
 const router = Router();
 
 /**
+ * Dummy API to test if matching-service is running
+ */
+router.get("/", async (req : Request, res : Response) => {
+    return res.status(200).send({message: "Matching service is running"});
+});
+
+/**
  * Start the matching process for the user. 
  * 
  * Request body should contain the following fields:

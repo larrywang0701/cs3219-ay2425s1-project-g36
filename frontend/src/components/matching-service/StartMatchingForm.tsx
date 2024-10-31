@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageTitle from "../common/PageTitle";
 import QuestionTopicsField from "../question-service/edit-question-page/QuestionTopicsField";
 import DifficultySelectionBox, { DEFAULT_SELECTED_DIFFICULTY_DATA, SelectedDifficultyData } from "./DifficultySelectionBox";
@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { sendStartMatchingRequest } from "@/api/matching-service/MatchingService";
 import { useNavigate } from "react-router-dom";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "../common/DisplayedMessage";
+import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 
 const HTTP_OK = 200
 const HTTP_ALREADY_EXISTS = 409
@@ -21,6 +22,19 @@ export default function StartMatchingForm() {
   const [selectedDifficultyData, setSelectedDifficultyData] = useState<SelectedDifficultyData>(DEFAULT_SELECTED_DIFFICULTY_DATA);
   const [displayedMessage, setDisplayedMessage] = useState<DisplayedMessage | null>(null);
 
+  // If user is already collaborating with someone else, don't let the user access the matching page.
+  // Bring the user to collaboration page.
+  useEffect(() => {
+    const checkIfUserInStore = async () => {
+      const response = await isUserInCollabStore(auth.id)
+      if (response.status === 200) {
+        navigate("/collaboration")
+      }
+    }
+
+    checkIfUserInStore()
+  }, [])
+
   const startMatching = () : void => {
     if(!selectedDifficultyData.easy && !selectedDifficultyData.medium && !selectedDifficultyData.hard) {
       displayError("You must select at least one difficulty.");
@@ -31,8 +45,6 @@ export default function StartMatchingForm() {
       return;
     }
 
-    console.log("try to start matching")
-
     const difficultiesStr = Object.entries(selectedDifficultyData).filter(val => val[1]).map(val => val[0]).join(", ");
     const topicsStr = questionTopics.join(", ");
     navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
@@ -42,6 +54,7 @@ export default function StartMatchingForm() {
         const httpStatus = response.status;
         const errorMessage = response.message
 
+        // this httpStatus tells us if user is sent to waitingQueue or not
         if (httpStatus === HTTP_OK) {
           // Do nothing here
         } else if (httpStatus === HTTP_ALREADY_EXISTS || httpStatus === HTTP_ERROR) {

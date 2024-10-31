@@ -3,6 +3,7 @@ import { Kafka } from "kafkajs";
 import { Queue } from "../model/queue";
 import userStore from "../utils/userStore";
 import { v4 as uuidv4 } from 'uuid'
+import { findCommonDifficulties, findCommonTopics } from "../model/user";
 
 const kafka = new Kafka({
     clientId: 'matching-service',
@@ -19,6 +20,7 @@ const kafka = new Kafka({
 // Separate consumers for matching and confirmation to run them in parallel
 const matchConsumer = kafka.consumer({ groupId: "matching" });
 const confirmationConsumer = kafka.consumer({ groupId: "confirmation" });
+const producer = kafka.producer();
 
 const TIMEOUT_DURATION = 30000; // Timeout set for 30 seconds
 const CONFIRMATION_DURATION = 6000; // Confirmation timeout set for 6 seconds to prevent backend from being faster than frontend
@@ -28,6 +30,7 @@ export async function initializeConsumer() {
     try {
       matchConsumer.connect();
       confirmationConsumer.connect();
+      producer.connect();
     } catch (error) {
       console.error("Error connecting to consumer or running messages:", error);
     }
@@ -171,10 +174,12 @@ export const startMatching = async () => {
                 matchedUser.matchedUser = newUser;
                 newUser.matchedUser = matchedUser;
 
-                // give both users a room Id to collaborate
-                const roomId = uuidv4()
-                matchedUser.roomId = roomId 
-                newUser.roomId = roomId 
+                const roomId = uuidv4() // give both users a room Id to collaborate 
+                const question_topics = findCommonTopics(newUser, matchedUser)
+                const question_difficulties = findCommonDifficulties(newUser, matchedUser)
+
+                // matching-service sends information to collab-service using kafka 
+                await sendCollaborationMessage(newUser.id, matchedUser.id, roomId, question_topics, question_difficulties)
 
                 // Clear matching timeout for both users
                 clearTimeout(newUser.timeout);
@@ -271,7 +276,7 @@ export const startConfirmation = async () => {
 
 
 // Producer related functions
-const producer = kafka.producer();
+
 
 /**
  * Send a user selection message to the user-selection topic
@@ -280,7 +285,6 @@ const producer = kafka.producer();
  * @param isCancel Whether the user wants to stop matching, set to false by default
  */
 export const sendQueueingMessage = async (id: string, isCancel: boolean = false) => {
-    await producer.connect();
     if (isCancel) {
         console.log(`Sending User ${id} to the queue to cancel.`);
     } else {
@@ -292,7 +296,6 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
             { key: id, value: isCancel ? "cancel": "match" },
         ],
     });
-    await producer.disconnect();
 }
 
 /**
@@ -302,7 +305,6 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
  * @param matchedUser The matched user
  */
 export const sendConfirmationMessage = async (userId: string, matchedUserId: string) => {
-    await producer.connect();
     console.log(`Sending confirmation message from User ${userId} to User ${matchedUserId}`);
     await producer.send({
         topic: 'user-confirmation',
@@ -310,5 +312,25 @@ export const sendConfirmationMessage = async (userId: string, matchedUserId: str
             { key: userId, value: matchedUserId },
         ],
     });
-    await producer.disconnect();
+}
+
+// send collaboration information to collab-service
+export const sendCollaborationMessage = async (user1_id: string, user2_id: string, roomId: string, question_topics: string[], question_difficulties: string[]) => {
+    if (user1_id === null || user2_id === null || roomId === null || question_topics.length === 0 || question_difficulties.length === 0) return
+    
+    const message = JSON.stringify({
+        user1_id,
+        user2_id,
+        roomId,
+        question_topics,
+        question_difficulties
+    })
+
+    await producer.send({
+        topic: 'collaboration',
+        messages: [
+            { key: roomId, value: message },
+        ],
+    });
+
 }
