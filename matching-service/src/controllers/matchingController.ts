@@ -15,12 +15,23 @@ const kafka = new Kafka({
     },
 });
 
-
 // Consumer related functions
 const consumer = kafka.consumer({ groupId: "matching-service-group" });
+// Producer related functions
+const producer = kafka.producer();
 
 const TIMEOUT_DURATION = 60000; // Timeout set for 1 minute
 const CONFIRMATION_DURATION = 10000; // Confirmation timeout set for 10 seconds
+
+// Main function to initialize and run the consumer
+export async function initializeConsumer() {
+    try {
+      consumer.connect();
+      producer.connect();
+    } catch (error) {
+      console.error("Error connecting to consumer or running messages:", error);
+    }
+}
 
 /**
  * Find a matching user (among previous users) for a new user based on their topics and difficulties
@@ -56,8 +67,6 @@ const findMatchingUser = (newUser: User, waitingQueue: Queue): User | null => {
  * and is notified if no match is found.
  */
 export const startMatching = async () => {
-
-    await consumer.connect();
     await consumer.subscribe({ topic: "user-matching", fromBeginning: true });
     const waitingQueue = new Queue();
     console.log("Queue status: ", waitingQueue.getUserEmails());
@@ -302,8 +311,8 @@ export const startMatching = async () => {
 
 
 
-// Producer related functions
-const producer = kafka.producer();
+
+
 
 /**
  * Send a user selection message to the user-selection topic
@@ -312,7 +321,6 @@ const producer = kafka.producer();
  * @param isCancel Whether the user wants to stop matching, set to false by default
  */
 export const sendQueueingMessage = async (id: string, isCancel: boolean = false) => {
-    await producer.connect();
     if (isCancel) {
         console.log(`Sending User ${id} to the queue to cancel.`);
     } else {
@@ -324,14 +332,11 @@ export const sendQueueingMessage = async (id: string, isCancel: boolean = false)
             { key: id, value: isCancel ? "cancel": "match" },
         ],
     });
-    await producer.disconnect();
 }
 
 // send collaboration information to collab-service
 export const sendCollaborationMessage = async (user1_id: string, user2_id: string, roomId: string, question_topics: string[], question_difficulties: string[]) => {
     if (user1_id === null || user2_id === null || roomId === null || question_topics.length === 0 || question_difficulties.length === 0) return
-    
-    await producer.connect()
     
     const message = JSON.stringify({
         user1_id,
@@ -347,8 +352,6 @@ export const sendCollaborationMessage = async (user1_id: string, user2_id: strin
             { key: roomId, value: message },
         ],
     });
-
-    await producer.disconnect();
 }
 
 // /**
