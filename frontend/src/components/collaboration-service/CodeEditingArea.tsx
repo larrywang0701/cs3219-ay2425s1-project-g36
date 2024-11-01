@@ -147,9 +147,9 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
               className="btngreen"
               onClick={()=>setDisplayLanguageSelectionPanel(!displayLanguageSelectionPanel)}
             >
-              Select Language &gt;
+              Language: {currentlySelectedLanguage.name}
             </Button>
-            {displayLanguageSelectionPanel ? languageSelectionPanel() : <p className="ml-5">{currentlySelectedLanguage.name}</p>}
+            {displayLanguageSelectionPanel && languageSelectionPanel()}
           </div>
           <div className="relative flex flex-row items-center">
             <Button

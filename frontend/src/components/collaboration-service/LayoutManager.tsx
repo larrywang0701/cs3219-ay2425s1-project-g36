@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Button } from "../ui/button";
-import { HamburgerMenuIcon, Cross1Icon, ViewVerticalIcon, EnterFullScreenIcon } from "@radix-ui/react-icons";
+import { ViewVerticalIcon, EnterFullScreenIcon } from "@radix-ui/react-icons";
 import VerticallySplitView from "@/components/common/VerticallySplitView";
 
 enum LayoutModes {
@@ -92,6 +92,7 @@ export default function LayoutManager({codeEditingArea, questionArea} : {codeEdi
     <>
       <div>
         {renderLayoutOperation()}
+        <div className="mt-5 mb-5"/>
         {renderLayoutMode()}
       </div>
     </>
