@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChatBubbleIcon, Cross1Icon } from "@radix-ui/react-icons";
+import { ChatBubbleIcon, Cross1Icon, ArrowDownIcon } from "@radix-ui/react-icons";
 import ChatBubble from "./ChatBubble";
 import { Input } from "@/components/ui/input";
 import { SendIcon } from "lucide-react";
@@ -22,6 +22,8 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const [messageInInputBox, setMessageInInputBox] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(true);
 
   const addChatMessage = (newMessage: ChatMessage) => {
     const newChatMessages = chatMessages.concat(newMessage);
@@ -43,6 +45,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     socket.once("receive-chat-message", (chatMessage : ServerSideChatMessage) => {
       const isSelf = chatMessage.userId === auth.id;
       addChatMessage({message: chatMessage.message, isSelf: isSelf});
+      window.setTimeout(calculateShouldDisplayGoToBottomButton, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
     })
   })
 
@@ -50,12 +53,13 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     if (socket === null) {
       return;
     }
-    if(messageInInputBox === "") {
+    if (messageInInputBox === "") {
       return;
     }
     socket.emit("send-chat-message", {message: messageInInputBox, userId: auth.id});
     addChatMessage({message: messageInInputBox, isSelf: true});
     setMessageInInputBox("");
+    window.setTimeout(chatMessageContainerScrollToButtom, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
   }
 
   const renderChattingButton = () => {
@@ -71,6 +75,21 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     );
   }
 
+  const calculateShouldDisplayGoToBottomButton = () => {
+    if (!messageContainerRef.current) {
+      return;
+    }
+    const isAtBottomOfContainer = messageContainerRef.current.scrollTop + messageContainerRef.current.clientHeight < messageContainerRef.current.scrollHeight;
+    setDisplayGoToBottomButton(isAtBottomOfContainer);
+  }
+
+  const chatMessageContainerScrollToButtom = () => {
+    if (!messageContainerRef.current) {
+      return;
+    }
+    messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight - messageContainerRef.current.clientHeight;
+  }
+
   const renderChattingPanel = () => {
     return(
       <>
@@ -79,9 +98,19 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
             <p className="text-white">Chat with {otherUserName}</p>
             <Button className="bg-red-300 hover:bg-red-200" onClick={() => setDisplayChattingPanel(false)}><Cross1Icon/></Button>
           </div>
-          <div className="flex flex-col w-full h-[calc(100%-5.5rem)] overflow-y-auto">
-            {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} isSelf={chatMessage.isSelf}/>)}
+          <div ref={messageContainerRef} onScroll={() => calculateShouldDisplayGoToBottomButton()} className="w-full h-[calc(100%-5.5rem)] overflow-y-auto">
+            <div className="flex flex-col">
+              {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} isSelf={chatMessage.isSelf}/>)}
+            </div>
+            {displayGoToBottomButton && 
+              (
+                <div onClick={() => chatMessageContainerScrollToButtom()} className="sticky bottom-[0%] left-full m-2 bg-blue-500 opacity-50 w-16 h-16 rounded-full cursor-pointer flex justify-center items-center text-white">
+                  <ArrowDownIcon className="w-1/2 h-1/2" />
+                </div>
+              )
+            }
           </div>
+          
           <form onSubmit={e =>{e.preventDefault(); sendChatMessage()}} className="flex flex-row space-x-2 w-full h-12 mt-5 p-2">
             <Input className="bg-white" onChange={e => setMessageInInputBox(e.target.value)} value={messageInInputBox} placeholder="Enter your message here..."/>
             <Button className="btngreen" onClick={() => sendChatMessage()}><SendIcon/></Button>
