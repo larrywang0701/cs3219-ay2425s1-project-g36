@@ -21,10 +21,14 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const [displayChattingPanel, setDisplayChattingPanel] = useState(true);
   const [messageInInputBox, setMessageInInputBox] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   const addChatMessage = (newMessage: ChatMessage) => {
     const newChatMessages = chatMessages.concat(newMessage);
     setChatMessages(newChatMessages);
+    if(!displayChattingPanel) {
+      setHasUnreadMessages(true);
+    }
   }
 
   const { auth } = useAuth();
@@ -58,8 +62,9 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     return (
       <>
         <div className="absolute bottom-20 left-20 w-20 h-20 pointer-events-auto">
-          <Button className="bg-blue-400 hover:bg-blue-300 w-full h-full rounded-full" onClick={()=>setDisplayChattingPanel(true)}>
-            <ChatBubbleIcon className="w-3/4 h-3/4" />
+          <Button className="relative bg-blue-400 hover:bg-blue-300 w-full h-full rounded-full" onClick={() => {setDisplayChattingPanel(true); setHasUnreadMessages(false);}}>
+            <ChatBubbleIcon className="w-3/4 h-3/4 text-white" />
+            {hasUnreadMessages && (<div className="absolute top-[5%] right-[5%] w-1/4 h-1/4 rounded-full bg-red-500 border-2 border-white" />)}
           </Button>
         </div>
       </>
@@ -72,13 +77,13 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
         <div className="absolute w-1/5 h-1/2 p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
           <div className="flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg pl-1">
             <p className="text-white">Chat with {otherUserName}</p>
-            <Button className="bg-red-300 hover:bg-red-200" onClick={()=>setDisplayChattingPanel(false)}><Cross1Icon/></Button>
+            <Button className="bg-red-300 hover:bg-red-200" onClick={() => setDisplayChattingPanel(false)}><Cross1Icon/></Button>
           </div>
           <div className="flex flex-col w-full h-[calc(100%-5.5rem)] overflow-y-auto">
             {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} isSelf={chatMessage.isSelf}/>)}
           </div>
           <form onSubmit={e =>{e.preventDefault(); sendChatMessage()}} className="flex flex-row space-x-2 w-full h-12 mt-5 p-2">
-            <Input className="bg-white" onChange={e=>setMessageInInputBox(e.target.value)} value={messageInInputBox} placeholder="Enter your message here..."/>
+            <Input className="bg-white" onChange={e => setMessageInInputBox(e.target.value)} value={messageInInputBox} placeholder="Enter your message here..."/>
             <Button className="btngreen" onClick={() => sendChatMessage()}><SendIcon/></Button>
           </form>
         </div>
