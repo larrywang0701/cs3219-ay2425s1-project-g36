@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { getUserById } from "@/api/user-service/UserService";
-import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
+import { getCollabInfo, isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import { User } from "@/api/user-service/User";
 
 export default function CollaborationPage() {
@@ -115,21 +115,11 @@ export default function CollaborationPage() {
     )
   }
 
-  // When user ends session, remove user from collabStore
-  const endSession = async () => {
-    try {
-      await removeUserFromCollabStore(auth.id)
-      navigate("/matching/start")
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  if (roomId == null) {
+  if (roomId === null || questionId === null) {
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
-          You are at an invalid document ID for collaborating
+          Invalid collaboration arguments. Please try matching again.
         </h2>
         <div className="flex justify-center">
           <Button className="btnblack">
@@ -150,9 +140,9 @@ export default function CollaborationPage() {
           <PageTitle>You are now collaborating with {matchedUser.username}.</PageTitle>
           <LayoutManager
             codeEditingArea={<CodeEditingArea roomId={roomId}/>}
-            questionArea={<QuestionArea questionId={questionId || "72"}/>}
+            questionArea={<QuestionArea questionId={questionId}/>}
           />
-          <Button variant="destructive" className="ml-auto" onClick={endSession}>End session</Button>
+          <ChattingOverlay otherUserName={matchedUser.username} />
         </CollaborationContextProvider>
       </MainContainer>
     </>

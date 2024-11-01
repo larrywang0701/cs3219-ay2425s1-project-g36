@@ -46,7 +46,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   const languageSelectionPanel = () => {
     return (
         <>
-        <div className="flex shadow-md p-3 absolute top-0 left-full rounded-lg bg-white bg-opacity-80 z-10 ml-2 max-h-56 overflow-y-auto">
+        <div className="flex shadow-md p-3 absolute top-full left-0 rounded-lg bg-white bg-opacity-80 z-10 mt-2 max-h-56 overflow-y-auto">
           <div>
             {
               function () {
@@ -106,6 +106,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   // or creates a new one. Then, load the raw code to the code editor.
   useEffect(() => {
     if (socket === null) return
+    if (rawCode !== "") return; // To make sure that the code in the editor doesn't lost when the user switches view in the collaboration frontend
     socket.once('load-document', rawCode => {
       setRawCode(rawCode);
     })
@@ -188,7 +189,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
                   </DropdownMenu>
                 </div>
                 <div className="flex flex-row items-center mt-1 mb-1">
-                  <p>Warp:&nbsp;</p><Checkbox onCheckedChange={checked=>{setEditorSettings({...editorSettings, warp: checked as boolean});}} checked={editorSettings.warp}/>
+                  <p>Wrap:&nbsp;</p><Checkbox onCheckedChange={checked=>{setEditorSettings({...editorSettings, wrap: checked as boolean});}} checked={editorSettings.wrap}/>
                 </div>
               </div>
             )}
@@ -203,7 +204,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
           width="100%"
           height="1000px"
           fontSize={editorSettings.fontSize}
-          wrapEnabled={editorSettings.warp}
+          wrapEnabled={editorSettings.wrap}
           theme={editorSettings.theme.internalName}
         />
       </div>
