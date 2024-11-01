@@ -17,6 +17,10 @@ type ServerSideChatMessage = {
   message: string,
 }
 
+/**
+ * The chatting overlay component. This is a full-screen overlay on the top layer of the frontend contains the UI for chatting feature.
+ * @param otherUserName The other user's name to chat to. It will be displayed in the title of the chatting panel.
+ */
 export default function ChattingOverlay({otherUserName} : {otherUserName : string}) {
   const [displayChattingPanel, setDisplayChattingPanel] = useState(true);
   const [messageInInputBox, setMessageInInputBox] = useState("");
@@ -25,6 +29,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(true);
 
+  // Add a chat message to the frontend
   const addChatMessage = (newMessage: ChatMessage) => {
     const newChatMessages = chatMessages.concat(newMessage);
     setChatMessages(newChatMessages);
@@ -38,6 +43,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const { socketState } = useCollaborationContext();
   const { socket } = socketState;
 
+  // Recevie chat messages from the backend
   useEffect(()=>{
     if (socket === null) {
       return;
@@ -49,6 +55,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     })
   })
 
+  // Send chat message in the input box
   const sendChatMessage = () => {
     if (socket === null) {
       return;
@@ -62,6 +69,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     window.setTimeout(chatMessageContainerScrollToButtom, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
   }
 
+  // Render the chatting button that is used for opening the chatting panel
   const renderChattingButton = () => {
     return (
       <>
@@ -75,6 +83,8 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     );
   }
 
+  // Calculate whether the frontend should display "go to bottom" button or not.
+  // The frontend will display "go to bottom" button when the chat message container isn't scrolled to the bottom.
   const calculateShouldDisplayGoToBottomButton = () => {
     if (!messageContainerRef.current) {
       return;
@@ -83,6 +93,8 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     setDisplayGoToBottomButton(isAtBottomOfContainer);
   }
 
+  // Scroll the chat message container to the bottom (go to the latest message)
+  // This will be called when the user clicks "go to bottom" button or the (local) user sends a new message.
   const chatMessageContainerScrollToButtom = () => {
     if (!messageContainerRef.current) {
       return;
@@ -90,6 +102,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight - messageContainerRef.current.clientHeight;
   }
 
+  // Render the chatting panel
   const renderChattingPanel = () => {
     return(
       <>

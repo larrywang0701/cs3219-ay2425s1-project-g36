@@ -1,5 +1,10 @@
 import { PersonIcon } from "@radix-ui/react-icons";
 
+/**
+ * The component for a single chat bubble
+ * @param text The chat message content
+ * @param isSelf Determine whether the chat message is sent by the current (local) user who is using the frontend or not.
+ */
 export default function ChatBubble({text, isSelf} : {text : string, isSelf : boolean}) {
   return(
     <>
