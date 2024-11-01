@@ -7,7 +7,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { AceEditorThemes } from "./AceEditorThemes";
-import { io } from "socket.io-client";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { DEFAULT_CODE_EDITOR_SETTINGS } from "./CodeEditorSettings";
 import { useEffect } from "react";
@@ -41,7 +40,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     editorSettingValueBuffer, setEditorSettingValueBuffer
   } = codeEditingAreaState;
 
-  const {socket, setSocket} = socketState;
+  const { socket } = socketState;
 
   const languageSelectionPanel = () => {
     return (
@@ -92,15 +91,6 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     if(!socket) return;
     socket.emit('send-changes', rawCode);
   }
-    
-  // connects to socket upon component mount
-  useEffect(() => {
-    const s = io("http://localhost:3001")
-    setSocket(s)
-    return () => {
-      s.disconnect()
-    }
-  }, [])
 
   // upon entering the collaboration page, socket retrieves the document from db (if exists)
   // or creates a new one. Then, load the raw code to the code editor.
