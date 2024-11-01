@@ -102,7 +102,7 @@ export default function CollaborationPage() {
     return (
       <MainContainer className="px-4 text-center gap-3 flex flex-col">
         <h2 className="text-2xl">
-          There is some error when entering the collaboration page
+          It seems like you are not in a valid collaboration environment. Please try matching again.
         </h2>
         <div className="flex justify-center">
           <Button className="btnblack">
