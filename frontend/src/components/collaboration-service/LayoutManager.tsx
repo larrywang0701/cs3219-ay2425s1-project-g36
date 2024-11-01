@@ -81,7 +81,7 @@ export default function LayoutManager({codeEditingArea, questionArea} : {codeEdi
   const renderLayoutOperation = () => {
     return (
       <>
-        <div id="123abc" className="flex flex-row space-x-5">
+        <div className="flex flex-row space-x-5">
           {getLayoutMenuOperationButtons()}
         </div>
       </>
