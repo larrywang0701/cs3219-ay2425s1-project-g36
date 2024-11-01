@@ -27,7 +27,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(true);
+  const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(false);
 
   // Add a chat message to the frontend
   const addChatMessage = (newMessage: ChatMessage) => {
