@@ -59,6 +59,37 @@ router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
     }
 });
 
+// Retrieve a question randomly based on difficulty and topic
+router.post('/filter', async (req: Request, res: Response) => {
+    const { difficulties, topics } = req.body;
+
+    // Parse comma-separated query strings into arrays if necessary
+    const topicList = typeof topics === 'string' ? topics.split(',') : [];
+    const difficultyList = typeof difficulties === 'string' ? difficulties.split(',') : [];
+    try {
+        // Query questions from MongoDB based on difficulty and topic criteria
+        const questions = await Question.find({
+            $and: [
+                { topics: { $in: topicList } },               // Matches documents with specified topic
+                { difficulty: { $in: difficultyList } }    // Matches documents with specified difficulty
+            ]
+        });
+
+        // Randomly select a question ID from the queried results
+        if (questions.length === 0) {
+            return res.status(404).json({ message: "No questions found for the given criteria." });
+        }
+
+        // Select a random question from the list
+        const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+        console.log("question", randomQuestion)
+        res.status(200).json({ questionId: randomQuestion._id });
+    } catch (error) {
+        console.error("Error in route handler:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 // create a question
 router.post("/", async (req: Request, res: Response): Promise<Response> => {
     const question = req.body;

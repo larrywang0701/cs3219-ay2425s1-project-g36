@@ -106,11 +106,12 @@ export default function LoginForm(){
                     sendLoginRequest(emailAddress, password, "").then(response => {
                         const isLoginSuccess = response.status === 200;
                         const isAdmin = response.userInfo?.isAdmin;
+                        const id = response.userInfo?.id;
                         const email = response.userInfo?.email;
                         const username = response.userInfo?.username;
                         const token = response.userInfo?.token;
                         if(isLoginSuccess) {
-                            login(token, username, email, isAdmin);
+                            login(token, id, username, email, isAdmin);
                             navigate("/");
                         } else {
                             navigate("/login");
