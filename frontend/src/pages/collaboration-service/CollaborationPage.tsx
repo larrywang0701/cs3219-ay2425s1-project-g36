@@ -93,42 +93,29 @@ export default function CollaborationPage() {
     fetchQues()
   }, [questionId])
 
-  if (roomId == null || matchedUser == null || question == null) {
+  if (roomId === null || matchedUser === null || questionId === null || question == null) {
     console.log('one of the below is null')
     console.log(`roomId: ${roomId}`)
     console.log(`matchedUser: ${matchedUser}`)
+    console.log(`questionId: ${questionId}`)
     console.log(`question: ${question}`)
 
     return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
+      <>
+        <PageHeader />
+        <MainContainer className="px-4 text-center gap-3 flex flex-col">
+          <h2 className="text-2xl">
           It seems like you are not in a valid collaboration environment. Please try matching again.
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
-    )
-  }
-
-  if (roomId === null || questionId === null) {
-    return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
-          Invalid collaboration arguments. Please try matching again.
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
+          </h2>
+          <div className="flex justify-center">
+            <Button className="btnblack">
+              <Link to="/questions">
+                Go back to question list
+              </Link>
+            </Button>
+          </div>
+        </MainContainer>
+      </>
     )
   }
 

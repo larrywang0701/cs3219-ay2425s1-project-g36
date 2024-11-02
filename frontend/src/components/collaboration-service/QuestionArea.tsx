@@ -62,7 +62,7 @@ export default function QuestionArea({questionId} : {questionId : string}) {
           <div className="text-2xl font-bold">{question.title}</div>
           <hr className="mt-2 mb-2"/>
           <div className="text-sm">{question.description}</div>
-          <Button variant="destructive" className="bg-red-500 mt-16 hover:bg-red-300 ml-auto text-white" onClick={endSession}>End session</Button>
+          <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
         </div>
       </div>
     </>

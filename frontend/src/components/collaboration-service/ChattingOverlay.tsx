@@ -106,14 +106,14 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
   const renderChattingPanel = () => {
     return(
       <>
-        <div className="absolute w-1/5 h-1/2 p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
+        <div className="absolute w-1/5 h-1/2 min-w-[300px] p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
           <div className="flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg pl-1">
             <p className="text-white">Chat with {otherUserName}</p>
             <Button className="bg-red-300 hover:bg-red-200" onClick={() => setDisplayChattingPanel(false)}><Cross1Icon/></Button>
           </div>
           <div ref={messageContainerRef} onScroll={() => calculateShouldDisplayGoToBottomButton()} className="w-full h-[calc(100%-5.5rem)] overflow-y-auto">
             <div className="flex flex-col">
-              {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} isSelf={chatMessage.isSelf}/>)}
+              {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} userName={chatMessage.isSelf ? auth.username : otherUserName} isSelf={chatMessage.isSelf}/>)}
             </div>
             {displayGoToBottomButton && 
               (

@@ -95,12 +95,20 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   // upon entering the collaboration page, socket retrieves the document from db (if exists)
   // or creates a new one. Then, load the raw code to the code editor.
   useEffect(() => {
-    if (socket === null) return
     if (rawCode !== "") return; // To make sure that the code in the editor doesn't lost when the user switches view in the collaboration frontend
-    socket.once('load-document', rawCode => {
-      setRawCode(rawCode);
-    })
-    socket.emit('get-document', roomId)
+    const retryTimeout = 200; // Because the websocket requires time to connect, so here the frontend will retry again and again based on the timeout when the websocket is not connect, to make sure that the frontend will wait for the websocket to connect before getting code from backend.
+    const getCodeFromBackend = () => {
+      if (socket === null || !socket.connected) {
+        window.setTimeout(getCodeFromBackend, retryTimeout);
+        return;
+      }
+      socket.on('load-document', rawCode => {
+        console.log("code: " + (rawCode===undefined ? "undefined" : rawCode));
+        setRawCode(rawCode);
+      })
+      socket.emit('get-document', roomId)
+    }
+    window.setTimeout(getCodeFromBackend, retryTimeout);
   }, [socket, roomId])
 
     // saves changes to db every 2 seconds
@@ -117,7 +125,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   // whenever socket receives changes, update the code in the editor.
   useEffect(() => {
     if (socket === null) return
-    const handler = (rawCode: any) => {
+    const handler = (rawCode: string) => {
       setRawCode(rawCode);
     }
 
@@ -192,7 +200,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
           mode={currentlySelectedLanguage.aceEditorModeName}
           onFocus={()=>{setDisplayLanguageSelectionPanel(false);setDisplayEditorSettingsPanel(false)}}
           width="100%"
-          height="1000px"
+          height="800px"
           fontSize={editorSettings.fontSize}
           wrapEnabled={editorSettings.wrap}
           theme={editorSettings.theme.internalName}
