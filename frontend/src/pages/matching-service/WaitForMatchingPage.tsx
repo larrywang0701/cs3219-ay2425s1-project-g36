@@ -1,5 +1,4 @@
 import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/matching-service/MatchingService";
-import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
