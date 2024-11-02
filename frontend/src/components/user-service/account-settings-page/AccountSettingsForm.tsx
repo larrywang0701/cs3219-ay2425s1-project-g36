@@ -1,5 +1,5 @@
 import PageTitle from "@/components/common/PageTitle";
-import { useState } from "react";
+import React, { useState } from "react";
 import EmailInputField from "./EmailInputField";
 import UsernameInputField from "./UsernameInputField";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 import { updateAccount } from "@/api/user-service/UserService";
 import { DisplayedMessageContainer, DisplayedMessage, DisplayedMessageTypes } from "@/components/common/DisplayedMessage";
+import AdjustPrivilegesDialog from "./AdjustPrivilegesDialog";
 
 export default function AccountSettingsForm() {
 
@@ -61,11 +62,19 @@ export default function AccountSettingsForm() {
         }
     }
 
+    function AccountSettingsHeader({ children } : { children : React.ReactNode }) {
+        return (
+            <h3 className="text-2xl font-bold leading-7 text-gray-900 sm:text-2xl sm:tracking-tight">
+                { children }
+            </h3>
+        )
+    }
+
     return (
         <section>
             <PageTitle>Account Settings</PageTitle>
             <div className="flex flex-col gap-3">
-                <h3 className="text-2xl font-bold leading-7 text-gray-900 sm:text-2xl sm:tracking-tight">General Settings</h3>
+                <AccountSettingsHeader>General Settings</AccountSettingsHeader>
                 <div className="flex gap-4">
                     <UsernameInputField
                         value={ username }
@@ -76,7 +85,13 @@ export default function AccountSettingsForm() {
                         onChange={ evt => setEmail(evt.target.value) }
                     />
                 </div>
-                <h3 className="text-2xl font-bold leading-7 text-gray-900 sm:text-2xl sm:tracking-tight">Delete Account</h3>
+                { auth.isAdmin ? <>
+                    <AccountSettingsHeader>Admin Settings</AccountSettingsHeader>
+                    <div className="flex">
+                        <AdjustPrivilegesDialog />
+                    </div>
+                </> : <></> }
+                <AccountSettingsHeader>Delete Account</AccountSettingsHeader>
                 <p>Warning: Deleting an account is irreversible and all your progress will be lost!</p>
                 <div className="flex">   
                     <DeleteAccountDialog />

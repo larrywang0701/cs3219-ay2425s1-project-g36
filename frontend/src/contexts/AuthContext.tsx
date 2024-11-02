@@ -1,5 +1,5 @@
 import { sendCancelMatchingRequest } from '@/api/matching-service/MatchingService';
-import { getUsers, sendLogoutRequest } from '@/api/user-service/UserService';
+import { getUserById, sendLogoutRequest } from '@/api/user-service/UserService';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 // authentication state
@@ -57,19 +57,25 @@ export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await getUsers();
-      if (response.status === 401) {
+      const response = await getUserById(auth.id);
+      if (response.status !== 200) {
         _logout();
+      } else {
+        const newAuthState = { 
+          isLoggedIn: true,
+          isAdmin: response.data.isAdmin,
+          id: auth.id,
+          token: response.data.token,
+          username: response.data.username,
+          email: response.data.email
+        };
+        setAuth(newAuthState);
+        saveAuthState(newAuthState);
       }
     } catch (err : any) {
       _logout();
     }
   }
-
-  // check authentication when app loads
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   const login = (token : string, id : string, username: string, email: string, isAdmin: boolean = false) => {
     const newAuthState = { isLoggedIn: true, isAdmin, id: id, token: token, username: username, email: email };
@@ -97,9 +103,17 @@ export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
     saveAuthState(newAuthState);
   }
 
-  // Effect to sync auth state changes to localStorage
+  // Effect to check and sync auth state changes to localStorage
   useEffect(() => {
+    // Set up a timer to run checkAuth after a 1000ms delay
+    const handler = setTimeout(() => {
+      checkAuth();
+    }, 1000);
+
     saveAuthState(auth);
+
+    // Clear the timeout if auth changes again before the delay ends
+    return () => clearTimeout(handler);
   }, [auth]);
 
   // update auth state across browser tabs
