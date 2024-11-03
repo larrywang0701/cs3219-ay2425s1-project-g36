@@ -1,5 +1,4 @@
 import { sendCancelMatchingRequest, sendCheckMatchingStateRequest } from "@/api/matching-service/MatchingService";
-import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
 import PageTitle from "@/components/common/PageTitle";
@@ -9,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
-const MAXIMUM_MATCHING_DURATION = 60; // in seconds
+const MAXIMUM_MATCHING_DURATION = 30; // in seconds
 const CHECK_MATCHING_STATE_INTERVAL = 500; // in milliseconds
 
 export default function WaitForMatchingPage() {
@@ -17,7 +16,6 @@ export default function WaitForMatchingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { auth } = useAuth();
-  // const [timer, setTimer] = useState(MAXIMUM_MATCHING_DURATION);
   const checkMatchingStateNetworkErrorCount = useRef(0);
   const MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT = 60;
   const pathname = location.pathname;
@@ -28,63 +26,61 @@ export default function WaitForMatchingPage() {
   const difficultiesStr = parameters.get("difficulties");
   const topicsStr = parameters.get("topics");
 
-  // Runs every second to decrement the timer
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     setTimer((prevTimer) => {
-  //       if (prevTimer >= -10) {
-  //         return prevTimer - 1;
-  //       } else {
-  //         clearInterval(intervalId);
-  //         return 0;
-  //       }
-  //     });
-  //   }, 1000);
-
-  //   return () => clearInterval(intervalId);
-  // }, []);
-
-  const checkMatchingState = async () => {
+  /**
+   * Check the matching state for the user every 0.5 seconds.
+   * 
+   * If the user is matched, navigate to the get ready page.
+   * If the user is not matched yet, do nothing.
+   * Else, navigate to the failed matching page with the respective error message.
+   */
+  const checkMatchingState = () => {
     console.log("checking matching state");
-    
-    // Check if the pathname has changed
-    if (location.pathname !== pathname) {
-        cancelMatching();
-        console.log("matching cancelled due to leaving page");
-        return;
+    // If the user navigates away manually, cancel the matching
+    if(location.pathname !== pathname) {
+      cancelMatching();
+      console.log("matching cancelled due to leaving page");
+      return;
     }
 
-    // Send request to check matching state
-    const response = await sendCheckMatchingStateRequest(auth.id);
-    
-    if (response.status === 200) {
-        console.log('2 users are matched')
-        cancelMatching(false);
-        navigate("/collaboration");
-    } else if (response.status === 202) {
-        console.log("matching...");
-    } else if (response.message === "ERR_NETWORK") {
-        checkMatchingStateNetworkErrorCount.current++;
-        if (checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
+    // Send a request to the backend to check the matching state
+    sendCheckMatchingStateRequest(auth.id).then(
+      response => {
+        if(response.status === 200) {
+          // If the user is matched, navigate to the confirmation page
+          console.log("match found!");
+          cancelMatching(false);
+          navigate(`../matching/get_ready?difficulties=${difficultiesStr}&topics=${topicsStr}`);
+
+        } else if (response.status === 202) {
+          // If the user is still waiting for a match, do nothing
+          console.log("matching...");
+
+        } else if (response.message === "ERR_NETWORK") {
+          // If there is a network error, try again
+          checkMatchingStateNetworkErrorCount.current++;
+          if(checkMatchingStateNetworkErrorCount.current >= MAXIMUM_CHECK_MATCHING_STATE_NETWORK_ERROR_COUNT) {
             cancelMatching(false);
             console.log("matching cancelled due to network error");
             navigate(`../matching/failed?message=Network error, please check your network and try again.&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+          }
+        
+        } else {
+          // If there is a backend error, navigate to the failed matching page
+          cancelMatching();
+          console.log("matching cancelled due to backend error");
+          navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
         }
-    } else {
-        cancelMatching();
-        console.log("matching cancelled due to backend error");
-        navigate(`../matching/failed?message=${response.message}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
-    }
-  };
+      }
+    );
+  }
 
-
-  // const cancelMatching = useCallback(() => {
-  //   sendCancelMatchingRequest(auth.token).then(() => {
-  //     navigate("/matching/start");
-  //   });
-  // }, [auth.token, navigate]);
-
-  const cancelMatching = (sendCancellationRequest : boolean = true) => {
+  /**
+   * Cancels the matching process by clearing the intervals.
+   * If the matching has to be cancelled in the backend, send a request to do so.
+   * 
+   * @param isCancelled Whether the matching has to be cancelled in the backend
+   */
+  const cancelMatching = (isCancelled : boolean = true) => {
     console.log("cancel matching");
     if(checkMatchingStateIntervalID.current !== null) {
       window.clearInterval(checkMatchingStateIntervalID.current);
@@ -92,7 +88,7 @@ export default function WaitForMatchingPage() {
     if(endMatchingTimerIntervalID.current !== null) {
       window.clearInterval(endMatchingTimerIntervalID.current);
     }
-    if(sendCancellationRequest) {
+    if(isCancelled) {
       sendCancelMatchingRequest(auth.id);
     }
     navigate("../matching/start");
@@ -111,6 +107,10 @@ export default function WaitForMatchingPage() {
     return unlisten; 
   }, [location, cancelMatching]);
 
+  /**
+   * Updates the end matching timer every second.
+   * If the timer reaches 0, cancel the matching and navigate to the failed matching page.
+   */
   const updateEndMatchingTimer = () => {
     setEndMatchingTimer(val => {
       if(val - 1 <= 0) {
@@ -132,46 +132,13 @@ export default function WaitForMatchingPage() {
     }
   }, []);
 
-  // return (
-  //   <>
-  //     <PageHeader />
-  //     <MainContainer>
-  //       <div className="flex flex-col space-y-5 justify-center items-center">
-  //         <PageTitle>Please wait for a moment...</PageTitle>
-  //         <div>
-  //           Searching for students who also want to do <b>{difficultiesStr}</b>{" "}
-  //           questions with topics <b>{topicsStr}</b>.
-  //         </div>
-  //         <div>
-  //           <div className="h-10" />
-  //           <SpinningCircle>
-  //             <div className="text-2xl">{timer}</div>
-  //           </SpinningCircle>
-  //           <div className="h-10" />
-  //         </div>
-  //         <div className="flex justify-center mt-20">
-  //           <Button
-  //             className="bg-red-500 text-white hover:bg-gray-500"
-  //             onClick={cancelMatching}
-  //           >
-  //             Cancel matching
-  //           </Button>
-  //         </div>
-  //       </div>
-  //     </MainContainer>
-  //   </>
-  // );
-
   return (
     <>
       <PageHeader />
       <MainContainer>
         <div className="flex flex-col space-y-5 justify-center items-center">
           <PageTitle>Please wait for a moment...</PageTitle>
-          {/* {peerNotReady === "true" && (
-            <div className="text-red-500">Because the other user you've just matched with didn't get ready in time, now we are retry matching for you.</div>
-          )} */}
-          <div>Searching for students who also want to do <b>{difficultiesStr}</b> questions with topics <b>{topicsStr}</b>.</div>
+          <div>Searching for other users who also want to do <b>{difficultiesStr}</b> questions with topics <b>{topicsStr}</b>.</div>
           <div>
             <div className="h-10" />
             <SpinningCircle>
