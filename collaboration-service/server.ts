@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
+import { ProgrammingLanguage } from './src/models/ProgrammingLanguage'
 
 import routes from './src/routes/collabRoute'
 
@@ -62,7 +63,12 @@ io.on("connection", socket => {
 
             socket.on('run-code', (runCodeResult: string) => {
                 // when server receives the new runCodeResult, broadcast to the document the result
-                socket.broadcast.to(documentId).emit("run-code-result", runCodeResult)
+                socket.broadcast.to(documentId).emit('run-code-result', runCodeResult)
+            })
+
+            socket.on('change-prog-language', (progLanguage: ProgrammingLanguage) => {
+                // when server receives the new programming language, broadcast to the document the new language
+                socket.broadcast.to(documentId).emit('update-prog-language', progLanguage)
             })
         }
     })

@@ -1,7 +1,7 @@
 import AceEditor from "react-ace";
 import { Button } from "../ui/button";
 import LanguageSelectionButton from "./LanguageSelectionButton";
-import { ProgrammingLanguages } from "./ProgrammingLanguages";
+import { ProgrammingLanguage, ProgrammingLanguages } from "./ProgrammingLanguages";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { AceEditorThemes } from "./AceEditorThemes";
 import { io } from "socket.io-client";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { DEFAULT_CODE_EDITOR_SETTINGS } from "./CodeEditorSettings";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 // Ace Editor Modes
 import "ace-builds/src-noconflict/mode-c_cpp";
@@ -43,6 +44,8 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   } = codeEditingAreaState;
 
   const {socket, setSocket} = socketState;
+  const isLanguageChangeFromServer = useRef(false);
+  const { toast } = useToast();
 
   const languageSelectionPanel = () => {
     return (
@@ -154,6 +157,41 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     }
 
     socket.on('run-code-result', handler)
+    return () => {
+      socket.off('run-code-result', handler)
+    }
+
+  }, [socket])
+
+  // whenever user changes language, send the new language to the server
+  useEffect(() => {
+    if (socket === null || isLanguageChangeFromServer.current) {
+      // to prevent infinite loop between 'change-prog-language' and 'update-prog-language' events
+      isLanguageChangeFromServer.current = false
+      return
+    }
+    
+    socket.emit('change-prog-language', currentlySelectedLanguage)
+  }, [currentlySelectedLanguage])
+
+  // whenever socket receives the updated programming language, update currentlySelectedLanguage
+  useEffect(() => {
+    if (socket === null) return
+    const handler = (updatedLanguage: ProgrammingLanguage) => {
+      isLanguageChangeFromServer.current = true
+      setCurrentSelectedLanguage(updatedLanguage)
+
+      toast({
+        description: `Language has changed to ${updatedLanguage.name}`,
+        duration: 2500,
+        className: "bg-gray-800 text-white",
+      });
+    }
+
+    socket.on('update-prog-language', handler)
+    return () => {
+      socket.off('update-prog-language', handler)
+    }
 
   }, [socket])
 
