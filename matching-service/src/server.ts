@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { FRONTEND_ADDRESS, PORT } from "./config";
-import MatchingRoute from "./routes/routes";
+import MatchingRoute from "./routes/matchingRoute";
 import { initializeConsumer, startConfirmation, startMatching } from "./controllers/matchingController";
 import cookieParser from 'cookie-parser';
 

@@ -9,9 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const MAXIMUM_CONFIRMATION_DURATION = 5; // in seconds
+const MAXIMUM_CONFIRMATION_DURATION = 10; // in seconds
 const CHECK_CONFIRMATION_STATE_INTERVAL = 500; // in milliseconds
-const MAXIMUM_CHECK_CONFIRMATION_STATE_NETWORK_ERROR_COUNT = 10;
+const MAXIMUM_CHECK_CONFIRMATION_STATE_NETWORK_ERROR_COUNT = 20;
 
 export default function GetReadyPage() {
   const pathname = location.pathname;

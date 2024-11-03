@@ -22,7 +22,7 @@ const confirmationConsumer = kafka.consumer({ groupId: "confirmation" });
 const producer = kafka.producer();
 
 const TIMEOUT_DURATION = 30000; // Timeout set for 30 seconds
-const CONFIRMATION_DURATION = 6000; // Confirmation timeout set for 6 seconds to prevent backend from being faster than frontend
+const CONFIRMATION_DURATION = 11000; // Confirmation timeout set for 11 seconds to prevent backend from being faster than frontend
 
 // Main function to initialize and run the consumer
 export async function initializeConsumer() {
