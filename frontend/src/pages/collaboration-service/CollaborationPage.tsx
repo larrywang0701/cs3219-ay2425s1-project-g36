@@ -3,7 +3,6 @@ import CodeEditingArea from "@/components/collaboration-service/CodeEditingArea"
 import QuestionArea from "@/components/collaboration-service/QuestionArea";
 import PageTitle from "@/components/common/PageTitle";
 import { useEffect, useState } from "react";
-import { Question } from "@/api/question-service/Question";
 import { fetchQuestion } from "@/api/question-service/QuestionService";
 import MainContainer from "@/components/common/MainContainer";
 import PageHeader from "@/components/common/PageHeader";
@@ -12,7 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { getUserById } from "@/api/user-service/UserService";
 import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
-import { User } from "@/api/user-service/User";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { executeCodeInSandboxEnvironment, getCreditsSpent } from "@/api/collaboration-service/CollaborationService";
 
@@ -24,11 +22,12 @@ export default function CollaborationPage() {
   const { auth } = useAuth()
   const navigate = useNavigate();
 
-  const [matchedUser, setMatchedUser] = useState<User | null>(null)
-  const [question, setQuestion] = useState<Question | null>(null)
-
-  const { codeEditingAreaState } = useCollaborationContext();
+  const { codeEditingAreaState, matchedUserState, questionAreaState } = useCollaborationContext();
+  
   const { rawCode, setRunCodeResult, currentlySelectedLanguage } = codeEditingAreaState;
+  const { matchedUser, setMatchedUser } = matchedUserState
+  const { question, setQuestion } = questionAreaState
+
   
   // When user enters this page, check if his ID is in collabStore. If isn't, block the user from entering this page
   useEffect(() => {
@@ -86,8 +85,9 @@ export default function CollaborationPage() {
       if (questionId === null) return
 
       try {
-        const q = await fetchQuestion(questionId)
-        setQuestion(q)
+        const ques = await fetchQuestion(questionId)
+        if (ques === null) return
+        setQuestion(ques)
       } catch (error) {
         console.error(error)
       }

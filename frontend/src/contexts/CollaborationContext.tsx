@@ -4,6 +4,7 @@ import { ProgrammingLanguage, ProgrammingLanguages } from "@/components/collabor
 import { PLACEHOLDER_LOADING_QUESTION } from "@/components/collaboration-service/QuestionArea";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { Socket } from "socket.io-client";
+import { User } from "@/api/user-service/User";
 
 type CodeEditingAreaStateType = {
   displayLanguageSelectionPanel: boolean,
@@ -32,10 +33,16 @@ type SocketStateType = {
   setSocket: React.Dispatch<React.SetStateAction<Socket | null>>,
 }
 
+type MatchedUserType = {
+  matchedUser: User | null
+  setMatchedUser: React.Dispatch<React.SetStateAction<User | null>>,
+}
+
 type CollaborationContextType = {
   codeEditingAreaState: CodeEditingAreaStateType,
   questionAreaState: QuestionAreaStateType,
-  socketState: SocketStateType
+  socketState: SocketStateType,
+  matchedUserState: MatchedUserType
 }
 
 
@@ -50,6 +57,7 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
   const [runCodeResult, setRunCodeResult] = useState<string>("No code has been executed yet");
   const [editorSettings, setEditorSettings] = useState<CodeEditorSettings>(DEFAULT_CODE_EDITOR_SETTINGS);
   const [editorSettingValueBuffer, setEditorSettingValueBuffer] = useState<{[key:string] : string}>({}); // The buffer for holding the settings value that user just input into the settings panel. The values in this buffer are unparsed, so it may include invalid values. Only valid values will be assigned into the actual editor settings.
+  
   const codeEditingAreaState: CodeEditingAreaStateType =
   {
     displayLanguageSelectionPanel, setDisplayLanguageSelectionPanel,
@@ -71,8 +79,13 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
     socket, setSocket
   }
 
+  const [matchedUser, setMatchedUser] = useState<User | null>(null)
+  const matchedUserState: MatchedUserType = {
+    matchedUser, setMatchedUser
+  }
+
   return (
-      <CollaborationContext.Provider value={{codeEditingAreaState, questionAreaState, socketState}}>
+      <CollaborationContext.Provider value={{codeEditingAreaState, questionAreaState, socketState, matchedUserState}}>
         {children}
       </CollaborationContext.Provider>
     );

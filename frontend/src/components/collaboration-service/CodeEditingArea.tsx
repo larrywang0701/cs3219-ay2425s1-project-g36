@@ -32,7 +32,8 @@ import "ace-builds/src-noconflict/theme-terminal";
 const SAVE_INTERVAL_MS = 2000;
 
 export default function CodeEditingArea({ roomId }: { roomId: string }) {
-  const { codeEditingAreaState, socketState } = useCollaborationContext();
+  const { codeEditingAreaState, socketState, matchedUserState } = useCollaborationContext();
+
   const {
     displayLanguageSelectionPanel, setDisplayLanguageSelectionPanel,
     displayEditorSettingsPanel, setDisplayEditorSettingsPanel,
@@ -44,6 +45,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   } = codeEditingAreaState;
 
   const {socket, setSocket} = socketState;
+  const { matchedUser } = matchedUserState 
   const isLanguageChangeFromServer = useRef(false);
   const { toast } = useToast();
 
@@ -182,7 +184,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
       setCurrentSelectedLanguage(updatedLanguage)
 
       toast({
-        description: `Language has changed to ${updatedLanguage.name}`,
+        description: `${matchedUser?.username} has changed the prog language to ${updatedLanguage.name}`,
         duration: 2500,
         className: "bg-gray-800 text-white",
       });
