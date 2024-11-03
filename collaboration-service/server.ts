@@ -59,6 +59,11 @@ io.on("connection", socket => {
                 // need to update database every 2 seconds
                 await DocumentModel.findByIdAndUpdate(documentId, { data })
             })
+
+            socket.on('run-code', (runCodeResult: string) => {
+                // when server receives the new runCodeResult, broadcast to the document the result
+                socket.broadcast.to(documentId).emit("run-code-result", runCodeResult)
+            })
         }
     })
 })

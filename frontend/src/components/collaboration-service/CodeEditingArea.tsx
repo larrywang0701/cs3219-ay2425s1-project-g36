@@ -38,7 +38,8 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     currentlySelectedLanguage, setCurrentSelectedLanguage,
     rawCode, setRawCode,
     editorSettings, setEditorSettings,
-    editorSettingValueBuffer, setEditorSettingValueBuffer
+    editorSettingValueBuffer, setEditorSettingValueBuffer,
+    runCodeResult, setRunCodeResult
   } = codeEditingAreaState;
 
   const {socket, setSocket} = socketState;
@@ -126,7 +127,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
   // whenever socket receives changes, update the code in the editor.
   useEffect(() => {
     if (socket === null) return
-    const handler = (rawCode: any) => {
+    const handler = (rawCode: string) => {
       setRawCode(rawCode);
     }
 
@@ -134,6 +135,25 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     return () => {
       socket.off('receive-changes', handler)
     }
+
+  }, [socket])
+
+  // whenever client clicks 'run code' and runCodeResult changes, send the result to server
+  useEffect(() => {
+    if (socket === null) return
+    
+    socket.emit('run-code', runCodeResult)
+    
+  }, [runCodeResult])
+  
+  // whenever socket receives the updated code execution result, update runCodeResult
+  useEffect(() => {
+    if (socket === null) return
+    const handler = (runCodeResult: string) => {
+      setRunCodeResult(runCodeResult)
+    }
+
+    socket.on('run-code-result', handler)
 
   }, [socket])
 

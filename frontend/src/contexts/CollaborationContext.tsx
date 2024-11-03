@@ -46,8 +46,8 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
   const [displayLanguageSelectionPanel, setDisplayLanguageSelectionPanel] = useState(false);
   const [displayEditorSettingsPanel, setDisplayEditorSettingsPanel] = useState(false);
   const [currentlySelectedLanguage, setCurrentSelectedLanguage] = useState<ProgrammingLanguage>(ProgrammingLanguages[0]);
-  const [rawCode, setRawCode] = useState("");
-  const [runCodeResult, setRunCodeResult] = useState<string>("empty string");
+  const [rawCode, setRawCode] = useState<string>("");
+  const [runCodeResult, setRunCodeResult] = useState<string>("No code has been executed yet");
   const [editorSettings, setEditorSettings] = useState<CodeEditorSettings>(DEFAULT_CODE_EDITOR_SETTINGS);
   const [editorSettingValueBuffer, setEditorSettingValueBuffer] = useState<{[key:string] : string}>({}); // The buffer for holding the settings value that user just input into the settings panel. The values in this buffer are unparsed, so it may include invalid values. Only valid values will be assigned into the actual editor settings.
   const codeEditingAreaState: CodeEditingAreaStateType =
