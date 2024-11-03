@@ -18,6 +18,8 @@ type CodeEditingAreaStateType = {
   setEditorSettings: React.Dispatch<React.SetStateAction<CodeEditorSettings>>,
   editorSettingValueBuffer: {[key : string] : string},
   setEditorSettingValueBuffer: React.Dispatch<React.SetStateAction<{[key : string] : string}>>
+  runCodeResult: string,
+  setRunCodeResult: React.Dispatch<React.SetStateAction<string>>
 }
 
 type QuestionAreaStateType = {
@@ -45,6 +47,7 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
   const [displayEditorSettingsPanel, setDisplayEditorSettingsPanel] = useState(false);
   const [currentlySelectedLanguage, setCurrentSelectedLanguage] = useState<ProgrammingLanguage>(ProgrammingLanguages[0]);
   const [rawCode, setRawCode] = useState("");
+  const [runCodeResult, setRunCodeResult] = useState<string>("empty string");
   const [editorSettings, setEditorSettings] = useState<CodeEditorSettings>(DEFAULT_CODE_EDITOR_SETTINGS);
   const [editorSettingValueBuffer, setEditorSettingValueBuffer] = useState<{[key:string] : string}>({}); // The buffer for holding the settings value that user just input into the settings panel. The values in this buffer are unparsed, so it may include invalid values. Only valid values will be assigned into the actual editor settings.
   const codeEditingAreaState: CodeEditingAreaStateType =
@@ -54,7 +57,8 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
     currentlySelectedLanguage, setCurrentSelectedLanguage,
     rawCode, setRawCode,
     editorSettings, setEditorSettings,
-    editorSettingValueBuffer, setEditorSettingValueBuffer
+    editorSettingValueBuffer, setEditorSettingValueBuffer,
+    runCodeResult, setRunCodeResult
   }
 
   const [question, setQuestion] = useState<Question>(PLACEHOLDER_LOADING_QUESTION);

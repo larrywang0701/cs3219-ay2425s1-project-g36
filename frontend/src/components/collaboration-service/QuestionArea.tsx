@@ -23,9 +23,9 @@ const PLACEHOLDER_ERROR_QUESTION : Question = {
 
 export default function QuestionArea({questionId} : {questionId : string}) {
 
-  const { questionAreaState } = useCollaborationContext();
+  const { questionAreaState, codeEditingAreaState  } = useCollaborationContext();
   const { question, setQuestion } = questionAreaState;
-
+  const { runCodeResult } = codeEditingAreaState;
   
   const getQuestion = () => {
     fetchQuestionById(questionId).then(question => setQuestion(question || PLACEHOLDER_ERROR_QUESTION));
@@ -46,6 +46,10 @@ export default function QuestionArea({questionId} : {questionId : string}) {
           <div className="text-2xl font-bold">{question.title}</div>
           <hr className="mt-2 mb-2"/>
           <div className="text-sm">{question.description}</div>
+
+          <hr className="mt-4 mb-4" />
+          <div className="text-lg font-semibold">Code Execution Result:</div>
+          <div className="text-sm text-gray-700">{runCodeResult}</div>
         </div>
       </div>
     </>
