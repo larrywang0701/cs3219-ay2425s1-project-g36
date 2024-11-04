@@ -8,6 +8,7 @@ import { sendStartMatchingRequest } from "@/api/matching-service/MatchingService
 import { useNavigate } from "react-router-dom";
 import { DisplayedMessage, DisplayedMessageContainer, DisplayedMessageTypes } from "../common/DisplayedMessage";
 import { isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
+import ProgLangField from "./ProgLangField";
 
 const HTTP_OK = 200
 const HTTP_ALREADY_EXISTS = 409
@@ -19,6 +20,7 @@ export default function StartMatchingForm() {
   const navigate = useNavigate();
 
   const [questionTopics, setQuestionTopics] = useState<string[]>([]);
+  const [progLangs, setProgLangs] = useState<string[]>([]);
   const [selectedDifficultyData, setSelectedDifficultyData] = useState<SelectedDifficultyData>(DEFAULT_SELECTED_DIFFICULTY_DATA);
   const [displayedMessage, setDisplayedMessage] = useState<DisplayedMessage | null>(null);
 
@@ -44,12 +46,17 @@ export default function StartMatchingForm() {
       displayError("You must select at least one topic.");
       return;
     }
+    if(progLangs.length === 0) {
+      displayError("You must select at least one programming language.");
+      return;
+    }
 
     const difficultiesStr = Object.entries(selectedDifficultyData).filter(val => val[1]).map(val => val[0]).join(", ");
     const topicsStr = questionTopics.join(", ");
-    navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}`);
+    const progLangsStr = progLangs.join(", ");
+    navigate(`../matching/wait?difficulties=${difficultiesStr}&topics=${topicsStr}&progLangs=${progLangsStr}`);
 
-    sendStartMatchingRequest(auth.id, auth.email, selectedDifficultyData, questionTopics).then(
+    sendStartMatchingRequest(auth.id, auth.email, selectedDifficultyData, questionTopics, progLangs).then(
       response => {
         const httpStatus = response.status;
         const errorMessage = response.message
@@ -58,7 +65,7 @@ export default function StartMatchingForm() {
         if (httpStatus === HTTP_OK) {
           // Do nothing here
         } else if (httpStatus === HTTP_ALREADY_EXISTS || httpStatus === HTTP_ERROR) {
-          navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}`);
+          navigate(`/matching/failed?message=${errorMessage}&difficulties=${difficultiesStr}&topics=${topicsStr}&progLangs=${progLangsStr}`);
         } else {
           displayError("An error has occured: \n" + response.message);
         }
@@ -79,6 +86,8 @@ export default function StartMatchingForm() {
         <DifficultySelectionBox onChange={setSelectedDifficultyData}/>
         <div className="ml-5 mr-5"/>
         <QuestionTopicsField value={questionTopics} setValue={setQuestionTopics}></QuestionTopicsField>
+        <div className="ml-5 mr-5"/>
+        <ProgLangField value={progLangs} setValue={setProgLangs}></ProgLangField>
       </div>
       <div className="flex justify-center mt-20">
         <Button className="btnblack" onClick={startMatching}>Find a match</Button>
