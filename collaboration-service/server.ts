@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import cors from 'cors'
 import { Server } from "socket.io";
 import mongoose from "mongoose";
+import { MongoServerError } from "mongodb";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
@@ -66,12 +67,23 @@ io.on("connection", socket => {
 console.log('Collaboration-service is up - Starting service')
 
 async function findOrCreateDocument(id: string): Promise<DocumentType | null> {
-    if (id == null) return null
+    if (id == null) return null;
 
-    const document = await DocumentModel.findById(id)
-    if (document) return document
-    return await DocumentModel.create({
-        _id: id,
-        data: ""
-    })
+    const document = await DocumentModel.findById(id);
+    if (document) return document;
+
+    try {
+        return await DocumentModel.create({
+            _id: id,
+            data: ""
+        });
+    } catch (error: unknown) {
+        if (error instanceof MongoServerError && error.code === 11000) {
+            // if code enters here, means the same uuid was generated twice, which by the laws of cryptography (idk), should never happen 
+            console.error("Duplicate key error, code 11000:", error.message);
+        } else {
+            console.error("Error creating document:", error);
+        }
+        return null;
+    }
 }

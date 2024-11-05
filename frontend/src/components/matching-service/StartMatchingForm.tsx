@@ -22,6 +22,8 @@ export default function StartMatchingForm() {
   const [selectedDifficultyData, setSelectedDifficultyData] = useState<SelectedDifficultyData>(DEFAULT_SELECTED_DIFFICULTY_DATA);
   const [displayedMessage, setDisplayedMessage] = useState<DisplayedMessage | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true)
+
   // If user is already collaborating with someone else, don't let the user access the matching page.
   // Bring the user to collaboration page.
   useEffect(() => {
@@ -29,6 +31,8 @@ export default function StartMatchingForm() {
       const response = await isUserInCollabStore(auth.id)
       if (response.status === 200) {
         navigate("/collaboration")
+      } else {
+        setIsLoading(false)
       }
     }
 
@@ -70,6 +74,8 @@ export default function StartMatchingForm() {
     setDisplayedMessage({message : message, type : DisplayedMessageTypes.Error});
   }
   
+  if (isLoading) return null
+
   return(
   <>
     <form onSubmit={evt => {evt.preventDefault();} } className="h-full">
