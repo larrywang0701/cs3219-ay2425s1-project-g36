@@ -13,6 +13,7 @@ import { getUserById } from "@/api/user-service/UserService";
 import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { executeCodeInSandboxEnvironment, getCreditsSpent } from "@/api/collaboration-service/CollaborationService";
+import { ProgrammingLanguage, ProgrammingLanguages } from "@/components/collaboration-service/ProgrammingLanguages";
 
 export default function CollaborationPage() {
   const [roomId, setRoomId] = useState<string | null>(null)
@@ -26,7 +27,7 @@ export default function CollaborationPage() {
 
   const { codeEditingAreaState, matchedUserState, questionAreaState } = useCollaborationContext();
   
-  const { rawCode, setRunCodeResult, currentlySelectedLanguage } = codeEditingAreaState;
+  const { rawCode, setRunCodeResult, currentlySelectedLanguage, setCurrentSelectedLanguage } = codeEditingAreaState;
   const { matchedUser, setMatchedUser } = matchedUserState
   const { question, setQuestion } = questionAreaState
 
@@ -46,6 +47,11 @@ export default function CollaborationPage() {
           setRoomId(data.roomId)
           setMatchedUserId(data.matchedUserId)
           setQuestionId(data.questionId)
+
+          // fall back to C language if this fails
+          const lang: ProgrammingLanguage = ProgrammingLanguages.find(lang => lang.name === data.progLang) || ProgrammingLanguages[0] 
+
+          setCurrentSelectedLanguage(lang)
 
         } else {
           // Means that user is not in user store, so he cannot access the collab-page
