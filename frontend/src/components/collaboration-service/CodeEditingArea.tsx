@@ -41,7 +41,8 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     rawCode, setRawCode,
     editorSettings, setEditorSettings,
     editorSettingValueBuffer, setEditorSettingValueBuffer,
-    runCodeResult, setRunCodeResult
+    runCodeResult, setRunCodeResult,
+    isCodeRunning, setIsCodeRunning
   } = codeEditingAreaState;
 
   const {socket, setSocket} = socketState;
@@ -161,6 +162,28 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     socket.on('run-code-result', handler)
     return () => {
       socket.off('run-code-result', handler)
+    }
+
+  }, [socket])
+  
+  // whenever 'isCodeRunning' state changes, send this new state to the other user
+  useEffect(() => {
+    if (socket === null) return
+    
+    socket.emit('update-isCodeRunning', isCodeRunning)
+    
+  }, [isCodeRunning])
+  
+  // whenever socket receives the updated 'isCodeRunning', update it
+  useEffect(() => {
+    if (socket === null) return
+    const handler = (isCodeRunning: boolean) => {
+      setIsCodeRunning(isCodeRunning)
+    }
+
+    socket.on('update-isCodeRunning', handler)
+    return () => {
+      socket.off('update-isCodeRunning', handler)
     }
 
   }, [socket])

@@ -62,14 +62,18 @@ io.on("connection", socket => {
                 await DocumentModel.findByIdAndUpdate(documentId, { data })
             })
 
-            socket.on('run-code', (runCodeResult: string) => {
+            socket.on('run-code', (runCodeResult: string, isCodeRunning: boolean) => {
                 // when server receives the new runCodeResult, broadcast to the document the result
-                socket.broadcast.to(documentId).emit('run-code-result', runCodeResult)
+                socket.broadcast.to(documentId).emit('run-code-result', runCodeResult, isCodeRunning)
             })
 
             socket.on('change-prog-language', (progLanguage: ProgrammingLanguage) => {
                 // when server receives the new programming language, broadcast to the document the new language
                 socket.broadcast.to(documentId).emit('update-prog-language', progLanguage)
+            })
+
+            socket.on('update-isCodeRunning', (isCodeRunning: boolean) => {
+                socket.broadcast.to(documentId).emit('update-isCodeRunning', isCodeRunning)
             })
         }
     })

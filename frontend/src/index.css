@@ -16,3 +16,8 @@ a:not(button a):not(nav a):not(div[role="menuitem"] a):not(#peerprep-header) {
 .btngreen {
   @apply bg-green-500 hover:bg-green-500/85 text-white hover:text-gray-100 !important;
 }
+
+:root {
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+}

@@ -27,7 +27,7 @@ export default function CollaborationPage() {
 
   const { codeEditingAreaState, matchedUserState, questionAreaState } = useCollaborationContext();
   
-  const { rawCode, setRunCodeResult, currentlySelectedLanguage, setCurrentSelectedLanguage } = codeEditingAreaState;
+  const { rawCode, setRunCodeResult, currentlySelectedLanguage, setCurrentSelectedLanguage, isCodeRunning, setIsCodeRunning } = codeEditingAreaState;
   const { matchedUser, setMatchedUser } = matchedUserState
   const { question, setQuestion } = questionAreaState
 
@@ -102,6 +102,42 @@ export default function CollaborationPage() {
     fetchQues()
   }, [questionId])
 
+  const handleRunCode = async () => {
+    setIsCodeRunning(true) // disables 'run code' button for both users
+    setRunCodeResult('executing code.. please be patient!') // sets temporary run code result for both users
+
+    try {
+      const run_code_response = await executeCodeInSandboxEnvironment(
+        rawCode, // script
+        "", // stdin
+        currentlySelectedLanguage.JDoodleName, // language: I have tested code for python, JS, java -> works
+        "0", // versionIndex: I (wishfully) assume all the languages we are supporting have a version of index 0
+      )
+
+      console.log('the result of executing code is: ', run_code_response.output)
+      setRunCodeResult(run_code_response.output.output);
+
+      const credits_spent_response = await getCreditsSpent()
+      console.log('credits spent today is: ', credits_spent_response.data.used)
+      console.log(`you have: ${20 - credits_spent_response.data.used} credits left for today`)
+
+    } catch (error: any) {
+      setRunCodeResult(`Error: ${error.response ? error.response.data.error : error.message}`);
+    } finally {
+      setIsCodeRunning(false)
+    }
+  };
+
+  // When user ends session, remove user from collabStore
+  const endSession = async () => {
+    try {
+      await removeUserFromCollabStore(auth.id)
+      navigate("/matching/start")
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   if (isUserLoading || isQuestionLoading) return null
 
   if (roomId == null || matchedUser == null || question == null) {
@@ -126,54 +162,6 @@ export default function CollaborationPage() {
     )
   }
 
-  // When user ends session, remove user from collabStore
-  const endSession = async () => {
-    try {
-      await removeUserFromCollabStore(auth.id)
-      navigate("/matching/start")
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  if (roomId == null) {
-    return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
-          You are at an invalid document ID for collaborating
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
-    )
-  }
-
-  const handleRunCode = async () => {
-    try {
-      const run_code_response = await executeCodeInSandboxEnvironment(
-        rawCode, // script
-        "", // stdin
-        currentlySelectedLanguage.JDoodleName, // language: I have tested code for python, JS, java -> works
-        "0", // versionIndex: I (wishfully) assume all the languages we are supporting have a version of index 0
-      )
-
-      console.log('the result of executing code is: ', run_code_response.output)
-      setRunCodeResult(run_code_response.output.output);
-
-      const credits_spent_response = await getCreditsSpent()
-      console.log('credits spent today is: ', credits_spent_response.data.used)
-      console.log(`you have: ${20 - credits_spent_response.data.used} credits left for today`)
-
-    } catch (error: any) {
-      setRunCodeResult(`Error: ${error.response ? error.response.data.error : error.message}`);
-    }
-};
-
   return (
     <>
       <PageHeader />
@@ -183,8 +171,8 @@ export default function CollaborationPage() {
           codeEditingArea={<CodeEditingArea roomId={roomId}/>}
           questionArea={<QuestionArea questionId={questionId || "72"}/>}
         />
-        <Button variant="default" className="ml-auto" onClick={endSession}>End session</Button>
-        <Button variant="default" className="ml-auto" onClick={handleRunCode}>Run code</Button>
+        <Button variant="destructive" onClick={endSession}>End session</Button>
+        <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>
     </>
   )
