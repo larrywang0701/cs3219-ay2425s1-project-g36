@@ -21,6 +21,8 @@ export default function CollaborationPage() {
 
   const { auth } = useAuth()
   const navigate = useNavigate();
+  const [isUserLoading, setIsUserLoading] = useState(true)
+  const [isQuestionLoading, setIsQuestionLoading] = useState(true)
 
   const { codeEditingAreaState, matchedUserState, questionAreaState } = useCollaborationContext();
   
@@ -38,7 +40,6 @@ export default function CollaborationPage() {
         const response1 = await isUserInCollabStore(auth.id)
         if (response1.status === 200) {
           // Using the user's ID, retrieve collaboration details
-          console.log('getting collab info..')
           const response2 = await getCollabInfo(auth.id)
           const data = response2.data
   
@@ -46,18 +47,13 @@ export default function CollaborationPage() {
           setMatchedUserId(data.matchedUserId)
           setQuestionId(data.questionId)
 
-          console.log('variables information are below')
-          console.log('user id is', auth.id)
-          console.log('roomId is: ', data.roomId)
-          console.log('matchedUserId is: ', data.matchedUserId)
-          console.log('questionId is: ', data.questionId)
         } else {
           // Means that user is not in user store, so he cannot access the collab-page
           navigate("/matching/start")
         }
       } catch (error) {
         console.error(error)
-      }
+      } 
     }
 
     checkIfUserInStore()
@@ -73,6 +69,8 @@ export default function CollaborationPage() {
         setMatchedUser(response.data)
       } catch (error) {
         console.error(error)
+      } finally {
+        setIsUserLoading(false)
       }
     }
     
@@ -90,14 +88,18 @@ export default function CollaborationPage() {
         setQuestion(ques)
       } catch (error) {
         console.error(error)
+      } finally {
+        setIsQuestionLoading(false)
       }
     }
 
     fetchQues()
   }, [questionId])
 
+  if (isUserLoading || isQuestionLoading) return null
+
   if (roomId == null || matchedUser == null || question == null) {
-    console.log('one of the below is null')
+    console.log('if you see this message, means either roomId, matchedUser, or question is null, hence CollabPage cannot load')
     console.log(`roomId: ${roomId}`)
     console.log(`matchedUser: ${matchedUser}`)
     console.log(`question: ${question}`)

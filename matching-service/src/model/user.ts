@@ -9,6 +9,8 @@ interface User {
     timeout : NodeJS.Timeout | null;
     isPeerReady : boolean;
     matchedUser : User | null;
+    confirmationStatus: string | null; // "confirmed" | "timeout" | "declined" | "waiting"
+    roomId: string | null; // uuid for collaboration-service
 }
 
 const findCommonTopics = (user1: User, user2: User) : string[] => {
