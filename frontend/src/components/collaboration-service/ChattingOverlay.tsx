@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChatBubbleIcon, Cross1Icon, ArrowDownIcon } from "@radix-ui/react-icons";
+import { ChatBubbleIcon, Cross1Icon, ArrowDownIcon, TrashIcon } from "@radix-ui/react-icons";
 import ChatBubble from "./ChatBubble";
 import { Input } from "@/components/ui/input";
 import { SendIcon } from "lucide-react";
@@ -102,14 +102,22 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
     messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight - messageContainerRef.current.clientHeight;
   }
 
+  // Clears the chat messages at frontend (inside the chatting panel)
+  const clearChatMessages = () => {
+    if (window.confirm("Are you sure you want to clear all chat messages?")) {
+      setChatMessages([]);
+    }
+  }
+
   // Render the chatting panel
   const renderChattingPanel = () => {
     return(
       <>
         <div className="absolute w-1/5 h-1/2 min-w-[300px] p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
-          <div className="flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg pl-1">
+          <div className="flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg">
+            <Button className="bg-gray-300 hover:bg-red-200" onClick={() => clearChatMessages()} title="Clear chat messages"><TrashIcon/></Button>
             <p className="text-white">Chat with {otherUserName}</p>
-            <Button className="bg-red-300 hover:bg-red-200" onClick={() => setDisplayChattingPanel(false)}><Cross1Icon/></Button>
+            <Button className="bg-red-300 hover:bg-red-200" onClick={() => setDisplayChattingPanel(false)} title="Close panel"><Cross1Icon/></Button>
           </div>
           <div ref={messageContainerRef} onScroll={() => calculateShouldDisplayGoToBottomButton()} className="w-full h-[calc(100%-5.5rem)] overflow-y-auto">
             <div className="flex flex-col">
@@ -126,7 +134,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
           
           <form onSubmit={e =>{e.preventDefault(); sendChatMessage()}} className="flex flex-row space-x-2 w-full h-12 mt-5 p-2">
             <Input className="bg-white" onChange={e => setMessageInInputBox(e.target.value)} value={messageInInputBox} placeholder="Enter your message here..."/>
-            <Button className="btngreen" onClick={() => sendChatMessage()}><SendIcon/></Button>
+            <Button className="btngreen" onClick={() => sendChatMessage()} title="Send message"><SendIcon/></Button>
           </form>
         </div>
       </>
