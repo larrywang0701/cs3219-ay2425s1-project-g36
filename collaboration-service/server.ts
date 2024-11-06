@@ -6,7 +6,8 @@ import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
 
-import routes from './src/routes/collabRoute'
+import collabRoutes from './src/routes/collabRoute'
+import chatbotRoutes from './src/routes/chatbotRoute'
 
 const app: Application = express();
 
@@ -19,7 +20,8 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-app.use("/collaboration", routes);
+app.use("/collaboration", collabRoutes);
+app.use("/chatbot", chatbotRoutes);
 
 app.listen(COLLABORATION_SERVICE_PORT, () => {
     console.log(`Collab server is running on port ${COLLABORATION_SERVICE_PORT}`);
