@@ -2,9 +2,9 @@ import { Question } from "@/api/question-service/Question";
 import { DEFAULT_CODE_EDITOR_SETTINGS, CodeEditorSettings } from "@/components/collaboration-service/CodeEditorSettings";
 import { ProgrammingLanguage, ProgrammingLanguages } from "@/components/collaboration-service/ProgrammingLanguages";
 import { PLACEHOLDER_LOADING_QUESTION } from "@/components/collaboration-service/QuestionArea";
-import { createContext, ReactNode, useContext, useState } from "react";
-import { Socket } from "socket.io-client";
 import { User } from "@/api/user-service/User";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { Socket, io } from "socket.io-client";
 
 type CodeEditingAreaStateType = {
   displayLanguageSelectionPanel: boolean,
@@ -87,6 +87,16 @@ const CollaborationContextProvider = ({children} : {children: ReactNode}) => {
   const matchedUserState: MatchedUserType = {
     matchedUser, setMatchedUser
   }
+
+  // connects to socket upon creating the context
+  useEffect(() => {
+    if(socket !== null) return;
+    const s = io("http://localhost:3001")
+    setSocket(s)
+    return () => {
+      s.disconnect()
+    }
+  }, [])
 
   return (
       <CollaborationContext.Provider value={{codeEditingAreaState, questionAreaState, socketState, matchedUserState}}>

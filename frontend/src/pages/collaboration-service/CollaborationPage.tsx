@@ -144,21 +144,25 @@ export default function CollaborationPage() {
     console.log('if you see this message, means either roomId, matchedUser, or question is null, hence CollabPage cannot load')
     console.log(`roomId: ${roomId}`)
     console.log(`matchedUser: ${matchedUser}`)
+    console.log(`questionId: ${questionId}`)
     console.log(`question: ${question}`)
 
     return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
-          There is some error when entering the collaboration page
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
+      <>
+        <PageHeader />
+        <MainContainer className="px-4 text-center gap-3 flex flex-col">
+          <h2 className="text-2xl">
+          It seems like you are not in a valid collaboration environment. Please try matching again.
+          </h2>
+          <div className="flex justify-center">
+            <Button className="btnblack">
+              <Link to="/questions">
+                Go back to question list
+              </Link>
+            </Button>
+          </div>
+        </MainContainer>
+      </>
     )
   }
 
@@ -171,7 +175,7 @@ export default function CollaborationPage() {
           codeEditingArea={<CodeEditingArea roomId={roomId}/>}
           questionArea={<QuestionArea questionId={questionId || "72"}/>}
         />
-        <Button variant="destructive" onClick={endSession}>End session</Button>
+        <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
         <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>
     </>

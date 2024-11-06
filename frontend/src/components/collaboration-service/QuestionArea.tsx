@@ -3,6 +3,9 @@ import { fetchQuestionById } from "@/api/question-service/QuestionService";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { useEffect } from "react";
 import Difficulty from "../question-service/Difficulty";
+import { removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const PLACEHOLDER_LOADING_QUESTION : Question = {
   id: "loading",
@@ -28,6 +31,9 @@ export default function QuestionArea({questionId} : {questionId : string}) {
   const { question, setQuestion } = questionAreaState;
   const { runCodeResult } = codeEditingAreaState;
   
+  const navigate = useNavigate();
+  const { auth } = useAuth();
+
   const getQuestion = () => {
     fetchQuestionById(questionId).then(question => setQuestion(question || PLACEHOLDER_ERROR_QUESTION));
   }
