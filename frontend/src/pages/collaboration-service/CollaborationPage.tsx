@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { getUserById } from "@/api/user-service/UserService";
-import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
+import { getCollabInfo, isUserInCollabStore } from "@/api/collaboration-service/CollaborationService";
 import { User } from "@/api/user-service/User";
 
 export default function CollaborationPage() {
@@ -99,48 +99,25 @@ export default function CollaborationPage() {
     console.log('if you see this message, means either roomId, matchedUser, or question is null, hence CollabPage cannot load')
     console.log(`roomId: ${roomId}`)
     console.log(`matchedUser: ${matchedUser}`)
+    console.log(`questionId: ${questionId}`)
     console.log(`question: ${question}`)
 
     return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
-          There is some error when entering the collaboration page
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
-    )
-  }
-
-  // When user ends session, remove user from collabStore
-  const endSession = async () => {
-    try {
-      await removeUserFromCollabStore(auth.id)
-      navigate("/matching/start")
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  if (roomId == null) {
-    return (
-      <MainContainer className="px-4 text-center gap-3 flex flex-col">
-        <h2 className="text-2xl">
-          You are at an invalid document ID for collaborating
-        </h2>
-        <div className="flex justify-center">
-          <Button className="btnblack">
-            <Link to="/questions">
-              Go back to question list
-            </Link>
-          </Button>
-        </div>
-      </MainContainer>
+      <>
+        <PageHeader />
+        <MainContainer className="px-4 text-center gap-3 flex flex-col">
+          <h2 className="text-2xl">
+          It seems like you are not in a valid collaboration environment. Please try matching again.
+          </h2>
+          <div className="flex justify-center">
+            <Button className="btnblack">
+              <Link to="/questions">
+                Go back to question list
+              </Link>
+            </Button>
+          </div>
+        </MainContainer>
+      </>
     )
   }
 
@@ -152,9 +129,9 @@ export default function CollaborationPage() {
           <PageTitle>You are now collaborating with {matchedUser.username}.</PageTitle>
           <LayoutManager
             codeEditingArea={<CodeEditingArea roomId={roomId}/>}
-            questionArea={<QuestionArea questionId={questionId || "72"}/>}
+            questionArea={<QuestionArea questionId={questionId}/>}
           />
-          <Button variant="destructive" className="ml-auto" onClick={endSession}>End session</Button>
+          <ChattingOverlay otherUserName={matchedUser.username} />
         </CollaborationContextProvider>
       </MainContainer>
     </>

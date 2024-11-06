@@ -43,6 +43,11 @@ const io = new Server(WEBSOCKET_PORT, {
 
 listenToMatchingService()
 
+type ChatMessage = {
+    userToken: string,
+    message: string,
+}
+
 // runs when the collaboration page is loaded
 io.on("connection", socket => {
     socket.on('get-document', async (documentId: string) => {
@@ -59,6 +64,11 @@ io.on("connection", socket => {
             socket.on('save-document', async data => {
                 // need to update database every 2 seconds
                 await DocumentModel.findByIdAndUpdate(documentId, { data })
+            })
+
+            socket.on('send-chat-message', (chatMessage: ChatMessage) => {
+                // when server receives a chat message from client, server will broadcast the chat message
+                socket.broadcast.to(documentId).emit("receive-chat-message", chatMessage)
             })
         }
     })
