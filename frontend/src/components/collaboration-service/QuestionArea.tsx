@@ -3,9 +3,6 @@ import { fetchQuestionById } from "@/api/question-service/QuestionService";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { useEffect } from "react";
 import Difficulty from "../question-service/Difficulty";
-import { removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 export const PLACEHOLDER_LOADING_QUESTION : Question = {
   id: "loading",
@@ -31,9 +28,6 @@ export default function QuestionArea({questionId} : {questionId : string}) {
   const { question, setQuestion } = questionAreaState;
   const { runCodeResult } = codeEditingAreaState;
   
-  const navigate = useNavigate();
-  const { auth } = useAuth();
-
   const getQuestion = () => {
     fetchQuestionById(questionId).then(question => setQuestion(question || PLACEHOLDER_ERROR_QUESTION));
   }
@@ -59,7 +53,7 @@ export default function QuestionArea({questionId} : {questionId : string}) {
 
           <hr className="mt-4 mb-4" />
           <div className="text-lg font-semibold">Code Execution Result:</div>
-          <div className="h-[250px] w-full rounded-md border bg-black">
+          <div className="h-[400px] w-full rounded-md border bg-black">
             <pre className="p-4 text-green-400 font-mono text-sm whitespace-pre-wrap">
               {runCodeResult}
             </pre>

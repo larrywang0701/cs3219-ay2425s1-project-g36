@@ -118,16 +118,18 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     window.setTimeout(getCodeFromBackend, retryTimeout);
   }, [socket, roomId])
 
-    // saves changes to db every 2 seconds
+  // saves changes to db every 2 seconds
   useEffect(() => {
     if (socket === null) return
-    const interval = setInterval(() => {
+
+    const handler = setTimeout(() => {
       socket.emit('save-document', rawCode)
     }, SAVE_INTERVAL_MS)
+
     return () => {
-      clearInterval(interval)
+      clearTimeout(handler)
     }
-  }, [socket])
+  }, [rawCode])
 
   // whenever socket receives changes, update the code in the editor.
   useEffect(() => {
