@@ -16,6 +16,7 @@ import WaitForMatchingPage from "./pages/matching-service/WaitForMatchingPage";
 import MatchingFailedPage from "./pages/matching-service/MatchingFailedPage";
 import GetReadyPage from "./pages/matching-service/GetReadyPage";
 import CollaborationPage from "./pages/collaboration-service/CollaborationPage";
+import AttemptedHistoryPage from "./pages/AttemptedHistoryPage";
 
 /**
  * A wrapper around routes that should only be accessed by logged-in users.
@@ -180,6 +181,12 @@ function App() {
             </PrivateRoute>
           }
           />
+          <Route path='/history' element={
+            <PrivateRoute>
+              <AttemptedHistoryPage />
+            </PrivateRoute>
+          }
+          /> 
           <Route path="*" Component={ ErrorPage } />
         </Routes>
       </BrowserRouter>
