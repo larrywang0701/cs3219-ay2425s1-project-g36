@@ -11,6 +11,7 @@ const RESET_PASSWORD_API = "/reset-password";
 const UPDATE_ACCOUNT_API = "/update";
 const DELETE_ACCOUNT_API = "/";
 const UPDATE_PRIVILEGE_API = "/privilege";
+const ATTEMPT_HISTORY_API = '/history'
 
 const api = axios.create({
   baseURL: USER_SERVICE_URL,
@@ -45,7 +46,6 @@ async function sendLoginRequest(email : string, password : string, captcha : str
     return {status: error.status, message: error.response.data.message, userInfo: null};
   })
 }
-
 
 /**
  * An async function for sending a forgot password request to the backend.
@@ -102,7 +102,6 @@ async function sendLogoutRequest() {
 
 async function getUserById(id: string) {
   try {
-    console.log(USERS_BASE_URL + `/${id}`);
     const response = await api.get(USERS_BASE_URL + `/${id}`)
     return {status: response.status, message: response.data.message, data: response.data.data};
   } catch (error : any) {
@@ -199,5 +198,35 @@ async function updateUserPrivilege(id : string, isAdmin : boolean) {
   }
 }
 
+async function getUserAttempts(id: string) {
+  try {
+    const response = await api.get(USERS_BASE_URL + ATTEMPT_HISTORY_API + '/' + id);
+    return {
+      status: response.status,
+      message: response.data.message,
+      data: response.data.data, // Include the attempt history data
+    };
+  } catch (error: any) {
+    console.log("Error when fetching user attempt histories");
+    return {
+      status: error.response?.status || 500,
+      message: error.response?.data?.message || "Unknown error",
+      data: null,
+    };
+  }
+}
 
-export { sendLoginRequest, sendForgotPasswordRequest, sendSignupRequest, sendLogoutRequest, getUsers, getUserById, getUserFromToken, resetPassword, updateAccount, deleteAccount, updateUserPrivilege };
+export { 
+  sendLoginRequest, 
+  sendForgotPasswordRequest, 
+  sendSignupRequest, 
+  sendLogoutRequest, 
+  getUsers, 
+  getUserById, 
+  getUserFromToken, 
+  resetPassword, 
+  updateAccount, 
+  deleteAccount, 
+  updateUserPrivilege, 
+  getUserAttempts
+};

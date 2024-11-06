@@ -22,7 +22,7 @@ a:not(button a):not(nav a):not(div[role="menuitem"] a):not(#peerprep-header) {
   @apply bg-green-500 hover:bg-green-500/85 text-white hover:text-gray-100 !important;
 }
 
-@layer base {
+/* @layer base {
   :root {
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -47,7 +47,7 @@ a:not(button a):not(nav a):not(div[role="menuitem"] a):not(#peerprep-header) {
   * {
     @apply border-border;}
   body {
-    @apply bg-background text-foreground;}}
+    @apply bg-background text-foreground;}} */
 
 /* custom styling for red background, white foreground buttons in UI */
 .btnred {

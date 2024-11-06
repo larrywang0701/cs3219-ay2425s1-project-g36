@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 export default function ViewQuestionPage() {
   const params = useParams();
   const id = params.id as string;
+  // const attemptId = params.attemptId as string | null;
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
 
