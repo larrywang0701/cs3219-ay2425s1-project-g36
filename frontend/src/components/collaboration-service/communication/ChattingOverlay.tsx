@@ -15,8 +15,9 @@ export type ServerSideChatMessage = {
 /**
  * The chatting overlay component. This is a full-screen overlay on the top layer of the frontend contains the UI for chatting feature.
  * @param otherUserName The other user's name to chat to. It will be displayed in the title of the chatting panel.
+ * @param questionId The question ID to establish the question context for the AI chatbot.
  */
-export default function ChattingOverlay({otherUserName} : {otherUserName : string}) {
+export default function ChattingOverlay({otherUserName, questionId} : {otherUserName : string, questionId: string | null}) {
 
   /** Display settings related to the chatting overlay between the two matched users */
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -51,6 +52,7 @@ export default function ChattingOverlay({otherUserName} : {otherUserName : strin
         />
         <ChatPanel 
           isBot
+          questionId={ questionId }
           chatMessages={ chatMessagesBot }
           setChatMessages={ setChatMessagesBot }
           otherUserName="PeerPrepBot" 

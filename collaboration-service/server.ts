@@ -53,7 +53,16 @@ io.on("connection", socket => {
     socket.on('get-document', async (documentId: string) => {
         const document = await findOrCreateDocument(documentId)
         if (document) {
+
+            // Leave the previous room if joined
+            for (const room of socket.rooms) {
+                if (room !== socket.id) {
+                    socket.leave(room);
+                }
+            }
             socket.join(documentId)
+            console.log(documentId, "joined");
+
             socket.emit('load-document', document.data) // tells frontend to update its contents
 
             socket.on('send-changes', (delta: object) => {
@@ -84,20 +93,21 @@ io.on("connection", socket => {
                 // when server receives a chat message from client, server will broadcast the chat message
                 socket.broadcast.to(documentId).emit("receive-chat-message", chatMessage)
             })
-
-            socket.on('send-chat-message-bot', async (chatMessage: {
-                questionId : string,
-                message: string,
-                userId: string
-            }) => {
-                // when server receives a chat message from client, the AI bot will come up with
-                // a response, then socket transmits the answer back
-                const aiResponse = await makeSingleReply(chatMessage);
-                console.log(aiResponse);
-                socket.emit("receive-chat-message-bot", aiResponse);
-            })
         }
-    })
+    });
+
+    // this is separate as communication with the bot is within each user
+    socket.on('send-chat-message-bot', async (chatMessage: {
+        questionId : string,
+        message: string,
+        userId: string
+    }) => {
+        // when server receives a chat message from client, the AI bot will come up with
+        // a response, then socket transmits the answer back
+        const aiResponse = await makeSingleReply(chatMessage);
+        console.log(aiResponse);
+        socket.emit("receive-chat-message-bot", aiResponse);
+    });
 })
 
 console.log('Collaboration-service is up - Starting service')

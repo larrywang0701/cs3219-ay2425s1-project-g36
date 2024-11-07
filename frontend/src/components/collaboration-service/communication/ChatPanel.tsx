@@ -18,23 +18,26 @@ import { SendIcon } from "lucide-react";
  * - `onAddChatMessage`: The handler when a chat message is added within the frontend.
  * - `onClose`: The handler when closing a chat message.
  * - `isBot`: Whether the user is communicating with another user, or a bot.
+ * - `questionId`: If `isBot` is true, provides the question ID to the backend, allowing
+ *   the AI chatbot to provide question context.
  * 
  * @returns The chat panel interface.
  */
-export default function ChatPanel({ chatMessages, setChatMessages, otherUserName, isShown, onAddChatMessage, onClose, isBot = false } : { 
+export default function ChatPanel({ chatMessages, setChatMessages, otherUserName, isShown, onAddChatMessage, onClose, questionId, isBot = false,  } : { 
   chatMessages : ChatMessage[],
   setChatMessages : React.Dispatch<React.SetStateAction<ChatMessage[]>>,
   otherUserName : string, 
   isShown : boolean,
   onAddChatMessage : () => void, 
   onClose : () => void, 
-  isBot? : boolean 
+  questionId : string | null
+  isBot? : boolean,
 }) {
     const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(false);
     const [messageInInputBox, setMessageInInputBox] = useState("");
     const messageContainerRef = useRef<HTMLDivElement>(null);
     
-    const { socketState, questionAreaState } = useCollaborationContext();
+    const { socketState } = useCollaborationContext();
     const { socket } = socketState;
 
     const { auth } = useAuth();
@@ -65,8 +68,8 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
         if (!isBot) {
             socket.emit("send-chat-message", {message: messageInInputBox, userId: auth.id});
         } else {
-            console.log("sent to bot");
-            socket.emit("send-chat-message-bot", {questionId: questionAreaState.question.id, message: messageInInputBox, userId: auth.id});
+            console.log("sent to bot question ID", questionId);
+            socket.emit("send-chat-message-bot", {questionId: questionId, message: messageInInputBox, userId: auth.id});
         }
         
         addChatMessage({message: messageInInputBox, isSelf: true});
@@ -105,9 +108,7 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
               // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
               window.setTimeout(calculateShouldDisplayGoToBottomButton, 10); 
           })
-        }
-        
-        if (isBot) {
+        } else {
             socket.once("receive-chat-message-bot", (chatMessage : string) => {
                 addChatMessage({message: chatMessage, isSelf: false});
                 
@@ -138,9 +139,9 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
               }
             </div>
             
-            <form onSubmit={e =>{e.preventDefault(); sendChatMessage()}} className="flex flex-row space-x-2 w-full h-12 mt-5 p-2">
+            <form onSubmit={e =>{e.preventDefault(); sendChatMessage() }} className="flex flex-row space-x-2 w-full h-12 mt-5 p-2">
               <Input className="bg-white" onChange={e => setMessageInInputBox(e.target.value)} value={messageInInputBox} placeholder="Enter your message here..."/>
-              <Button className="btngreen" onClick={() => sendChatMessage()} title="Send message"><SendIcon/></Button>
+              <Button className="btngreen" type="submit" title="Send message"><SendIcon/></Button>
             </form>
           </div>
         </>

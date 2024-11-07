@@ -171,15 +171,14 @@ export default function CollaborationPage() {
     <>
       <PageHeader />
       <MainContainer>
-        <CollaborationContextProvider>
-          <PageTitle>You are now collaborating with {matchedUser.username}.</PageTitle>
-          <LayoutManager
-            codeEditingArea={<CodeEditingArea roomId={roomId}/>}
-            questionArea={<QuestionArea questionId={questionId || "72"}/>}
-          />
-          <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
-          <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
-        </CollaborationContextProvider>
+        <PageTitle>You are now collaborating with {matchedUser.username}.</PageTitle>
+        <LayoutManager
+          codeEditingArea={<CodeEditingArea roomId={roomId}/>}
+          questionArea={<QuestionArea questionId={questionId || "72"}/>}
+        />
+        <ChattingOverlay otherUserName={matchedUser.username} questionId={questionId} />
+        <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
+        <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>
     </>
   )
