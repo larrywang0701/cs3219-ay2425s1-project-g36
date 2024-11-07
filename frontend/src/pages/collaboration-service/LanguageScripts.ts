@@ -1,4 +1,4 @@
-const pythonWrapperScript = `
+const pythonPrependScript = `
 import sys
 from io import StringIO
 
@@ -9,8 +9,7 @@ for line in all_input:
     # User code will be appended below this
 `
 
-// WIP: can't seem to make this work
-const javascriptWrapperScript = `
+const javascriptPrependScript = `
 const readline = require('readline');
 const rl = readline.createInterface({
   input: process.stdin,
@@ -18,18 +17,25 @@ const rl = readline.createInterface({
   terminal: false
 });
 
-const inputLines = [];
+let inputLines = '';
+
+// Collect all input at once
 rl.on('line', (line) => {
-  inputLines.push(line);
+  inputLines += line;
+  inputLines += '\\n';
 });
 
-let currentLineIndex = 0;
-function readLine() {
-  return inputLines[currentLineIndex++] || '';
-}
 
 rl.on('close', () => {
-  // User code will be appended below this
+  const lines = inputLines.trim().split('\\n'); // Now process all input at once
+
+  const func = (input) => {
+`
+
+const javascriptAppendScript = `
+  }
+  lines.forEach(input => func(input))
+});
 `
 
 export const formatRawCode = (rawCode: string, language: string) => {
@@ -38,17 +44,17 @@ export const formatRawCode = (rawCode: string, language: string) => {
             .split('\n')
             .map(line => `    ${line}`) // push the rawCode 4 spaces to the right (equivalent to 1 tab)
             .join('\n')
-        const combinedScript = `${pythonWrapperScript}\n${formattedRawCode}`
+        const combinedScript = `${pythonPrependScript}\n${formattedRawCode}`
         return combinedScript
     }
             
     if (language === 'nodejs') { // same as javascript
         const formattedRawCode = rawCode
         .split('\n')
-        .map(line => `  ${line}`) // Indent user code by 2 spaces
+        .map(line => `    ${line}`) // Indent user code by 4 spaces
         .join('\n');
         
-        const combinedScript = `${javascriptWrapperScript}\n${formattedRawCode}\n});`;
+        const combinedScript = `${javascriptPrependScript}\n${formattedRawCode}\n${javascriptAppendScript}\n`;
         return combinedScript;
     }
 

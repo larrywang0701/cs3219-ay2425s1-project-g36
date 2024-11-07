@@ -208,7 +208,6 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
           await updateUserProgLang(matchedUser._id, currentlySelectedLanguage.name);
         }
         socket.emit('change-prog-language', currentlySelectedLanguage);
-        console.log('update success for both')
       } catch (error) {
         console.error("Failed to update user programming language:", error);
       }
