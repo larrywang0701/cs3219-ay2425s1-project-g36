@@ -13,8 +13,8 @@ export default function ChatBubble({text, userName, isSelf} : {text: string, use
             <PersonIcon className="m-2"/>
         </div>
         <div className={`mt-3 flex flex-col items-${isSelf ? "end" : "start"}`}>
-          <div className="text-right">{userName}</div>
-          <div className={`rounded-lg max-w-full p-2 text-lg overflow-hidden bg-${isSelf ? "green-200" : "white"} break-words text-${isSelf ? "right" : "left"}`}>
+          <div className="text-right text-sm">{userName}</div>
+          <div className={`rounded-lg max-w-full p-2 text-sm overflow-hidden bg-${isSelf ? "green-200" : "white"} break-words text-${isSelf ? "right" : "left"}`}>
             {text}
           </div>
         </div>

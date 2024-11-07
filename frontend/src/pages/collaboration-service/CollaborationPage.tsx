@@ -3,7 +3,7 @@ import LayoutManager from "@/components/collaboration-service/LayoutManager";
 import CodeEditingArea from "@/components/collaboration-service/CodeEditingArea";
 import QuestionArea from "@/components/collaboration-service/QuestionArea";
 import PageTitle from "@/components/common/PageTitle";
-import ChattingOverlay from "@/components/collaboration-service/ChattingOverlay";
+import ChattingOverlay from "@/components/collaboration-service/communication/ChattingOverlay";
 import { useEffect, useState } from "react";
 import { Question } from "@/api/question-service/Question";
 import { fetchQuestion } from "@/api/question-service/QuestionService";
@@ -129,7 +129,7 @@ export default function CollaborationPage() {
           <PageTitle>You are now collaborating with {matchedUser.username}.</PageTitle>
           <LayoutManager
             codeEditingArea={<CodeEditingArea roomId={roomId}/>}
-            questionArea={<QuestionArea questionId={questionId}/>}
+            questionArea={<QuestionArea questionId={questionId ?? ""}/>}
           />
           <ChattingOverlay otherUserName={matchedUser.username} />
         </CollaborationContextProvider>

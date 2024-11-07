@@ -6,6 +6,8 @@ import { MongoServerError } from "mongodb";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
+import { makeSingleReply } from './src/openai/chatbotController'
+import { ChatMessage } from "./src/models/messagelog";
 
 import collabRoutes from './src/routes/collabRoute'
 import chatbotRoutes from './src/routes/chatbotRoute'
@@ -45,11 +47,6 @@ const io = new Server(WEBSOCKET_PORT, {
 
 listenToMatchingService()
 
-type ChatMessage = {
-    userToken: string,
-    message: string,
-}
-
 // runs when the collaboration page is loaded
 io.on("connection", socket => {
     socket.on('get-document', async (documentId: string) => {
@@ -71,6 +68,18 @@ io.on("connection", socket => {
             socket.on('send-chat-message', (chatMessage: ChatMessage) => {
                 // when server receives a chat message from client, server will broadcast the chat message
                 socket.broadcast.to(documentId).emit("receive-chat-message", chatMessage)
+            })
+
+            socket.on('send-chat-message-bot', async (chatMessage: {
+                questionId : string,
+                message: string,
+                userId: string
+            }) => {
+                // when server receives a chat message from client, the AI bot will come up with
+                // a response, then socket transmits the answer back
+                const aiResponse = await makeSingleReply(chatMessage);
+                console.log(aiResponse);
+                socket.emit("receive-chat-message-bot", aiResponse);
             })
         }
     })
