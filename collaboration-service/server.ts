@@ -6,12 +6,13 @@ import { MongoServerError } from "mongodb";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
-import { makeReplyToChat, makeSingleReply } from './src/openai/chatbotController'
+import { makeReplyToChat, makeSingleReply } from './src/chat/chatbotController'
 import { ChatMessage, ChatModel, ChatType, MessageType } from "./src/models/chat";
 import { ProgrammingLanguage } from './src/models/ProgrammingLanguage'
 
 import collabRoutes from './src/routes/collabRoute'
 import chatbotRoutes from './src/routes/chatbotRoute'
+import { findOrCreateBotChat, findOrCreateChat } from "./src/chat/chatController";
 
 const app: Application = express();
 
@@ -88,16 +89,22 @@ io.on("connection", socket => {
             socket.on('update-isCodeRunning', (isCodeRunning: boolean) => {
                 socket.broadcast.to(documentId).emit('update-isCodeRunning', isCodeRunning)
             })
-            
-            socket.on('send-chat-message', (chatMessage: ChatMessage) => {
-                // when server receives a chat message from client, server will broadcast the chat message
-                socket.broadcast.to(documentId).emit("receive-chat-message", chatMessage)
-            })
         }
     });
 
-    socket.on('get-messages', async (roomId : string, userId : string) => {
-        const botChat = await findOrCreateBotChat(userId);
+    /**
+     * roomId: The collaboration room ID.
+     * userId: The ID of the client user that is calling this socket handler.
+     * matchedId: The ID of the matched user that the client user is matched with.
+     */
+    socket.on('get-messages', async (roomId : string, userId : string, matchedId : string) => {
+
+        /* Chat between the two matched users */
+        const userChat = await findOrCreateChat(roomId, userId, matchedId);
+
+        /* Chat between user and bot */
+        const botChat = await findOrCreateBotChat(roomId, userId);
+
         socket.join(roomId + "-messages");
 
         if (botChat) {
@@ -133,6 +140,33 @@ io.on("connection", socket => {
                 await botChat.save();
             });
         }
+
+        if (userChat) {
+            socket.emit('load-messages-user', userChat.messages) // tells frontend to update its contents
+            
+            socket.on('send-chat-message-user', async (chatMessage: ChatMessage) => {
+                const message : MessageType = {
+                    sender: userId,
+                    role: 'user',
+                    timestamp: new Date(),
+                    content: chatMessage.message
+                } as MessageType;
+
+                userChat.messages.push(message);
+
+                // save message
+                await userChat.save();
+
+                // when server receives a chat message from client, server will broadcast the chat message
+                socket.broadcast.to(roomId).emit("receive-chat-message-user", chatMessage)
+            })
+
+            // websocket handler to clear chat
+            socket.on('clear-chat-user', async () => {
+                userChat.messages = [];
+                await userChat.save();
+            });
+        }
     });
 })
 
@@ -155,31 +189,6 @@ async function findOrCreateDocument(id: string): Promise<DocumentType | null> {
             console.error("Duplicate key error, code 11000:", error.message);
         } else {
             console.error("Error creating document:", error);
-        }
-        return null;
-    }
-}
-
-async function findOrCreateBotChat(userId : string): Promise<ChatType | null> {
-    if (userId == null) return null;
-
-    console.log("Trying with user id", userId)
-
-    const botChat = await ChatModel.findById(userId + "-bot");
-    if (botChat) return botChat;
-
-    try {
-        return await ChatModel.create({
-            _id: userId + "-bot",
-            user1: userId,
-            user2: "PeerPrepBot",
-            messages: []
-        });
-    } catch (error: unknown) {
-        if (error instanceof MongoServerError && error.code === 11000) {
-            console.error("Duplicate key error, code 11000:", error.message);
-        } else {
-            console.error("Error creating chat with bot:", error);
         }
         return null;
     }

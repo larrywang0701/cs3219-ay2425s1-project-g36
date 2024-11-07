@@ -66,7 +66,7 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
         if (messageInInputBox === "") return;
         
         if (!isBot) {
-            socket.emit("send-chat-message", {message: messageInInputBox, userId: auth.id});
+            socket.emit("send-chat-message-user", {message: messageInInputBox, userId: auth.id});
         } else {
             console.log("sent to bot question ID", questionId);
             socket.emit("send-chat-message-bot", {questionId: questionId, message: messageInInputBox, userId: auth.id});
@@ -87,6 +87,8 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
         if (socket === null) return;
         if (isBot) {
           socket.emit("clear-chat-bot");
+        } else {
+          socket.emit("clear-chat-user");
         }
       }
     }
@@ -108,7 +110,7 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
         }
         
         if (!isBot) {
-          socket.once("receive-chat-message", (chatMessage : ServerSideChatMessage) => {
+          socket.once("receive-chat-message-user", (chatMessage : ServerSideChatMessage) => {
               const isSelf = chatMessage.userId === auth.id;
               addChatMessage({message: chatMessage.message, isSelf: isSelf});
               
