@@ -11,7 +11,6 @@ import { ChatMessage, ChatModel, ChatType, MessageType } from "./src/models/chat
 import { ProgrammingLanguage } from './src/models/ProgrammingLanguage'
 
 import collabRoutes from './src/routes/collabRoute'
-import chatbotRoutes from './src/routes/chatbotRoute'
 import { findOrCreateBotChat, findOrCreateChat } from "./src/chat/chatController";
 
 const app: Application = express();
@@ -26,7 +25,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 app.use("/collaboration", collabRoutes);
-app.use("/chatbot", chatbotRoutes);
 
 app.listen(COLLABORATION_SERVICE_PORT, () => {
     console.log(`Collab server is running on port ${COLLABORATION_SERVICE_PORT}`);
