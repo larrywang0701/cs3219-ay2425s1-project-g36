@@ -6,8 +6,8 @@ import { MongoServerError } from "mongodb";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
-import { makeSingleReply } from './src/openai/chatbotController'
-import { ChatMessage } from "./src/models/messagelog";
+import { makeReplyToChat, makeSingleReply } from './src/openai/chatbotController'
+import { ChatMessage, ChatModel, ChatType, MessageType } from "./src/models/chat";
 import { ProgrammingLanguage } from './src/models/ProgrammingLanguage'
 
 import collabRoutes from './src/routes/collabRoute'
@@ -96,17 +96,43 @@ io.on("connection", socket => {
         }
     });
 
-    // this is separate as communication with the bot is within each user
-    socket.on('send-chat-message-bot', async (chatMessage: {
-        questionId : string,
-        message: string,
-        userId: string
-    }) => {
-        // when server receives a chat message from client, the AI bot will come up with
-        // a response, then socket transmits the answer back
-        const aiResponse = await makeSingleReply(chatMessage);
-        console.log(aiResponse);
-        socket.emit("receive-chat-message-bot", aiResponse);
+    socket.on('get-messages', async (roomId : string, userId : string) => {
+        const botChat = await findOrCreateBotChat(userId);
+        socket.join(roomId + "-messages");
+
+        if (botChat) {
+            socket.emit('load-messages-bot', botChat.messages) // tells frontend to update its contents
+
+            socket.on('send-chat-message-bot', async (chatMessage: {
+                questionId : string,
+                message: string,
+                userId: string
+            }) => {     
+                const message : MessageType = {
+                    sender: userId,
+                    role: 'user',
+                    timestamp: new Date(),
+                    content: chatMessage.message
+                } as MessageType;
+
+                botChat.messages.push(message);
+
+                // save message
+                await botChat.save();
+
+                // when server receives a chat message from client, the AI bot will come up with
+                // a response, then socket transmits the answer back
+                const aiResponse = await makeReplyToChat(chatMessage.questionId, botChat._id);
+                console.log(aiResponse);
+                socket.emit("receive-chat-message-bot", aiResponse);
+            });
+
+            // websocket handler to clear chat
+            socket.on('clear-chat-bot', async () => {
+                botChat.messages = [];
+                await botChat.save();
+            });
+        }
     });
 })
 
@@ -129,6 +155,31 @@ async function findOrCreateDocument(id: string): Promise<DocumentType | null> {
             console.error("Duplicate key error, code 11000:", error.message);
         } else {
             console.error("Error creating document:", error);
+        }
+        return null;
+    }
+}
+
+async function findOrCreateBotChat(userId : string): Promise<ChatType | null> {
+    if (userId == null) return null;
+
+    console.log("Trying with user id", userId)
+
+    const botChat = await ChatModel.findById(userId + "-bot");
+    if (botChat) return botChat;
+
+    try {
+        return await ChatModel.create({
+            _id: userId + "-bot",
+            user1: userId,
+            user2: "PeerPrepBot",
+            messages: []
+        });
+    } catch (error: unknown) {
+        if (error instanceof MongoServerError && error.code === 11000) {
+            console.error("Duplicate key error, code 11000:", error.message);
+        } else {
+            console.error("Error creating chat with bot:", error);
         }
         return null;
     }

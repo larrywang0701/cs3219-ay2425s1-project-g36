@@ -1,6 +1,7 @@
 import OpenAI from "openai";
-import { ChatMessage } from "../models/messagelog";
+import { ChatMessage, ChatModel, MessageType } from "../models/chat";
 import axios from "axios";
+import { getMessagesInChat } from "./chatController";
 
 /**
  * Implementation of an AI chatbot as a controller to allow users to seek for help
@@ -37,6 +38,46 @@ export async function makeReply(questionId : string, messages : OpenAIMessage[])
     console.log("Completion tokens used:", completion.usage?.completion_tokens);
     console.log("Total tokens used:", completion.usage?.total_tokens);
     return completion.choices[0].message.content;
+}
+
+/**
+ * Runs the OpenAI chatbot and provides a reply, that is then added to the chat log.
+ * 
+ * @param questionId The question ID to provide context to the chatbot.
+ * @param chatId The ID of the chat that the chatbot should reply to.
+ * 
+ * @return The OpenAI chatbot reply.
+ */
+export async function makeReplyToChat(questionId : string, chatId : string) {
+
+    const chat = await ChatModel.findById(chatId);
+    
+    if (!chat) {
+        console.log("Could not fetch chat with ID", chatId);
+        return "";
+    }
+
+    const openAiMessages = chat.messages.map(message => {
+        return {
+            role: message.role,
+            content: message.content
+        }
+    }) as OpenAIMessage[];
+
+    const replyMessage = await makeReply(questionId, openAiMessages);
+
+    const newMessage = {
+        sender: 'PeerPrepBot',
+        role: 'assistant',
+        timestamp: new Date(),
+        content: replyMessage
+    } as MessageType;
+
+    chat.messages.push(newMessage);
+
+    await chat.save();
+
+    return replyMessage;
 }
 
 export async function makeSingleReply(message : {

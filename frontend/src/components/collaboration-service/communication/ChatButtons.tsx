@@ -7,14 +7,12 @@ import { BotIcon } from "lucide-react";
  * with the following props:
  * 
  * - `hasUnreadMessages`: Whether the user-to-user chat has unread messages or not.
- * - `hasUnreadMessagesBot`: Whether the user-to-bot chat has unread messages or not.
  * - `isShown`: Whether the chat button interface should be shown.
  * - `onChatClick`: Handler when the user-to-user chat button is clicked.
  * - `onBotChatClick`: Handler when the user-to-bot chat button is clicked.
  */
-export default function ChatButtons({ hasUnreadMessages, hasUnreadMessagesBot, isShown, onChatClick, onBotChatClick } : {
+export default function ChatButtons({ hasUnreadMessages, isShown, onChatClick, onBotChatClick } : {
     hasUnreadMessages : boolean,
-    hasUnreadMessagesBot : boolean,
     isShown : boolean,
     onChatClick : () => void,
     onBotChatClick : () => void
@@ -27,7 +25,6 @@ export default function ChatButtons({ hasUnreadMessages, hasUnreadMessagesBot, i
             </Button>
             <Button className="relative bg-blue-400 hover:bg-blue-300 w-14 h-full rounded-full" onClick={ onBotChatClick }>
                 <BotIcon className="w-3/4 h-3/4 text-white" />
-                {hasUnreadMessagesBot && (<div className="absolute top-[5%] right-[5%] w-1/4 h-1/4 rounded-full bg-red-500 border-2 border-white" />)}
             </Button>
             </div> 
         ) : <></>;

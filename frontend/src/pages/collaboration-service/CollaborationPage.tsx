@@ -176,7 +176,7 @@ export default function CollaborationPage() {
           codeEditingArea={<CodeEditingArea roomId={roomId}/>}
           questionArea={<QuestionArea questionId={questionId || "72"}/>}
         />
-        <ChattingOverlay otherUserName={matchedUser.username} questionId={questionId} />
+        <ChattingOverlay roomId={roomId} otherUserName={matchedUser.username} questionId={questionId} />
         <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
         <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>

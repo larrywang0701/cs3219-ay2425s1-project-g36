@@ -80,7 +80,14 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
     // Clears the chat messages at frontend (inside the chatting panel)
     const clearChatMessages = () => {
       if (window.confirm("Are you sure you want to clear all chat messages?")) {
+        // clear chat in frontend
         setChatMessages([]);
+
+        // clear chat in backend
+        if (socket === null) return;
+        if (isBot) {
+          socket.emit("clear-chat-bot");
+        }
       }
     }
 
