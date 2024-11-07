@@ -8,7 +8,7 @@ import { getUserAttempts } from "@/api/user-service/UserService";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
 
-interface History {
+export interface Attempt {
   id: string;
   timeSubmitted: Date;
   questionTitle: string;
@@ -21,13 +21,13 @@ const DEFAULT_ITEMS_PER_PAGE = 5;
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20];
 
 export default function AttemptedHistoryPage() {
-  const [attemptedQuestions, setAttemptedQuestions] = useState<History[]>([]);
+  const [attemptedQuestions, setAttemptedQuestions] = useState<Attempt[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
-  const [dropdownOpen, setDropdownOpen] = useState(false); // Track dropdown open/close state
+
   const { auth } = useAuth();
 
   useEffect(() => {
@@ -72,12 +72,12 @@ export default function AttemptedHistoryPage() {
 
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedQuestions = attemptedQuestions.slice(startIdx, startIdx + itemsPerPage);
+  console.log(paginatedQuestions)
 
   return (
     <>
       <PageHeader />
-      <div className={`container mx-auto p-6 ${dropdownOpen ? 'pb-32' : ''}`}>
-        {/* Apply extra padding at the bottom when dropdown is open */}
+      <div className="container mx-auto p-6 pb-32">
         <h1 className="text-3xl font-bold mb-6">Submission History</h1>
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-3/4">
@@ -97,7 +97,7 @@ export default function AttemptedHistoryPage() {
                     </TableCell>
                     <TableCell className="px-4 py-1">
                       <Link
-                        to={`/questions/${question.id}`}
+                        to={`/attempts/${question.questionId}`}
                         className="text-blue-500 hover:text-blue-700 hover:underline"
                       >
                         {question.questionTitle}

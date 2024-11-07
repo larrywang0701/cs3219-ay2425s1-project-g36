@@ -152,6 +152,11 @@ function App() {
               nonAdminRoute={ <Navigate to="/questions" /> }
             />
           } />
+          <Route path="/attempts/:id" element={
+            <PrivateRoute>
+              <ViewQuestionPage hasCode={true}/>
+            </PrivateRoute>
+          } />
           <Route path="/matching/start" element={
             <PrivateRoute>
               <StartMatchingPage />
