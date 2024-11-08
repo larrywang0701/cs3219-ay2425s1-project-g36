@@ -11,6 +11,8 @@ import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { DEFAULT_CODE_EDITOR_SETTINGS } from "./CodeEditorSettings";
 import { useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { updateUserProgLang } from "@/api/collaboration-service/CollaborationService";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Ace Editor Modes
 import "ace-builds/src-noconflict/mode-c_cpp";
@@ -44,10 +46,11 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     isCodeRunning, setIsCodeRunning
   } = codeEditingAreaState;
 
-  const {socket } = socketState;
+  const { socket } = socketState;
   const { matchedUser } = matchedUserState 
   const isLanguageChangeFromServer = useRef(false);
   const { toast } = useToast();
+  const { auth } = useAuth()
 
   const languageSelectionPanel = () => {
     return (
@@ -197,15 +200,28 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
 
   // whenever user changes language, send the new language to the server
   useEffect(() => {
-    if (socket === null || isLanguageChangeFromServer.current) {
-      // to prevent infinite loop between 'change-prog-language' and 'update-prog-language' events
-      isLanguageChangeFromServer.current = false
-      return
-    }
-    
-    socket.emit('change-prog-language', currentlySelectedLanguage)
-  }, [currentlySelectedLanguage])
-
+    const handleLanguageChange = async () => {
+      if (socket === null || isLanguageChangeFromServer.current) {
+        // Prevent infinite loop between 'change-prog-language' and 'update-prog-language' events
+        isLanguageChangeFromServer.current = false;
+        return;
+      }
+  
+      try {
+        // update collabStore to reflect the new progLang for both users
+        await updateUserProgLang(auth.id, currentlySelectedLanguage.name);
+        if (matchedUser) {
+          await updateUserProgLang(matchedUser._id, currentlySelectedLanguage.name);
+        }
+        socket.emit('change-prog-language', currentlySelectedLanguage);
+      } catch (error) {
+        console.error("Failed to update user programming language:", error);
+      }
+    };
+  
+    handleLanguageChange();
+  }, [currentlySelectedLanguage]);
+  
   // whenever socket receives the updated programming language, update currentlySelectedLanguage
   useEffect(() => {
     if (socket === null) return

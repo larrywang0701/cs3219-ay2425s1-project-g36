@@ -15,6 +15,7 @@ import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { executeCodeInSandboxEnvironment, getCreditsSpent } from "@/api/collaboration-service/CollaborationService";
 import { ProgrammingLanguage, ProgrammingLanguages } from "@/components/collaboration-service/ProgrammingLanguages";
+import { formatRawCode } from "./LanguageScripts";
 
 export default function CollaborationPage() {
   const [roomId, setRoomId] = useState<string | null>(null)
@@ -37,19 +38,19 @@ export default function CollaborationPage() {
   useEffect(() => {
     const checkIfUserInStore = async () => {
       if (auth.id === null) return
-
+      
       try {
         const response1 = await isUserInCollabStore(auth.id)
         if (response1.status === 200) {
           // Using the user's ID, retrieve collaboration details
           const response2 = await getCollabInfo(auth.id)
           const data = response2.data
-  
+          
           setRoomId(data.roomId)
           setMatchedUserId(data.matchedUserId)
           setQuestionId(data.questionId)
 
-          // fall back to C language if this fails
+          // fall back to the first language in ProgrammingLanguages if this fails
           const lang: ProgrammingLanguage = ProgrammingLanguages.find(lang => lang.name === data.progLang) || ProgrammingLanguages[0] 
 
           setCurrentSelectedLanguage(lang)
@@ -103,16 +104,25 @@ export default function CollaborationPage() {
     fetchQues()
   }, [questionId])
 
+  
   const handleRunCode = async () => {
     setIsCodeRunning(true) // disables 'run code' button for both users
-    setRunCodeResult('executing code.. please be patient!') // sets temporary run code result for both users
+    setRunCodeResult('executing code.. please be patient!') 
+    
+    const stdin = question.testInputs.join('\n')
+    const language = currentlySelectedLanguage.JDoodleName
+    const versionIndex = "0" // all the languages we support **should have** a versionIndex of 0
+    
+    const script = formatRawCode(rawCode, language) 
+
+    console.log(script)
 
     try {
       const run_code_response = await executeCodeInSandboxEnvironment(
-        rawCode, // script
-        "", // stdin
-        currentlySelectedLanguage.JDoodleName, // language: I have tested code for python, JS, java -> works
-        "0", // versionIndex: I (wishfully) assume all the languages we are supporting have a version of index 0
+        script,
+        stdin,
+        language,
+        versionIndex,
       )
 
       console.log('the result of executing code is: ', run_code_response.output)
@@ -121,7 +131,7 @@ export default function CollaborationPage() {
       const credits_spent_response = await getCreditsSpent()
       console.log('credits spent today is: ', credits_spent_response.data.used)
       console.log(`you have: ${20 - credits_spent_response.data.used} credits left for today`)
-
+ 
     } catch (error: any) {
       setRunCodeResult(`Error: ${error.response ? error.response.data.error : error.message}`);
     } finally {
