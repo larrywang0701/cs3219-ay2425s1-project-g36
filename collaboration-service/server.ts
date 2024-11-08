@@ -6,7 +6,7 @@ import { MongoServerError } from "mongodb";
 import { DocumentModel, DocumentType } from './src/models/document'
 import { WEBSOCKET_PORT, COLLABORATION_SERVICE_MONGODB_URI, FRONTEND_PORT, COLLABORATION_SERVICE_PORT } from './config'
 import { listenToMatchingService } from './src/kafka/collabController'
-import { makeReplyToChat, makeSingleReply } from './src/chat/chatbotController'
+import { makeReplyToChat } from './src/chat/chatbotController'
 import { ChatMessage, ChatModel, ChatType, MessageType } from "./src/models/chat";
 import { ProgrammingLanguage } from './src/models/ProgrammingLanguage'
 
@@ -108,11 +108,14 @@ io.on("connection", socket => {
         if (botChat) {
             socket.emit('load-messages-bot', botChat.messages) // tells frontend to update its contents
 
-            socket.on('send-chat-message-bot', async (chatMessage: {
+            socket.on('send-chat-message-bot', async (
                 questionId : string,
-                message: string,
-                userId: string
-            }) => {     
+                progLang : string,
+                chatMessage: {
+                    message: string,
+                    userId: string
+                }
+            ) => {     
                 const message : MessageType = {
                     sender: userId,
                     role: 'user',
@@ -127,7 +130,7 @@ io.on("connection", socket => {
 
                 // when server receives a chat message from client, the AI bot will come up with
                 // a response, then socket transmits the answer back
-                const aiResponse = await makeReplyToChat(chatMessage.questionId, botChat._id);
+                const aiResponse = await makeReplyToChat(questionId, progLang, botChat._id);
                 console.log(aiResponse);
                 socket.emit("receive-chat-message-bot", aiResponse);
             });
