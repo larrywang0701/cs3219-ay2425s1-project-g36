@@ -56,11 +56,14 @@ export default function QuestionArea({questionId} : {questionId : string}) {
   const testOutputs = question.testOutputs
 
   const testCases = (() => {
-    // console.log(resultArray);
-    // console.log(isCodeRunning);
+    // this question does not have any testInputs yet
+    if (testInputs.length === 0) {
+      return <div>this question does not have any testInputs</div>
+    }
 
-    if (testInputs.length === 0 || testInputs.length !== testOutputs.length) {
-      return null; // Sanity check, shouldn't happen
+    // sanity check, shouldn't happen
+    if (testInputs.length !== testOutputs.length) {
+      return null; 
     }
 
     if (isCodeRunning) {
@@ -105,7 +108,7 @@ export default function QuestionArea({questionId} : {questionId : string}) {
     }
 
     const testCasesPassed = resultArray.map(
-      (result, index) => result === testOutputs[index]
+      (result, index) => resultArray[index] === testOutputs[index]
     );
 
     return (
