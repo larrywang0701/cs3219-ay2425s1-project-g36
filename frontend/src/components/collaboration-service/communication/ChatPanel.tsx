@@ -7,6 +7,7 @@ import { ArrowDownIcon, Cross1Icon, EnterFullScreenIcon, ExitFullScreenIcon, Tra
 import ChatBubble from "./ChatBubble";
 import { Input } from "@/components/ui/input";
 import { SendIcon } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 /**
  * Creates a chat panel interface, with the following props:
@@ -23,9 +24,10 @@ import { SendIcon } from "lucide-react";
  * 
  * @returns The chat panel interface.
  */
-export default function ChatPanel({ chatMessages, setChatMessages, otherUserName, isShown, onAddChatMessage, onClose, questionId, isBot = false } : { 
+export default function ChatPanel({ chatMessages, setChatMessages, onShare, otherUserName, isShown, onAddChatMessage, onClose, questionId, isBot = false } : { 
   chatMessages : ChatMessage[],
   setChatMessages : React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+  onShare : (newMessage: ChatMessage) => void,
   otherUserName : string, 
   isShown : boolean,
   onAddChatMessage : () => void, 
@@ -79,6 +81,29 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
       addChatMessage({message: messageInInputBox, isSelf: true});
       setMessageInInputBox("");
       window.setTimeout(chatMessageContainerScrollToButtom, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
+    }
+
+    const shareChatMessage = (message : string) => {
+
+      // invalid socket or no message to send
+      if (socket === null) return;
+      
+      if (isBot) {
+        socket.emit("send-chat-message-user", {message: message, userId: auth.id});
+      
+        onShare({ message: message, isSelf: true });
+      } else {
+        const progLang = codeEditingAreaState.currentlySelectedLanguage.name;
+
+        console.log("sent to bot question ID", questionId);
+        socket.emit("send-chat-message-bot", questionId, progLang, {message: message, userId: auth.id});
+      
+        onShare({ message: message, isSelf: true });
+      }
+
+      toast({
+        description: "Successfully shared message"
+      });
     }
 
     // Clears the chat messages at frontend (inside the chatting panel)
@@ -152,7 +177,17 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
               className="w-full h-[calc(100%-5.5rem)] overflow-y-auto"
             >
               <div className="flex flex-col">
-                {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} userName={chatMessage.isSelf ? auth.username : otherUserName} isSelf={chatMessage.isSelf}/>)}
+                {
+                  chatMessages.map((chatMessage, index) => (
+                    <ChatBubble key={`chat_bubble_${index}`} 
+                      text={chatMessage.message}
+                      userName={chatMessage.isSelf ? auth.username : otherUserName}
+                      isSelf={chatMessage.isSelf}
+                      isBot={ isBot }
+                      onShare={ () => shareChatMessage(chatMessage.message) }
+                    />
+                  ))
+                }
               </div>
               {displayGoToBottomButton && 
                 (

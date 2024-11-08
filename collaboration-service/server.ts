@@ -123,10 +123,14 @@ io.on("connection", socket => {
                     content: chatMessage.message
                 } as MessageType;
 
-                botChat.messages.push(message);
 
-                // save message
-                await botChat.save();
+                // get most updated messages
+                const latestBotChat = await ChatModel.findById(botChat._id);
+
+                if (latestBotChat) {
+                    const latestMessages = latestBotChat.messages;
+                    await ChatModel.findByIdAndUpdate(botChat._id, { messages: [...latestMessages, message] });
+                }
 
                 // when server receives a chat message from client, the AI bot will come up with
                 // a response, then socket transmits the answer back
@@ -137,8 +141,7 @@ io.on("connection", socket => {
 
             // websocket handler to clear chat
             socket.on('clear-chat-bot', async () => {
-                botChat.messages = [];
-                await botChat.save();
+                await ChatModel.findByIdAndUpdate(botChat._id, { messages: [] });
             });
         }
 
@@ -153,10 +156,13 @@ io.on("connection", socket => {
                     content: chatMessage.message
                 } as MessageType;
 
-                userChat.messages.push(message);
+                // get most updated messages
+                const latestUserChat = await ChatModel.findById(userChat._id);
 
-                // save message
-                await userChat.save();
+                if (latestUserChat) {
+                    const latestMessages = latestUserChat.messages;
+                    await ChatModel.findByIdAndUpdate(userChat._id, { messages: [...latestMessages, message] });
+                }
 
                 // when server receives a chat message from client, server will broadcast the chat message
                 socket.broadcast.to(roomId).emit("receive-chat-message-user", chatMessage)
@@ -164,8 +170,7 @@ io.on("connection", socket => {
 
             // websocket handler to clear chat
             socket.on('clear-chat-user', async () => {
-                userChat.messages = [];
-                await userChat.save();
+                await ChatModel.findByIdAndUpdate(userChat._id, { messages: [] });
             });
         }
     });

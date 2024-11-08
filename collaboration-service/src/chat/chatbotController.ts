@@ -75,9 +75,7 @@ export async function makeReplyToChat(questionId : string, progLang : string, ch
         content: replyMessage
     } as MessageType;
 
-    chat.messages.push(newMessage);
-
-    await chat.save();
+    await ChatModel.findByIdAndUpdate(chatId, { messages: [...chat.messages, newMessage] });
 
     return replyMessage;
 }

@@ -89,11 +89,12 @@ export default function ChattingOverlay({roomId, otherUserName, questionId} : {r
     <>
       <div className="fixed inset-0 pointer-events-none z-50">
         <ChatPanel 
-          questionId={ null }
+          questionId={ questionId }
           chatMessages={ chatMessages }
           setChatMessages={ setChatMessages }
           otherUserName={ otherUserName } 
           isShown={ displayChattingPanel }
+          onShare={ (newMessage : ChatMessage) => setChatMessagesBot([...chatMessagesBot, newMessage]) }
           onAddChatMessage={ () => {
             if(!displayChattingPanel) {
               setHasUnreadMessages(true);
@@ -114,6 +115,7 @@ export default function ChattingOverlay({roomId, otherUserName, questionId} : {r
           setChatMessages={ setChatMessagesBot }
           otherUserName="PeerPrepBot" 
           isShown={ displayChattingPanelBot }
+          onShare={ (newMessage : ChatMessage) => setChatMessages([...chatMessages, newMessage]) }
           onAddChatMessage={ () => {} }
           onClose={ () => {
             // close panel
