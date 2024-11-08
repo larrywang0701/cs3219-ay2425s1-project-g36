@@ -15,7 +15,7 @@ import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 interface ViewQuestionPageProps {
-  hasCode?: boolean; // Make it optional in the type, so TypeScript won’t complain if it’s not passed
+  hasCode?: boolean; 
 }
 
 interface CodeDisplay {
@@ -25,7 +25,6 @@ interface CodeDisplay {
 
 export default function ViewQuestionPage({ hasCode = false } : ViewQuestionPageProps) {
   const params = useParams();
-  console.log(params)
   const id = params.id as string;
   const { auth } = useAuth();
 
@@ -100,8 +99,8 @@ export default function ViewQuestionPage({ hasCode = false } : ViewQuestionPageP
             </h2>
             <div className="flex justify-center">
               <Button className="btnblack">
-                <Link to="/questions">
-                    Go back to question list
+                <Link to={hasCode ? "/history" : "/question"}>
+                    Go back to {hasCode ? "history" : "question"} list
                 </Link>
               </Button>
             </div>

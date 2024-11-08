@@ -6,6 +6,8 @@ interface IHistory extends Document {
     questionId: number
     language: string
     code: string
+    runtime: string
+    status: string
     // Add more fields as needed
 }
 
@@ -29,6 +31,14 @@ const historySchema = new mongoose.Schema(
             required: true,
         },
         code: {
+            type: String,
+            required: true,
+        },
+        runtime: {
+            type: String,
+            required: true,
+        },
+        status: {
             type: String,
             required: true,
         },

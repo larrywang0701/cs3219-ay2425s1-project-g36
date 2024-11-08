@@ -15,6 +15,9 @@ export interface Attempt {
   questionId: number;
   language: string;
   code: string;
+  runtime: string,
+  // Attempted means the solution passed some of the test cases
+  status: "Attempted" | "Accepted",
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 5;
@@ -26,7 +29,7 @@ export default function AttemptedHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
 
   const { auth } = useAuth();
 
@@ -72,7 +75,6 @@ export default function AttemptedHistoryPage() {
 
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedQuestions = attemptedQuestions.slice(startIdx, startIdx + itemsPerPage);
-  console.log(paginatedQuestions)
 
   return (
     <>
@@ -86,29 +88,43 @@ export default function AttemptedHistoryPage() {
                 <TableRow>
                   <TableHead>Time Submitted</TableHead>
                   <TableHead>Question</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Runtime</TableHead>
                   <TableHead>Language</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {paginatedQuestions.map((question) => (
-                  <TableRow key={question.id} className="border-b border-black-300 h-16">
-                    <TableCell className="px-4 py-1 text-muted-foreground">
-                      {formatDistanceToNow(new Date(question.timeSubmitted), { addSuffix: true })}
-                    </TableCell>
-                    <TableCell className="px-4 py-1">
-                      <Link
-                        to={`/attempts/${question.questionId}`}
-                        className="text-blue-500 hover:text-blue-700 hover:underline"
-                      >
-                        {question.questionTitle}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="px-4 py-1 text-muted-foreground">
-                      {question.language}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+              {attemptedQuestions.length >= 1 ? (
+                <TableBody>
+                  {paginatedQuestions.map((question) => (
+                    <TableRow key={question.id} className="border-b border-black-300 h-16">
+                      <TableCell className="px-4 py-1 text-muted-foreground">
+                        {formatDistanceToNow(new Date(question.timeSubmitted), { addSuffix: true })}
+                      </TableCell>
+                      <TableCell className="px-4 py-1">
+                        <Link
+                          to={`/attempts/${question.questionId}`}
+                          className="text-blue-500 hover:text-blue-700 hover:underline"
+                        >
+                          {question.questionTitle}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="px-4 py-1 text-muted-foreground">
+                        {question.status}
+                      </TableCell>
+                      <TableCell className="px-4 py-1 text-muted-foreground">
+                        {question.runtime}
+                      </TableCell>
+                      <TableCell className="px-4 py-1 text-muted-foreground">
+                        {question.language}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              ) : (
+                <>
+                  {"No question attempted yet"}
+                </>
+              )}
             </Table>
 
             <div className="mt-4 flex justify-between items-center flex-wrap">
@@ -151,77 +167,3 @@ export default function AttemptedHistoryPage() {
     </>
   );
 }
-
-
-          {/* <div className="lg:w-1/4 space-y-6 ml-auto" style={{ minWidth: "250px", maxWidth: "300px" }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  Submission Calendar
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  className="rounded-md border w-full"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <BarChart3 className="mr-2 h-5 w-5" />
-                  Questions Attempted
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Total Attempted</span>
-                    <span className="text-sm text-muted-foreground">
-                      {attemptedQuestions.length}
-                    </span>
-                  </div>
-                  <Progress value={100} className="h-2" />
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Accepted</span>
-                      <span className="text-sm text-muted-foreground">
-                        {attemptedQuestions.accepted}/{attemptedQuestions.total}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(attemptedQuestions.accepted / attemptedQuestions.total) * 100}
-                      className="h-2 bg-green-200"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Wrong Answer</span>
-                      <span className="text-sm text-muted-foreground">
-                        {attemptedQuestions.wrongAnswer}/{attemptedQuestions.total}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(attemptedQuestions.wrongAnswer / attemptedQuestions.total) * 100}
-                      className="h-2 bg-red-200"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div> 
-          
-            // This would come from your data source in a real application
-  // const stats = {
-  //   total: { completed: 297, total: 3339 },
-  //   categories: [
-  //     { name: "Easy", completed: 101, total: 831, color: "bg-green-500" },
-  //     { name: "Medium", completed: 169, total: 1748, color: "bg-yellow-500" },
-  //     { name: "Hard", completed: 27, total: 760, color: "bg-red-500" },
-  //   ],
-  // }*/}
