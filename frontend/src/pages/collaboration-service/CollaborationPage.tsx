@@ -2,6 +2,7 @@ import LayoutManager from "@/components/collaboration-service/LayoutManager";
 import CodeEditingArea from "@/components/collaboration-service/CodeEditingArea";
 import QuestionArea from "@/components/collaboration-service/QuestionArea";
 import PageTitle from "@/components/common/PageTitle";
+import ChattingOverlay from "@/components/collaboration-service/communication/ChattingOverlay";
 import { useEffect, useState } from "react";
 import { fetchQuestion } from "@/api/question-service/QuestionService";
 import MainContainer from "@/components/common/MainContainer";
@@ -175,6 +176,7 @@ export default function CollaborationPage() {
           codeEditingArea={<CodeEditingArea roomId={roomId}/>}
           questionArea={<QuestionArea questionId={questionId || "72"}/>}
         />
+        <ChattingOverlay roomId={roomId} otherUserName={matchedUser.username} questionId={questionId} />
         <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
         <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>

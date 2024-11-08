@@ -99,28 +99,34 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
     socket.emit('send-changes', rawCode);
   }
 
+  const hasGetDocumentEmitted = useRef(false);
+
   // upon entering the collaboration page, socket retrieves the document from db (if exists)
   // or creates a new one. Then, load the raw code to the code editor.
   useEffect(() => {
     if (rawCode !== "") return; // To make sure that the code in the editor doesn't lost when the user switches view in the collaboration frontend
-    const retryTimeout = 200; // Because the websocket requires time to connect, so here the frontend will retry again and again based on the timeout when the websocket is not connect, to make sure that the frontend will wait for the websocket to connect before getting code from backend.
-    const getCodeFromBackend = () => {
-      if (socket === null || !socket.connected) {
-        window.setTimeout(getCodeFromBackend, retryTimeout);
-        return;
-      }
-      socket.on('load-document', rawCode => {
-        console.log("code: " + (rawCode===undefined ? "undefined" : rawCode));
-        setRawCode(rawCode);
-      })
-      socket.emit('get-document', roomId)
+    if (socket === null || !socket.connected) return;
+    socket.on('load-document', rawCode => {
+      console.log("code: " + (rawCode===undefined ? "undefined" : rawCode));
+      setRawCode(rawCode);
+    })  
+    
+    // Emit only if hasn't been emitted already
+    if (!hasGetDocumentEmitted.current) {
+      console.log("invoked");
+      socket.emit('get-document', roomId);
+      hasGetDocumentEmitted.current = true;
     }
-    window.setTimeout(getCodeFromBackend, retryTimeout);
+  
+    // Cleanup function to avoid memory leaks
+    return () => {
+      socket.off('load-document');
+    };
   }, [socket, roomId])
 
   // saves changes to db every 2 seconds
   useEffect(() => {
-    if (socket === null) return
+    if (socket === null) return;
 
     const handler = setTimeout(() => {
       socket.emit('save-document', rawCode)
