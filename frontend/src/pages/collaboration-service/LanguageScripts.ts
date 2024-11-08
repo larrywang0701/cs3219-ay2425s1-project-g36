@@ -37,7 +37,7 @@ const javascriptAppendScript = `
   lines.forEach(input => func(input))
 });
 `
-
+// only python3 and js code can be run against test cases (for now)
 export const formatRawCode = (rawCode: string, language: string) => {
     if (language === 'python3') {
         const formattedRawCode = rawCode
@@ -58,6 +58,7 @@ export const formatRawCode = (rawCode: string, language: string) => {
         return combinedScript;
     }
 
-    return ""
+    // for all languagues that are currently not supported, simply return the rawCode
+    return rawCode
     
 }
