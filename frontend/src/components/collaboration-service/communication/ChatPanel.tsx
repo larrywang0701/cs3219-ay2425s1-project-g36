@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChatMessage, ServerSideChatMessage } from "./ChattingOverlay";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowDownIcon, Cross1Icon, TrashIcon } from "@radix-ui/react-icons";
+import { ArrowDownIcon, Cross1Icon, EnterFullScreenIcon, ExitFullScreenIcon, TrashIcon } from "@radix-ui/react-icons";
 import ChatBubble from "./ChatBubble";
 import { Input } from "@/components/ui/input";
 import { SendIcon } from "lucide-react";
@@ -23,7 +23,7 @@ import { SendIcon } from "lucide-react";
  * 
  * @returns The chat panel interface.
  */
-export default function ChatPanel({ chatMessages, setChatMessages, otherUserName, isShown, onAddChatMessage, onClose, questionId, isBot = false,  } : { 
+export default function ChatPanel({ chatMessages, setChatMessages, otherUserName, isShown, onAddChatMessage, onClose, questionId, isBot = false } : { 
   chatMessages : ChatMessage[],
   setChatMessages : React.Dispatch<React.SetStateAction<ChatMessage[]>>,
   otherUserName : string, 
@@ -35,10 +35,11 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
 }) {
     const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(false);
     const [messageInInputBox, setMessageInInputBox] = useState("");
+    const [fullScreenMode, setFullScreenMode] = useState(false);
 
     const messageContainerRef = useRef<HTMLDivElement>(null);
     
-    const { socketState } = useCollaborationContext();
+    const { codeEditingAreaState, socketState } = useCollaborationContext();
     const { socket } = socketState;
 
     const { auth } = useAuth();
@@ -53,29 +54,31 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
     // Scroll the chat message container to the bottom (go to the latest message)
     // This will be called when the user clicks "go to bottom" button or the (local) user sends a new message.
     const chatMessageContainerScrollToButtom = () => {
-        if (!messageContainerRef.current) {
-            return;
-        }
-        messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight - messageContainerRef.current.clientHeight;
+      if (!messageContainerRef.current) {
+        return;
+      }
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight - messageContainerRef.current.clientHeight;
     }
 
     // Send chat message in the input box
     const sendChatMessage = () => {
 
-        // invalid socket or no message to send
-        if (socket === null) return;
-        if (messageInInputBox === "") return;
-        
-        if (!isBot) {
-            socket.emit("send-chat-message-user", {message: messageInInputBox, userId: auth.id});
-        } else {
-            console.log("sent to bot question ID", questionId);
-            socket.emit("send-chat-message-bot", {questionId: questionId, message: messageInInputBox, userId: auth.id});
-        }
-        
-        addChatMessage({message: messageInInputBox, isSelf: true});
-        setMessageInInputBox("");
-        window.setTimeout(chatMessageContainerScrollToButtom, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
+      // invalid socket or no message to send
+      if (socket === null) return;
+      if (messageInInputBox === "") return;
+      
+      if (!isBot) {
+        socket.emit("send-chat-message-user", {message: messageInInputBox, userId: auth.id});
+      } else {
+        const progLang = codeEditingAreaState.currentlySelectedLanguage.name;
+
+        console.log("sent to bot question ID", questionId);
+        socket.emit("send-chat-message-bot", questionId, progLang, {message: messageInInputBox, userId: auth.id});
+      }
+      
+      addChatMessage({message: messageInInputBox, isSelf: true});
+      setMessageInInputBox("");
+      window.setTimeout(chatMessageContainerScrollToButtom, 10); // Use a very short delay to give time for the browser to automatically recalculate the container's dimensions
     }
 
     // Clears the chat messages at frontend (inside the chatting panel)
@@ -130,13 +133,24 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
 
     return isShown ? (
         <>
-          <div className="absolute w-1/5 h-1/2 min-w-[300px] p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
-            <div className="flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg">
-              <Button className="bg-gray-300 hover:bg-red-200" onClick={() => clearChatMessages()} title="Clear chat messages"><TrashIcon/></Button>
-              <p className="text-white">Chat with {otherUserName}</p>
+          <div className={ "absolute min-w-[325px] left-[50px] bottom-[50px] p-3 border rounded-lg bg-gray-200 pointer-events-auto " + (fullScreenMode ? "w-[90%] h-[90%]" : "w-1/5 h-1/2") }>
+            <div className={ "flex flex-row justify-between items-center w-[calc(100%+1.5rem)] bg-gray-500 -ml-3 -mr-3 -mt-3 rounded-lg" + (fullScreenMode ? " gap-2" : "") }>
+              <Button className="bg-red-300 hover:bg-red-200" onClick={() => clearChatMessages()} title="Clear chat messages"><TrashIcon/></Button>
+              <Button 
+                className="bg-blue-300 hover:bg-blue-200" 
+                onClick={() => setFullScreenMode(!fullScreenMode)}
+                title={ (fullScreenMode ? "Exit" : "Enter") + " full screen mode" }
+              >
+                {fullScreenMode ? <ExitFullScreenIcon /> : <EnterFullScreenIcon/>}
+              </Button>
+              <p className="text-white flex-1 text-center">Chat with {otherUserName}</p>
               <Button className="bg-red-300 hover:bg-red-200" onClick={ onClose } title="Close panel"><Cross1Icon/></Button>
             </div>
-            <div ref={messageContainerRef} onScroll={() => calculateShouldDisplayGoToBottomButton()} className="w-full h-[calc(100%-5.5rem)] overflow-y-auto">
+            <div 
+              ref={messageContainerRef}
+              onScroll={() => calculateShouldDisplayGoToBottomButton()} 
+              className="w-full h-[calc(100%-5.5rem)] overflow-y-auto"
+            >
               <div className="flex flex-col">
                 {chatMessages.map((chatMessage, index) => <ChatBubble key={`chat_bubble_${index}`} text={chatMessage.message} userName={chatMessage.isSelf ? auth.username : otherUserName} isSelf={chatMessage.isSelf}/>)}
               </div>
@@ -155,5 +169,5 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
             </form>
           </div>
         </>
-    ) : <></>;
+      ) : <></>;
 }
