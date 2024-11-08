@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Difficulty from "../question-service/Difficulty";
 import Markdown from "react-markdown";
 import { CheckCircle, XCircle } from 'lucide-react'
+import CustomMarkdown from "../common/CustomMarkdown";
 
 export const PLACEHOLDER_LOADING_QUESTION : Question = {
   id: "loading",
@@ -148,10 +149,10 @@ export default function QuestionArea({questionId} : {questionId : string}) {
             <div className="mx-8"><Difficulty type={question.difficulty} /></div>
           </div>
           <hr className="mt-2 mb-4"/>
-          <div className="text-base prose">
-            <Markdown>
+          <div className="text-base">
+            <CustomMarkdown>
               {question.description}
-            </Markdown>
+            </CustomMarkdown>
           </div>
           <hr className="mt-4 mb-4" />
           <div className="text-lg font-semibold">Code Execution Result:</div>
