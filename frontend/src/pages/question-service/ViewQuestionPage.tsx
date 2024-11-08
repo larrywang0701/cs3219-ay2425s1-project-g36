@@ -7,6 +7,7 @@ import Difficulty from "@/components/question-service/Difficulty";
 import { Button } from "@/components/ui/button";
 import MainContainer from "@/components/common/MainContainer";
 import { Loader2 } from "lucide-react";
+import Markdown from "react-markdown";
 
 export default function ViewQuestionPage() {
   const params = useParams();
@@ -82,7 +83,11 @@ export default function ViewQuestionPage() {
               </div>
               <div>
                 <h3 className="text-lg mb-2 underline">Description</h3>
-                <p>{question.description}</p>
+                <div className="prose">
+                  <Markdown>
+                    {question.description}
+                  </Markdown>
+                </div>
               </div>
             </div>
             <div className="flex justify-center mt-6">
