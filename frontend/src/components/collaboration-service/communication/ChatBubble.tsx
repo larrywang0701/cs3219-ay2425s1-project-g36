@@ -1,4 +1,5 @@
 import { PersonIcon } from "@radix-ui/react-icons";
+import Markdown from 'react-markdown';
 
 /**
  * The component for a single chat bubble
@@ -15,7 +16,11 @@ export default function ChatBubble({text, userName, isSelf} : {text: string, use
         <div className={`mt-3 flex flex-col items-${isSelf ? "end" : "start"}`}>
           <div className="text-right text-sm">{userName}</div>
           <div className={`rounded-lg max-w-full p-2 text-sm overflow-hidden bg-${isSelf ? "green-200" : "white"} break-words text-${isSelf ? "right" : "left"}`}>
-            {text}
+            <div className="prose">
+              <Markdown>
+                {text}
+              </Markdown>
+            </div>
           </div>
         </div>
       </div>

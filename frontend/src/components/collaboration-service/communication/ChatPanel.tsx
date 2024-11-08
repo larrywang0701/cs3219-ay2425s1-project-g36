@@ -35,6 +35,7 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
 }) {
     const [displayGoToBottomButton, setDisplayGoToBottomButton] = useState(false);
     const [messageInInputBox, setMessageInInputBox] = useState("");
+
     const messageContainerRef = useRef<HTMLDivElement>(null);
     
     const { socketState } = useCollaborationContext();
@@ -126,7 +127,7 @@ export default function ChatPanel({ chatMessages, setChatMessages, otherUserName
             })
         }
     })
-    
+
     return isShown ? (
         <>
           <div className="absolute w-1/5 h-1/2 min-w-[300px] p-3 border rounded-lg bg-gray-200 pointer-events-auto" style={{left: "50px", bottom: "50px"}}>
