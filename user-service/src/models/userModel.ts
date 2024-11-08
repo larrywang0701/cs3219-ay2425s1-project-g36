@@ -1,5 +1,5 @@
 import mongoose, { Document } from "mongoose"
-import { historySchema } from "./historyModel";
+import AttemptHistory, { attemptHistorySchema, IAttemptHistory } from "./attemptHistoryModel";
 
 interface IUser extends Document {
     username: string
@@ -10,7 +10,7 @@ interface IUser extends Document {
     passwordResetToken?: string
     passwordResetTokenExpiration?: Date
     isAdmin: boolean
-    attemptHistory: History[]
+    attemptHistory: IAttemptHistory[]
     // Add more fields as needed
 }
 
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
             default: false
         },
         attemptHistory: {
-            type: [historySchema], 
+            type: [attemptHistorySchema], 
         }
     },
     {

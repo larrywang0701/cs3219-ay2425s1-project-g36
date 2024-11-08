@@ -9,7 +9,7 @@ import PageHeader from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { getUserById } from "@/api/user-service/UserService";
+import { getUserById, updateUserAttemptHistory } from "@/api/user-service/UserService";
 import { getCollabInfo, isUserInCollabStore, removeUserFromCollabStore } from "@/api/collaboration-service/CollaborationService";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { executeCodeInSandboxEnvironment, getCreditsSpent } from "@/api/collaboration-service/CollaborationService";
@@ -19,11 +19,11 @@ export default function CollaborationPage() {
   const [roomId, setRoomId] = useState<string | null>(null)
   const [matchedUserId, setMatchedUserId] = useState<string | null>(null)
   const [questionId, setQuestionId] = useState<string | null>(null)
+  const [isUserLoading, setIsUserLoading] = useState(true)
+  const [isQuestionLoading, setIsQuestionLoading] = useState(true)
 
   const { auth } = useAuth()
   const navigate = useNavigate();
-  const [isUserLoading, setIsUserLoading] = useState(true)
-  const [isQuestionLoading, setIsQuestionLoading] = useState(true)
 
   const { codeEditingAreaState, matchedUserState, questionAreaState } = useCollaborationContext();
   
@@ -132,6 +132,15 @@ export default function CollaborationPage() {
   const endSession = async () => {
     try {
       await removeUserFromCollabStore(auth.id)
+      console.log("test")
+      console.log(questionId)
+      await updateUserAttemptHistory(
+        auth.id,
+        questionId!, 
+        question.title, 
+        rawCode, 
+        currentlySelectedLanguage.name, 
+      );
       navigate("/matching/start")
     } catch (error) {
       console.error(error)

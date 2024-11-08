@@ -7,7 +7,8 @@ import {
     updateUser, 
     deleteUser, 
     updateUserPrivilege,
-    getUserAttempts
+    getUserAttempts,
+    updateUserQuestionAttempt
 } from '../controllers/userController';
 import { protectRoute, adminProtectRoute } from '../middlewares/protectRoute';
 
@@ -30,6 +31,8 @@ router.patch("/update", protectRoute, updateUser);
 router.delete("/:id", protectRoute, deleteUser);
 
 router.get("/history/:id", protectRoute, getUserAttempts);
+
+router.patch("/history/:id", protectRoute, updateUserQuestionAttempt);
 
 /**
  * Admin-protected routes

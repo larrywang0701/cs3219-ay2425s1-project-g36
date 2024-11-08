@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuContent } from "@/components/ui/dropdown-menu";
 import PageHeader from "@/components/common/PageHeader";
 import { getUserAttempts } from "@/api/user-service/UserService";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
+import MainContainer from "@/components/common/MainContainer";
 
 export interface Attempt {
   id: string;
@@ -15,9 +16,6 @@ export interface Attempt {
   questionId: number;
   language: string;
   code: string;
-  runtime: string,
-  // Attempted means the solution passed some of the test cases
-  status: "Attempted" | "Accepted",
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 5;
@@ -32,6 +30,7 @@ export default function AttemptedHistoryPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
 
   const { auth } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const loadAttemptHistory = async () => {
@@ -55,7 +54,7 @@ export default function AttemptedHistoryPage() {
     };
 
     loadAttemptHistory();
-  }, [itemsPerPage]);
+  }, [location, itemsPerPage]); // Add itemsPerPage to dependencies to recalculate pages when it changes
 
   const handlePreviousPage = () => {
     setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
@@ -76,6 +75,8 @@ export default function AttemptedHistoryPage() {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedQuestions = attemptedQuestions.slice(startIdx, startIdx + itemsPerPage);
 
+  const singlePage = attemptedQuestions.length <= itemsPerPage;
+
   return (
     <>
       <PageHeader />
@@ -86,10 +87,9 @@ export default function AttemptedHistoryPage() {
             <Table className="rounded-2xl">
               <TableHeader className="bg-black-100">
                 <TableRow>
+                  <TableHead>Question ID</TableHead>
                   <TableHead>Time Submitted</TableHead>
                   <TableHead>Question</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Runtime</TableHead>
                   <TableHead>Language</TableHead>
                 </TableRow>
               </TableHeader>
@@ -97,6 +97,9 @@ export default function AttemptedHistoryPage() {
                 <TableBody>
                   {paginatedQuestions.map((question) => (
                     <TableRow key={question.id} className="border-b border-black-300 h-16">
+                      <TableCell className="px-4 py-1 text-muted-foreground">
+                        {question.questionId}
+                      </TableCell>
                       <TableCell className="px-4 py-1 text-muted-foreground">
                         {formatDistanceToNow(new Date(question.timeSubmitted), { addSuffix: true })}
                       </TableCell>
@@ -109,25 +112,21 @@ export default function AttemptedHistoryPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="px-4 py-1 text-muted-foreground">
-                        {question.status}
-                      </TableCell>
-                      <TableCell className="px-4 py-1 text-muted-foreground">
-                        {question.runtime}
-                      </TableCell>
-                      <TableCell className="px-4 py-1 text-muted-foreground">
                         {question.language}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               ) : (
-                <>
-                  {"No question attempted yet"}
-                </>
+                <MainContainer className="px-4 text-center gap-3 flex flex-col">
+                  <h2 className="text-2xl">
+                    No questions attempted yet...
+                  </h2>
+                </MainContainer>
               )}
             </Table>
-
-            <div className="mt-4 flex justify-between items-center flex-wrap">
+            {attemptedQuestions.length >= 1 ? (
+              <div className="mt-4 flex justify-between items-center flex-wrap">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-32">
@@ -152,15 +151,16 @@ export default function AttemptedHistoryPage() {
               </DropdownMenu>
 
               <div className="flex items-center space-x-2 mt-2 lg:mt-0">
-                <span>Page {currentPage} of {totalPages}</span>
-                <Button onClick={handlePreviousPage} disabled={currentPage === 1}>
+                <span>Page {singlePage ? 1 : currentPage} of {singlePage ? 1 : totalPages}</span>
+                <Button onClick={handlePreviousPage} disabled={singlePage || currentPage === 1}>
                   Previous
                 </Button>
-                <Button onClick={handleNextPage} disabled={currentPage === totalPages}>
+                <Button onClick={handleNextPage} disabled={singlePage || currentPage === totalPages}>
                   Next
                 </Button>
               </div>
             </div>
+            ) : null }
           </div>
         </div>
       </div>
