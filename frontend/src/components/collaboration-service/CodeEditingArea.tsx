@@ -291,7 +291,7 @@ export default function CodeEditingArea({ roomId }: { roomId: string }) {
           mode={currentlySelectedLanguage.aceEditorModeName}
           onFocus={()=>{setDisplayLanguageSelectionPanel(false);setDisplayEditorSettingsPanel(false)}}
           width="100%"
-          height="800px"
+          height="600px"
           fontSize={editorSettings.fontSize}
           wrapEnabled={editorSettings.wrap}
           theme={editorSettings.theme.internalName}
