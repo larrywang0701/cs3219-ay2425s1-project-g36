@@ -3,7 +3,9 @@ import { fetchQuestionById } from "@/api/question-service/QuestionService";
 import { useCollaborationContext } from "@/contexts/CollaborationContext";
 import { useEffect, useState } from "react";
 import Difficulty from "../question-service/Difficulty";
+import Markdown from "react-markdown";
 import { CheckCircle, XCircle } from 'lucide-react'
+import CustomMarkdown from "../common/CustomMarkdown";
 
 export const PLACEHOLDER_LOADING_QUESTION : Question = {
   id: "loading",
@@ -146,8 +148,12 @@ export default function QuestionArea({questionId} : {questionId : string}) {
             <div className="text-3xl font-bold">{question.title}</div>
             <div className="mx-8"><Difficulty type={question.difficulty} /></div>
           </div>
-          <hr className="mt-2 mb-4" />
-          <div className="text-base">{question.description}</div>
+          <hr className="mt-2 mb-4"/>
+          <div className="text-base">
+            <CustomMarkdown>
+              {question.description}
+            </CustomMarkdown>
+          </div>
           <hr className="mt-4 mb-4" />
           <div className="text-lg font-semibold">Code Execution Result:</div>
           <div className="h-[400px] w-full rounded-md border bg-black">

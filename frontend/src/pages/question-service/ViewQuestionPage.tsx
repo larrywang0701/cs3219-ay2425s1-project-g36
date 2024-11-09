@@ -10,9 +10,11 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserAttempts } from "@/api/user-service/UserService";
 import { Attempt } from "../AttemptedHistoryPage";
-import { parseQuestionId} from "../../lib/utils"
+import { parseQuestionId } from "../../lib/utils"
 import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import Markdown from "react-markdown";
+import CustomMarkdown from "@/components/common/CustomMarkdown";
 
 interface ViewQuestionPageProps {
   hasCode?: boolean; 
@@ -138,7 +140,9 @@ export default function ViewQuestionPage({ hasCode = false } : ViewQuestionPageP
               </div>
               <div>
                 <h3 className="text-lg mb-2 underline">Description</h3>
-                <p>{question.description}</p>
+                <CustomMarkdown>
+                  {question.description}
+                </CustomMarkdown>
               </div>
             </div>
             
