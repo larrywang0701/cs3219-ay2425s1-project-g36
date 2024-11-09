@@ -1,3 +1,4 @@
+import CustomMarkdown from "@/components/common/CustomMarkdown";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import Markdown from 'react-markdown';
@@ -27,11 +28,9 @@ export default function ChatBubble({text, userName, isSelf, isBot, onShare} : {t
             { showShare ? <Link to="#" onClick={ onShare }>Share to { isBot ? "other user" : "PeerPrepBot" }</Link> : <></> }
           </div>
           <div className={`rounded-lg max-w-full p-2 text-sm overflow-hidden bg-${isSelf ? "green-200" : "white"} break-words text-left`}>
-            <div className="prose">
-              <Markdown>
-                {text}
-              </Markdown>
-            </div>
+            <CustomMarkdown>
+              {text}
+            </CustomMarkdown>
           </div>
         </div>
       </div>
