@@ -194,10 +194,14 @@ export default function CollaborationPage() {
         <LayoutManager
           codeEditingArea={<CodeEditingArea roomId={roomId}/>}
           questionArea={<QuestionArea questionId={questionId || "72"}/>}
+          otherButtons={
+            <div className="flex gap-2">   
+              <Button variant="destructive" className="btnred text-white" onClick={endSession}>End session</Button>
+              <Button variant="outline" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
+            </div>
+          }
         />
         <ChattingOverlay roomId={roomId} otherUserName={matchedUser.username} questionId={questionId} />
-        <Button variant="destructive" className="btnred mt-16 ml-auto text-white" onClick={endSession}>End session</Button>
-        <Button variant="outline" className="ml-6" onClick={handleRunCode} disabled={isCodeRunning}>Run code</Button>
       </MainContainer>
     </>
   )
