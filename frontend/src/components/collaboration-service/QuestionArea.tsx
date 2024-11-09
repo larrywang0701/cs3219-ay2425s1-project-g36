@@ -57,7 +57,7 @@ export default function QuestionArea({questionId} : {questionId : string}) {
 
   // This whole function is rendered in the main return function
   const testCases = (() => {
-    // this question does not have any testInputs yet
+    // This question does not have any testInputs (intended for some questions)
     if (testInputs.length === 0) {
       return <div>this question does not have any testInputs</div>
     }
