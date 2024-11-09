@@ -114,24 +114,6 @@ export default function QuestionArea({questionId} : {questionId : string}) {
     // boolean to indicate if user has passed **all** test cases
     const passedAllTestCases = noOfTestCasesPassed === resultArray.length
 
-    const testResults = (() => {
-      if (passedAllTestCases) {
-        return (
-          <div className="flex items-center p-2 rounded">
-            <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-            <span>Test cases passed: {noOfTestCasesPassed} / {testOutputs.length}</span>
-          </div>
-        )
-      } else {
-        return (
-          <div className="flex items-center p-2 rounded">
-            <XCircle className="w-5 h-5 mr-2 text-red-600" />
-            <span>Test cases passed: {noOfTestCasesPassed} / {testOutputs.length}</span>
-          </div>
-        )
-      }
-    })()
-
     return (
       <div className="mt-4 border rounded-lg overflow-hidden">
         <div className={`p-4 ${
@@ -139,7 +121,13 @@ export default function QuestionArea({questionId} : {questionId : string}) {
         }`}>
           <div className="text-lg font-semibold mb-2">Test Case Results:</div>
           <div className="space-y-2">
-            {testResults}
+            <div className="flex items-center p-2 rounded">
+              {passedAllTestCases 
+                ? <CheckCircle className="w-5 h-5 mr-2 text-green-600" /> 
+                : <XCircle className="w-5 h-5 mr-2 text-red-600" />
+              }
+              <span>Test cases passed: {noOfTestCasesPassed} / {testOutputs.length}</span>
+            </div>
           </div>
         </div>
       </div>
