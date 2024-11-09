@@ -43,7 +43,7 @@ export async function createUser(req: Request, res: Response) {
     const newUser = new User({
       username,
       email,
-      password, //temp change
+      password: hashedPassword
     });
   
     if (newUser) {
