@@ -25,6 +25,7 @@ import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/mode-typescript";
 
 // Ace Editor Themes
+import "ace-builds/src-noconflict/theme-cloud9_night"
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/theme-github_dark";
 import "ace-builds/src-noconflict/theme-twilight";
